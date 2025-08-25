@@ -4,21 +4,26 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "start": "vite",
+    "start": "tauri dev",
+    "lint": "eslint .",
+    "format": "eslint . --fix",
     "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview",
-    "tauri": "tauri dev",
-    "lint": "eslint .",
-    "format": "eslint . --fix"
+    "serve": "vite preview"
   },
   "license": "MIT",
   "dependencies": {
+    "@kobalte/core": "^0.13.11",
     "@tailwindcss/vite": "^4.1.12",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "solid-js": "^1.9.3",
-    "tailwindcss": "^4.1.12"
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss": "^4.1.12",
+    "tailwindcss-animate": "^1.0.7",
+		"@solid-primitives/event-listener": "^2.3.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
