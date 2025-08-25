@@ -4,19 +4,19 @@ use tauri::{AppHandle, WebviewUrl, WebviewWindow, WebviewWindowBuilder, Wry};
 pub struct SnapOverlay;
 
 impl SnapOverlay {
-    pub async fn show(&self, app: &AppHandle<Wry>) -> tauri::Result<WebviewWindow> {
+    pub fn preload(&self, app: &AppHandle<Wry>) -> tauri::Result<WebviewWindow> {
         let window_builder = self
             .window_builder(app, "snap_overlay.html")
             .maximized(true)
             .fullscreen(false)
             .shadow(false)
-            .always_on_top(true)
+            .always_on_top(false)
             .content_protected(true)
             .skip_taskbar(true)
             .closable(true)
             .decorations(false)
             .transparent(true)
-            .visible(true);
+            .visible(false);
 
         let window = window_builder.build()?;
         Ok(window)

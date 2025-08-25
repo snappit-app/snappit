@@ -1,17 +1,14 @@
 import { createEventListenerMap } from "@solid-primitives/event-listener";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { onMount } from "solid-js";
 
 function SnapOverlay() {
-  const webview = getCurrentWebviewWindow();
-
-  function close() {
-    console.log(webview);
-    webview.close();
+  async function close() {
+    const overlay = await WebviewWindow.getByLabel("snap_overlay");
+    overlay?.hide();
   }
 
   onMount(() => {
-    console.log(webview);
     createEventListenerMap(window, {
       keydown: (e) => {
         if (e.key === "Escape") close();
@@ -19,7 +16,7 @@ function SnapOverlay() {
     });
   });
 
-  return <div class="h-full w-full bg-black opacity-30" />;
+  return <div class="h-full w-full bg-black opacity-50" />;
 }
 
 export default SnapOverlay;

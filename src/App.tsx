@@ -1,16 +1,22 @@
 import "./App.css";
 
-import { invoke } from "@tauri-apps/api/core";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 import { Button } from "@/components/ui/button";
 
 function App() {
-  const openOverlay = async () => {
-    await invoke("show_snap_overlay");
-  };
+  async function showOverlay() {
+    const overlay = await WebviewWindow.getByLabel("snap_overlay");
+    console.log(overlay);
+    if (overlay) {
+      await overlay.show();
+      await overlay.setFocus();
+    }
+  }
+
   return (
     <main class="container h-full flex justify-center items-center">
-      <Button onClick={() => openOverlay()}>click</Button>
+      <Button onClick={() => showOverlay()}>Snap</Button>
     </main>
   );
 }
