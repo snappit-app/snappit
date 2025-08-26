@@ -16,7 +16,9 @@ function SnapOverlay() {
     });
   });
 
-  return <div class="h-full w-full bg-black opacity-50" />;
+  return (
+    <div onPointerUp={() => close()} class="h-full w-full bg-black opacity-30 cursor-crosshair" />
+  );
 }
 
 export default SnapOverlay;
