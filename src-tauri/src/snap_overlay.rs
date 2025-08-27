@@ -1,8 +1,68 @@
-use std::path::PathBuf;
-use tauri::{AppHandle, WebviewUrl, WebviewWindow, WebviewWindowBuilder, Wry};
+use colored::Colorize;
+use tauri::{
+    AppHandle, Manager, PhysicalPosition, Position, WebviewUrl, WebviewWindow,
+    WebviewWindowBuilder, Wry,
+};
 pub struct SnapOverlay;
 
-pub fn set_window_level(window: tauri::Window, level: objc2_app_kit::NSWindowLevel) {
+impl SnapOverlay {
+    pub fn show(&self, app: &AppHandle<Wry>) -> tauri::Result<()> {
+        if let Some(monitor) = app.primary_monitor()? {
+            let physical_size = monitor.size().clone();
+
+            log::info!("{} {:?}", "monitor size".blue(), physical_size);
+            if let Some(overlay) = app.get_webview_window("snap_overlay") {
+                overlay.set_size(physical_size)?;
+                overlay.set_position(Position::Physical(PhysicalPosition { x: 0, y: 0 }))?;
+
+                #[cfg(target_os = "macos")]
+                set_window_level(
+                    overlay.as_ref().window(),
+                    objc2_app_kit::NSScreenSaverWindowLevel,
+                );
+
+                overlay.show()?;
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn preload(&self, app: &AppHandle<Wry>) -> tauri::Result<WebviewWindow> {
+        let window_builder = self
+            .window_builder(app)
+            .fullscreen(false)
+            .shadow(false)
+            .always_on_top(false)
+            .content_protected(true)
+            .skip_taskbar(true)
+            .closable(true)
+            .decorations(false)
+            .transparent(true)
+            .visible(false);
+
+        let window = window_builder.build()?;
+
+        Ok(window)
+    }
+
+    fn window_builder<'a>(
+        &'a self,
+        app: &'a AppHandle<Wry>,
+    ) -> WebviewWindowBuilder<'a, Wry, AppHandle<Wry>> {
+        let id = "snap_overlay";
+
+        let builder = WebviewWindow::builder(app, id, WebviewUrl::App("snap_overlay.html".into()))
+            .title(id)
+            .visible(false)
+            .accept_first_mouse(true)
+            .shadow(true);
+
+        builder
+    }
+}
+
+fn set_window_level(window: tauri::Window, level: objc2_app_kit::NSWindowLevel) {
     let c_window = window.clone();
     _ = window.run_on_main_thread(move || unsafe {
         let ns_win = c_window
@@ -11,53 +71,4 @@ pub fn set_window_level(window: tauri::Window, level: objc2_app_kit::NSWindowLev
             as *const objc2_app_kit::NSWindow;
         (*ns_win).setLevel(level);
     });
-}
-
-impl SnapOverlay {
-    pub fn preload(&self, app: &AppHandle<Wry>) -> tauri::Result<WebviewWindow> {
-        let mut window_builder = self
-            .window_builder(app, "snap_overlay.html")
-            .fullscreen(false)
-            .shadow(false)
-            .always_on_top(true)
-            .content_protected(true)
-            .skip_taskbar(true)
-            .closable(true)
-            .decorations(false)
-            .transparent(true)
-            .visible(false);
-
-        if let Some(monitor) = app.primary_monitor()? {
-            let size = monitor.size();
-
-            log::info!("Monitor size: {:?}", size);
-            window_builder = window_builder.inner_size(size.width.into(), size.height.into());
-        }
-
-        let window = window_builder.build()?;
-
-        #[cfg(target_os = "macos")]
-        set_window_level(
-            window.as_ref().window(),
-            objc2_app_kit::NSScreenSaverWindowLevel,
-        );
-
-        Ok(window)
-    }
-
-    fn window_builder<'a>(
-        &'a self,
-        app: &'a AppHandle<Wry>,
-        url: impl Into<PathBuf>,
-    ) -> WebviewWindowBuilder<'a, Wry, AppHandle<Wry>> {
-        let id = "snap_overlay";
-
-        let builder = WebviewWindow::builder(app, id, WebviewUrl::App(url.into()))
-            .title(id)
-            .visible(false)
-            .accept_first_mouse(true)
-            .shadow(true);
-
-        builder
-    }
 }

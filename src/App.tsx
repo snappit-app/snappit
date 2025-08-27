@@ -1,17 +1,11 @@
-import "./App.css";
-
-import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import "./app.css";
 
 import { Button } from "@/components/ui/button";
+import { showSnapOverlay } from "@/tauri/show_snap_ovberlay";
 
 function App() {
   async function showOverlay() {
-    const overlay = await WebviewWindow.getByLabel("snap_overlay");
-    console.log(overlay);
-    if (overlay) {
-      await overlay.show();
-      await overlay.setFocus();
-    }
+    showSnapOverlay();
   }
 
   return (
