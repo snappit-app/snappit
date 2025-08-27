@@ -1,8 +1,7 @@
-import { createEventListenerMap } from "@solid-primitives/event-listener";
-import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { createMemo, createSignal, onMount } from "solid-js";
+import { createMemo, createSignal } from "solid-js";
 
 import { captureRegion, RegionCaptureParams } from "@/tauri/region_capture";
+import { closeSnapOverlay } from "@/tauri/show_snap_overlay";
 
 function SnapOverlay() {
   const [isSelecting, setIsSelecting] = createSignal(false);
@@ -38,21 +37,8 @@ function SnapOverlay() {
     console.log("Capture region:", params());
 
     await captureRegion(params());
-    close();
+    closeSnapOverlay();
   };
-
-  async function close() {
-    const overlay = await WebviewWindow.getByLabel("snap_overlay");
-    overlay?.hide();
-  }
-
-  onMount(() => {
-    createEventListenerMap(window, {
-      keydown: (e) => {
-        if (e.key === "Escape") close();
-      },
-    });
-  });
 
   return (
     <div

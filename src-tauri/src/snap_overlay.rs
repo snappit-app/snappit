@@ -1,22 +1,20 @@
-use colored::Colorize;
 use tauri::{
-    AppHandle, Manager, PhysicalPosition, Position, WebviewUrl, WebviewWindow,
+    AppHandle, LogicalPosition, LogicalSize, Manager, Monitor, WebviewUrl, WebviewWindow,
     WebviewWindowBuilder, Wry,
 };
 pub struct SnapOverlay;
 
 impl SnapOverlay {
     pub fn show(&self, app: &AppHandle<Wry>) -> tauri::Result<()> {
-        if let Some(monitor) = app.primary_monitor()? {
+        if let Some(monitor) = self.monitor_from_cursor(&app)? {
             let physical_size = monitor.size().clone();
 
-            log::info!("{} {:?}", "monitor size".blue(), physical_size);
             if let Some(overlay) = app.get_webview_window("snap_overlay") {
                 overlay.set_size(physical_size)?;
-                overlay.set_position(Position::Physical(PhysicalPosition { x: 0, y: 0 }))?;
+                overlay.set_position(monitor.position().clone())?;
 
                 #[cfg(target_os = "macos")]
-                set_window_level(
+                self.set_window_level(
                     overlay.as_ref().window(),
                     objc2_app_kit::NSScreenSaverWindowLevel,
                 );
@@ -33,9 +31,9 @@ impl SnapOverlay {
             .window_builder(app)
             .fullscreen(false)
             .shadow(false)
-            .always_on_top(false)
+            .always_on_top(true)
             .content_protected(true)
-            .skip_taskbar(true)
+            .skip_taskbar(false)
             .closable(true)
             .decorations(false)
             .transparent(true)
@@ -60,15 +58,36 @@ impl SnapOverlay {
 
         builder
     }
-}
 
-fn set_window_level(window: tauri::Window, level: objc2_app_kit::NSWindowLevel) {
-    let c_window = window.clone();
-    _ = window.run_on_main_thread(move || unsafe {
-        let ns_win = c_window
-            .ns_window()
-            .expect("Failed to get native window handle")
-            as *const objc2_app_kit::NSWindow;
-        (*ns_win).setLevel(level);
-    });
+    fn set_window_level(&self, window: tauri::Window, level: objc2_app_kit::NSWindowLevel) {
+        let c_window = window.clone();
+        _ = window.run_on_main_thread(move || unsafe {
+            let ns_win = c_window
+                .ns_window()
+                .expect("Failed to get native window handle")
+                as *const objc2_app_kit::NSWindow;
+            (*ns_win).setLevel(level);
+        });
+    }
+
+    fn monitor_from_cursor(&self, app: &tauri::AppHandle<Wry>) -> tauri::Result<Option<Monitor>> {
+        let cursor_pos = app.cursor_position()?;
+        let monitors = app.available_monitors()?;
+
+        let monitor = monitors.into_iter().find(|m| {
+            let scale = m.scale_factor() as f64;
+            let pos: LogicalPosition<f64> = m.position().to_logical(scale);
+            let size: LogicalSize<f64> = m.size().to_logical(scale);
+
+            let lx = cursor_pos.x / scale;
+            let ly = cursor_pos.y / scale;
+
+            let x_max = pos.x + size.width;
+            let y_max = pos.y + size.height;
+
+            lx >= pos.x && lx <= x_max && ly >= pos.y && ly <= y_max
+        });
+
+        Ok(monitor)
+    }
 }

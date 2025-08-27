@@ -35,12 +35,12 @@ impl RegionCapture {
             start.elapsed()
         );
 
-        image
-            .save(format!(
-                "./target/monitor-{}-region.png",
-                normalized(monitor.name().unwrap())
-            ))
-            .unwrap();
+        // image
+        //     .save(format!(
+        //         "./target/monitor-{}-region.png",
+        //         normalized(monitor.name().unwrap())
+        //     ))
+        //     .unwrap();
 
         Ok(())
     }
