@@ -1,12 +1,12 @@
-use tauri::{
-    AppHandle, LogicalPosition, LogicalSize, Manager, Monitor, WebviewUrl, WebviewWindow,
-    WebviewWindowBuilder, Wry,
-};
+use crate::text_snap_errors::TextSnapResult;
+use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder, Wry};
+
+use crate::platform::Platform;
 pub struct SnapOverlay;
 
 impl SnapOverlay {
-    pub fn show(&self, app: &AppHandle<Wry>) -> tauri::Result<()> {
-        if let Some(monitor) = self.monitor_from_cursor(&app)? {
+    pub fn show(&self, app: &AppHandle<Wry>) -> TextSnapResult<()> {
+        if let Some(monitor) = Platform::monitor_from_cursor(&app)? {
             let physical_size = monitor.size().clone();
 
             if let Some(overlay) = app.get_webview_window("snap_overlay") {
@@ -68,26 +68,5 @@ impl SnapOverlay {
                 as *const objc2_app_kit::NSWindow;
             (*ns_win).setLevel(level);
         });
-    }
-
-    fn monitor_from_cursor(&self, app: &tauri::AppHandle<Wry>) -> tauri::Result<Option<Monitor>> {
-        let cursor_pos = app.cursor_position()?;
-        let monitors = app.available_monitors()?;
-
-        let monitor = monitors.into_iter().find(|m| {
-            let scale = m.scale_factor() as f64;
-            let pos: LogicalPosition<f64> = m.position().to_logical(scale);
-            let size: LogicalSize<f64> = m.size().to_logical(scale);
-
-            let lx = cursor_pos.x / scale;
-            let ly = cursor_pos.y / scale;
-
-            let x_max = pos.x + size.width;
-            let y_max = pos.y + size.height;
-
-            lx >= pos.x && lx <= x_max && ly >= pos.y && ly <= y_max
-        });
-
-        Ok(monitor)
     }
 }

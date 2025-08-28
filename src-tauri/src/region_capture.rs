@@ -1,6 +1,9 @@
+use crate::text_snap_errors::TextSnapResult;
 use serde::Deserialize;
 use std::time::Instant;
-use xcap::Monitor;
+use tauri::{AppHandle, Wry};
+
+use crate::platform::Platform;
 
 fn normalized(filename: String) -> String {
     filename.replace(['|', '\\', ':', '/'], "")
@@ -17,30 +20,24 @@ pub struct RegionCaptureParams {
 pub struct RegionCapture;
 
 impl RegionCapture {
-    pub fn capture(&self, params: RegionCaptureParams) -> Result<(), Box<dyn std::error::Error>> {
-        let monitors = Monitor::all()?;
+    pub fn capture(app: &AppHandle<Wry>, params: RegionCaptureParams) -> TextSnapResult<()> {
+        if let Some(monitor) = Platform::xcap_monitor_from_cursor(app)? {
+            let start = Instant::now();
+            let image = monitor.capture_region(params.x, params.y, params.width, params.height)?;
+            println!(
+                "Time to record region of size {}x{}: {:?}",
+                image.width(),
+                image.height(),
+                start.elapsed()
+            );
 
-        let monitor = monitors
-            .into_iter()
-            .find(|m| m.is_primary().unwrap_or(false))
-            .expect("No primary monitor found");
-
-        let start = Instant::now();
-
-        let image = monitor.capture_region(params.x, params.y, params.width, params.height)?;
-        println!(
-            "Time to record region of size {}x{}: {:?}",
-            image.width(),
-            image.height(),
-            start.elapsed()
-        );
-
-        // image
-        //     .save(format!(
-        //         "./target/monitor-{}-region.png",
-        //         normalized(monitor.name().unwrap())
-        //     ))
-        //     .unwrap();
+            image
+                .save(format!(
+                    "./target/monitor-{}-region.png",
+                    normalized(monitor.name().unwrap())
+                ))
+                .unwrap();
+        }
 
         Ok(())
     }

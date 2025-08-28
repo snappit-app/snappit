@@ -34,7 +34,6 @@ function SnapOverlay() {
 
   const handleMouseUp = async () => {
     setIsSelecting(false);
-    console.log("Capture region:", params());
 
     await captureRegion(params());
     closeSnapOverlay();

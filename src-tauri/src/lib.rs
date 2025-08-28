@@ -1,5 +1,7 @@
+mod platform;
 mod region_capture;
 mod snap_overlay;
+mod text_snap_errors;
 use region_capture::{RegionCapture, RegionCaptureParams};
 use snap_overlay::SnapOverlay;
 use tauri::AppHandle;
@@ -11,14 +13,14 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-fn region_capture(params: RegionCaptureParams) -> tauri::Result<()> {
-    RegionCapture.capture(params);
+fn region_capture(app: AppHandle, params: RegionCaptureParams) -> tauri::Result<()> {
+    RegionCapture::capture(&app, params)?;
     Ok(())
 }
 
 #[tauri::command]
 fn show_snap_overlay(app: AppHandle) -> tauri::Result<()> {
-    SnapOverlay.show(&app);
+    SnapOverlay.show(&app)?;
     Ok(())
 }
 
