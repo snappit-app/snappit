@@ -1,12 +1,15 @@
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { createMemo, createSignal } from "solid-js";
+import { createWorker } from "tesseract.js";
 
 import { captureRegion, RegionCaptureParams } from "@/tauri/region_capture";
 import { closeSnapOverlay } from "@/tauri/show_snap_overlay";
+const DEFAULT_START_POS = { x: 0, y: 0 };
 
 function SnapOverlay() {
   const [isSelecting, setIsSelecting] = createSignal(false);
-  const [startPos, setStartPos] = createSignal({ x: 0, y: 0 });
-  const [currentPos, setCurrentPos] = createSignal({ x: 0, y: 0 });
+  const [startPos, setStartPos] = createSignal(DEFAULT_START_POS);
+  const [currentPos, setCurrentPos] = createSignal(DEFAULT_START_POS);
   const params = createMemo<RegionCaptureParams>(() => ({
     x: Math.min(startPos().x, currentPos().x),
     y: Math.min(startPos().y, currentPos().y),
@@ -22,9 +25,11 @@ function SnapOverlay() {
   }));
 
   const handleMouseDown = (e: MouseEvent) => {
-    setIsSelecting(true);
-    setStartPos({ x: e.clientX, y: e.clientY });
-    setCurrentPos({ x: e.clientX, y: e.clientY });
+    if (e.button === 0) {
+      setIsSelecting(true);
+      setStartPos({ x: e.clientX, y: e.clientY });
+      setCurrentPos({ x: e.clientX, y: e.clientY });
+    }
   };
 
   const handleMouseMove = (e: MouseEvent) => {
@@ -32,17 +37,26 @@ function SnapOverlay() {
     setCurrentPos({ x: e.clientX, y: e.clientY });
   };
 
-  const handleMouseUp = async () => {
-    setIsSelecting(false);
+  const handleMouseUp = async (e: MouseEvent) => {
+    if (e.button === 0) {
+      setIsSelecting(false);
+      const p = params();
+      setStartPos(DEFAULT_START_POS);
 
-    await captureRegion(params());
-    closeSnapOverlay();
+      const dataUrl = await captureRegion(p);
+      const worker = await createWorker(["eng", "rus"]);
+      const ret = await worker.recognize(dataUrl);
+      console.log(ret.data.text);
+      writeText(ret.data.text);
+      await worker.terminate();
+      closeSnapOverlay();
+    }
   };
 
   return (
     <div
-      onPointerDown={handleMouseDown}
-      onPointerUp={handleMouseUp}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
       onMouseMove={handleMouseMove}
       class="h-full w-full bg-black opacity-50 cursor-crosshair"
     >

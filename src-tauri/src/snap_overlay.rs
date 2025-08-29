@@ -1,29 +1,31 @@
 use crate::text_snap_errors::TextSnapResult;
-use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder, Wry};
+use tauri::{
+    AppHandle, Error as TauriError, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder, Wry,
+};
 
 use crate::platform::Platform;
 pub struct SnapOverlay;
 
 impl SnapOverlay {
-    pub fn show(&self, app: &AppHandle<Wry>) -> TextSnapResult<()> {
-        if let Some(monitor) = Platform::monitor_from_cursor(&app)? {
-            let physical_size = monitor.size().clone();
+    pub fn show(&self, app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
+        let monitor = Platform::monitor_from_cursor(&app)?;
+        let physical_size = monitor.size().clone();
+        let overlay = app
+            .get_webview_window("snap_overlay")
+            .ok_or_else(|| TauriError::WebviewNotFound)?;
 
-            if let Some(overlay) = app.get_webview_window("snap_overlay") {
-                overlay.set_size(physical_size)?;
-                overlay.set_position(monitor.position().clone())?;
+        overlay.set_size(physical_size)?;
+        overlay.set_position(monitor.position().clone())?;
 
-                #[cfg(target_os = "macos")]
-                self.set_window_level(
-                    overlay.as_ref().window(),
-                    objc2_app_kit::NSScreenSaverWindowLevel,
-                );
+        #[cfg(target_os = "macos")]
+        self.set_window_level(
+            overlay.as_ref().window(),
+            objc2_app_kit::NSScreenSaverWindowLevel,
+        );
 
-                overlay.show()?;
-            }
-        }
+        overlay.show()?;
 
-        Ok(())
+        Ok(overlay)
     }
 
     pub fn preload(&self, app: &AppHandle<Wry>) -> tauri::Result<WebviewWindow> {

@@ -9,6 +9,9 @@ pub enum TextSnapError {
 
     #[error("XCapError error: {0}")]
     XCap(#[from] XCapError),
+
+    #[error("Monitor not found under cursor")]
+    MonitorNotFound,
 }
 
 pub type TextSnapResult<T> = Result<T, TextSnapError>;
@@ -18,6 +21,9 @@ impl From<TextSnapError> for TauriError {
         match err {
             TextSnapError::Tauri(e) => e,
             TextSnapError::XCap(e) => TauriError::Anyhow(e.into()),
+            TextSnapError::MonitorNotFound => TauriError::Anyhow(
+                std::io::Error::new(std::io::ErrorKind::NotFound, "Monitor not found").into(),
+            ),
         }
     }
 }
@@ -27,6 +33,7 @@ impl From<TextSnapError> for XCapError {
         match err {
             TextSnapError::XCap(e) => e,
             TextSnapError::Tauri(e) => XCapError::Error(e.to_string()),
+            TextSnapError::MonitorNotFound => XCapError::new("Monitor not found under cursor"),
         }
     }
 }

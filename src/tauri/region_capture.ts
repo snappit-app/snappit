@@ -8,5 +8,6 @@ export interface RegionCaptureParams {
 }
 
 export function captureRegion(params: RegionCaptureParams) {
-  return invoke("region_capture", { params });
+  // Returns a data URL string: "data:image/png;base64,...."
+  return invoke<string>("region_capture", { params });
 }

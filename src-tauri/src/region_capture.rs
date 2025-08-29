@@ -2,12 +2,9 @@ use crate::text_snap_errors::TextSnapResult;
 use serde::Deserialize;
 use std::time::Instant;
 use tauri::{AppHandle, Wry};
+use xcap::image::ImageBuffer;
 
 use crate::platform::Platform;
-
-fn normalized(filename: String) -> String {
-    filename.replace(['|', '\\', ':', '/'], "")
-}
 
 #[derive(Debug, Deserialize)]
 pub struct RegionCaptureParams {
@@ -20,25 +17,16 @@ pub struct RegionCaptureParams {
 pub struct RegionCapture;
 
 impl RegionCapture {
-    pub fn capture(app: &AppHandle<Wry>, params: RegionCaptureParams) -> TextSnapResult<()> {
-        if let Some(monitor) = Platform::xcap_monitor_from_cursor(app)? {
-            let start = Instant::now();
-            let image = monitor.capture_region(params.x, params.y, params.width, params.height)?;
-            println!(
-                "Time to record region of size {}x{}: {:?}",
-                image.width(),
-                image.height(),
-                start.elapsed()
-            );
+    pub fn capture(
+        app: &AppHandle<Wry>,
+        params: RegionCaptureParams,
+    ) -> TextSnapResult<ImageBuffer<xcap::image::Rgba<u8>, Vec<u8>>> {
+        let monitor = Platform::xcap_monitor_from_cursor(app)?;
+        let _start = Instant::now();
+        let image = monitor.capture_region(params.x, params.y, params.width, params.height)?;
 
-            image
-                .save(format!(
-                    "./target/monitor-{}-region.png",
-                    normalized(monitor.name().unwrap())
-                ))
-                .unwrap();
-        }
-
-        Ok(())
+        Ok(image)
     }
 }
+
+// No longer needed to export a structured result; lib encodes to Base64 PNG

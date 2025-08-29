@@ -7,17 +7,21 @@ const SHOW_SNAP_OVERLAY_SHORTCUT = "CommandOrControl+Shift+2";
 
 export async function closeSnapOverlay() {
   const overlay = await WebviewWindow.getByLabel("snap_overlay");
-  overlay?.hide();
+  const main = await WebviewWindow.getByLabel("main");
+
+  await overlay?.hide();
+  await main?.minimize();
   await unregister(HIDE_SNAP_OVERLAY_SHORTCUT);
 }
 
 export async function showSnapOverlay() {
+  await invoke("show_snap_overlay");
+
   await register(HIDE_SNAP_OVERLAY_SHORTCUT, (e) => {
     if (e.state === "Released") {
       closeSnapOverlay();
     }
   });
-  return invoke("show_snap_overlay");
 }
 
 export async function registerShowSnapShortcut() {

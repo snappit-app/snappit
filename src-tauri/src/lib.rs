@@ -2,20 +2,27 @@ mod platform;
 mod region_capture;
 mod snap_overlay;
 mod text_snap_errors;
+use base64::Engine;
 use region_capture::{RegionCapture, RegionCaptureParams};
 use snap_overlay::SnapOverlay;
 use tauri::AppHandle;
-
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
+use xcap::image::ImageEncoder;
 
 #[tauri::command]
-fn region_capture(app: AppHandle, params: RegionCaptureParams) -> tauri::Result<()> {
-    RegionCapture::capture(&app, params)?;
-    Ok(())
+fn region_capture(app: AppHandle, params: RegionCaptureParams) -> tauri::Result<String> {
+    let image = RegionCapture::capture(&app, params)?;
+    let (width, height) = image.dimensions();
+    let bytes = image.into_raw();
+
+    let mut png_buf = Vec::new();
+    let encoder = xcap::image::codecs::png::PngEncoder::new(&mut png_buf);
+    encoder
+        .write_image(&bytes, width, height, xcap::image::ColorType::Rgba8.into())
+        .map_err(|e| tauri::Error::Anyhow(e.into()))?;
+
+    let b64 = base64::engine::general_purpose::STANDARD.encode(&png_buf);
+    let data_url = format!("data:image/png;base64,{}", b64);
+    Ok(data_url)
 }
 
 #[tauri::command]
@@ -39,11 +46,8 @@ pub fn run() {
         })
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_log::Builder::default().build())
-        .invoke_handler(tauri::generate_handler![
-            greet,
-            region_capture,
-            show_snap_overlay
-        ])
+        .plugin(tauri_plugin_clipboard_manager::init())
+        .invoke_handler(tauri::generate_handler![region_capture, show_snap_overlay])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
