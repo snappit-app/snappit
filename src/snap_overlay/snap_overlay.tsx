@@ -2,8 +2,9 @@ import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { createMemo, createSignal } from "solid-js";
 import { createWorker } from "tesseract.js";
 
-import { captureRegion, RegionCaptureParams } from "@/tauri/region_capture";
+import { captureRegion, getLastShotData, RegionCaptureParams } from "@/tauri/region_capture";
 import { closeSnapOverlay } from "@/tauri/show_snap_overlay";
+
 const DEFAULT_START_POS = { x: 0, y: 0 };
 
 function SnapOverlay() {
@@ -43,10 +44,12 @@ function SnapOverlay() {
       const p = params();
       setStartPos(DEFAULT_START_POS);
 
-      const dataUrl = await captureRegion(p);
+      await captureRegion(p);
+
+      const imageData = await getLastShotData();
+
       const worker = await createWorker(["eng", "rus"]);
-      const ret = await worker.recognize(dataUrl);
-      console.log(ret.data.text);
+      const ret = await worker.recognize(imageData);
       writeText(ret.data.text);
       await worker.terminate();
       closeSnapOverlay();

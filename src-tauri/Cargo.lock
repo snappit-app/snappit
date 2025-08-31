@@ -4812,6 +4812,7 @@ dependencies = [
  "fs_extra",
  "log",
  "objc2-app-kit",
+ "once_cell",
  "serde",
  "serde_json",
  "tauri",

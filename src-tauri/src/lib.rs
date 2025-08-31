@@ -2,27 +2,44 @@ mod platform;
 mod region_capture;
 mod snap_overlay;
 mod text_snap_errors;
-use base64::Engine;
+use once_cell::sync::Lazy;
 use region_capture::{RegionCapture, RegionCaptureParams};
 use snap_overlay::SnapOverlay;
-use tauri::AppHandle;
-use xcap::image::ImageEncoder;
+use std::sync::Mutex;
+use tauri::{http::Response, AppHandle};
+
+#[derive(Clone, Debug)]
+struct ImageSlot {
+    bytes: Vec<u8>,
+    width: u32,
+    height: u32,
+}
+
+static IMAGE: Lazy<Mutex<Option<ImageSlot>>> = Lazy::new(|| Mutex::new(None));
 
 #[tauri::command]
-fn region_capture(app: AppHandle, params: RegionCaptureParams) -> tauri::Result<String> {
+fn get_last_shot_dim() -> tauri::Result<Option<(u32, u32)>> {
+    let guard = IMAGE.lock().unwrap();
+
+    if let Some(img) = &*guard {
+        return Ok(Some((img.width, img.height)));
+    }
+
+    Ok(None)
+}
+
+#[tauri::command]
+fn region_capture(app: AppHandle, params: RegionCaptureParams) -> tauri::Result<()> {
     let image = RegionCapture::capture(&app, params)?;
     let (width, height) = image.dimensions();
     let bytes = image.into_raw();
 
-    let mut png_buf = Vec::new();
-    let encoder = xcap::image::codecs::png::PngEncoder::new(&mut png_buf);
-    encoder
-        .write_image(&bytes, width, height, xcap::image::ColorType::Rgba8.into())
-        .map_err(|e| tauri::Error::Anyhow(e.into()))?;
-
-    let b64 = base64::engine::general_purpose::STANDARD.encode(&png_buf);
-    let data_url = format!("data:image/png;base64,{}", b64);
-    Ok(data_url)
+    *IMAGE.lock().unwrap() = Some(ImageSlot {
+        bytes,
+        width,
+        height,
+    });
+    Ok(())
 }
 
 #[tauri::command]
@@ -39,6 +56,28 @@ fn preload_snap_overlay(app: &tauri::AppHandle) -> tauri::Result<()> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .register_uri_scheme_protocol("img", move |_app, req| {
+            let guard = IMAGE.lock().unwrap();
+            let origin = req
+                .headers()
+                .get("Origin")
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or("*");
+
+            if let Some(img) = &*guard {
+                return Response::builder()
+                    .header("Cache-Control", "no-store")
+                    .header("Content-Type", "application/octet-stream")
+                    .header("Access-Control-Allow-Origin", origin)
+                    .header("Access-Control-Allow-Methods", "GET, OPTIONS")
+                    .header("Access-Control-Allow-Headers", "*")
+                    .header("Access-Control-Allow-Credentials", "true")
+                    .status(200)
+                    .body(img.bytes.clone())
+                    .unwrap();
+            }
+            Response::builder().status(404).body(Vec::new()).unwrap()
+        })
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
             preload_snap_overlay(app.handle())?;
@@ -47,7 +86,11 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_log::Builder::default().build())
         .plugin(tauri_plugin_clipboard_manager::init())
-        .invoke_handler(tauri::generate_handler![region_capture, show_snap_overlay])
+        .invoke_handler(tauri::generate_handler![
+            region_capture,
+            show_snap_overlay,
+            get_last_shot_dim
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
