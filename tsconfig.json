@@ -23,10 +23,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./shared/*"],
-      "@overlay/*": ["./apps/overlay*"],
+      "@overlay/*": ["./apps/snap_overlay*"],
       "@settings/*": ["./apps/settings*"],
     }
   },
-  "include": ["src", "shared/tauri", "apps/overlay/index.tsx", "apps/overlay/snap_overlay.tsx", "shared/ui", "shared/libs", "shared/vite-env.d.ts"],
+  "include": ["apps", "shared"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -1,21 +1,14 @@
+mod img_protocol;
 mod platform;
 mod region_capture;
 mod snap_overlay;
 mod text_snap_errors;
-use once_cell::sync::Lazy;
+use img_protocol::{handle_img_request, IMAGE};
 use region_capture::{RegionCapture, RegionCaptureParams};
 use snap_overlay::SnapOverlay;
-use std::sync::Mutex;
-use tauri::{http::Response, AppHandle};
+use tauri::AppHandle;
 
-#[derive(Clone, Debug)]
-struct ImageSlot {
-    bytes: Vec<u8>,
-    width: u32,
-    height: u32,
-}
-
-static IMAGE: Lazy<Mutex<Option<ImageSlot>>> = Lazy::new(|| Mutex::new(None));
+use crate::img_protocol::ImageSlot;
 
 #[tauri::command]
 fn get_last_shot_dim() -> tauri::Result<Option<(u32, u32)>> {
@@ -56,28 +49,7 @@ fn preload_snap_overlay(app: &tauri::AppHandle) -> tauri::Result<()> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .register_uri_scheme_protocol("img", move |_app, req| {
-            let guard = IMAGE.lock().unwrap();
-            let origin = req
-                .headers()
-                .get("Origin")
-                .and_then(|v| v.to_str().ok())
-                .unwrap_or("*");
-
-            if let Some(img) = &*guard {
-                return Response::builder()
-                    .header("Cache-Control", "no-store")
-                    .header("Content-Type", "application/octet-stream")
-                    .header("Access-Control-Allow-Origin", origin)
-                    .header("Access-Control-Allow-Methods", "GET, OPTIONS")
-                    .header("Access-Control-Allow-Headers", "*")
-                    .header("Access-Control-Allow-Credentials", "true")
-                    .status(200)
-                    .body(img.bytes.clone())
-                    .unwrap();
-            }
-            Response::builder().status(404).body(Vec::new()).unwrap()
-        })
+        .register_uri_scheme_protocol("img", move |_app, req| handle_img_request(&req))
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
             preload_snap_overlay(app.handle())?;

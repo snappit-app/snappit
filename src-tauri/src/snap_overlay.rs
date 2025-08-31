@@ -22,6 +22,7 @@ impl SnapOverlay {
         self.set_window_level(overlay.as_ref().window(), NSScreenSaverWindowLevel);
 
         overlay.show()?;
+        overlay.set_focus()?;
 
         Ok(overlay)
     }
@@ -37,9 +38,7 @@ impl SnapOverlay {
             .closable(true)
             .decorations(false)
             .transparent(true)
-            .visible(false)
-            .focused(true);
-        
+            .visible(false);
         let window = window_builder.build()?;
 
         Ok(window)
@@ -51,12 +50,15 @@ impl SnapOverlay {
     ) -> WebviewWindowBuilder<'a, Wry, AppHandle<Wry>> {
         let id = "snap_overlay";
 
-        let builder =
-            WebviewWindow::builder(app, id, WebviewUrl::App("apps/overlay/index.html".into()))
-                .title(id)
-                .visible(false)
-                .accept_first_mouse(true)
-                .shadow(true);
+        let builder = WebviewWindow::builder(
+            app,
+            id,
+            WebviewUrl::App("apps/snap_overlay/index.html".into()),
+        )
+        .title(id)
+        .visible(false)
+        .accept_first_mouse(true)
+        .shadow(true);
 
         builder
     }
