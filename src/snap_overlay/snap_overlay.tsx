@@ -1,16 +1,16 @@
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { createMemo, createSignal } from "solid-js";
-import { createWorker } from "tesseract.js";
+import { createMemo, createSignal, onMount } from "solid-js";
 
+import { TESSERACT_WORKER } from "@/libs/tesseract_worker";
 import { captureRegion, getLastShotData, RegionCaptureParams } from "@/tauri/region_capture";
 import { closeSnapOverlay } from "@/tauri/show_snap_overlay";
 
-const DEFAULT_START_POS = { x: 0, y: 0 };
+const DEFAULT_POS = { x: 0, y: 0 };
 
 function SnapOverlay() {
   const [isSelecting, setIsSelecting] = createSignal(false);
-  const [startPos, setStartPos] = createSignal(DEFAULT_START_POS);
-  const [currentPos, setCurrentPos] = createSignal(DEFAULT_START_POS);
+  const [startPos, setStartPos] = createSignal(DEFAULT_POS);
+  const [currentPos, setCurrentPos] = createSignal(DEFAULT_POS);
   const params = createMemo<RegionCaptureParams>(() => ({
     x: Math.min(startPos().x, currentPos().x),
     y: Math.min(startPos().y, currentPos().y),
@@ -42,19 +42,24 @@ function SnapOverlay() {
     if (e.button === 0) {
       setIsSelecting(false);
       const p = params();
-      setStartPos(DEFAULT_START_POS);
+      setStartPos(DEFAULT_POS);
+      setCurrentPos(DEFAULT_POS);
 
       await captureRegion(p);
 
-      const imageData = await getLastShotData();
-
-      const worker = await createWorker(["eng", "rus"]);
-      const ret = await worker.recognize(imageData);
-      writeText(ret.data.text);
-      await worker.terminate();
       closeSnapOverlay();
+
+      const imageData = await getLastShotData();
+      const worker = await TESSERACT_WORKER;
+      const ret = await worker.recognize(imageData);
+
+      writeText(ret.data.text);
     }
   };
+
+  onMount(async () => {
+    await TESSERACT_WORKER;
+  });
 
   return (
     <div

@@ -28,5 +28,3 @@ impl RegionCapture {
         Ok(image)
     }
 }
-
-// No longer needed to export a structured result; lib encodes to Base64 PNG
