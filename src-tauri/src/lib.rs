@@ -3,10 +3,12 @@ mod platform;
 mod region_capture;
 mod snap_overlay;
 mod text_snap_errors;
+mod tray;
 use img_protocol::{handle_img_request, IMAGE};
 use region_capture::{RegionCapture, RegionCaptureParams};
 use snap_overlay::SnapOverlay;
 use tauri::AppHandle;
+use tray::TextSnapTray;
 
 use crate::img_protocol::ImageSlot;
 
@@ -53,6 +55,8 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
             preload_snap_overlay(app.handle())?;
+            TextSnapTray::init(app.handle())?;
+
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
             Ok(())

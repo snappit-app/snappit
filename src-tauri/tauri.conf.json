@@ -11,10 +11,6 @@
   },
   "app": {
 		"macOSPrivateApi": true,
-    "trayIcon": {
-      "showMenuOnLeftClick": true,
-      "iconPath": "icons/128x128.png"
-    },
     "security": {
       "csp": null
     }
