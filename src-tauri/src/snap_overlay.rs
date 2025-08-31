@@ -1,4 +1,5 @@
 use crate::text_snap_errors::TextSnapResult;
+use objc2_app_kit::NSScreenSaverWindowLevel;
 use tauri::{
     AppHandle, Error as TauriError, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder, Wry,
 };
@@ -18,10 +19,7 @@ impl SnapOverlay {
         overlay.set_position(monitor.position().clone())?;
 
         #[cfg(target_os = "macos")]
-        self.set_window_level(
-            overlay.as_ref().window(),
-            objc2_app_kit::NSScreenSaverWindowLevel,
-        );
+        self.set_window_level(overlay.as_ref().window(), NSScreenSaverWindowLevel);
 
         overlay.show()?;
 
@@ -35,12 +33,13 @@ impl SnapOverlay {
             .shadow(false)
             .always_on_top(true)
             .content_protected(true)
-            .skip_taskbar(false)
+            .skip_taskbar(true)
             .closable(true)
             .decorations(false)
             .transparent(true)
-            .visible(false);
-
+            .visible(false)
+            .focused(true);
+        
         let window = window_builder.build()?;
 
         Ok(window)
@@ -52,11 +51,12 @@ impl SnapOverlay {
     ) -> WebviewWindowBuilder<'a, Wry, AppHandle<Wry>> {
         let id = "snap_overlay";
 
-        let builder = WebviewWindow::builder(app, id, WebviewUrl::App("snap_overlay.html".into()))
-            .title(id)
-            .visible(false)
-            .accept_first_mouse(true)
-            .shadow(true);
+        let builder =
+            WebviewWindow::builder(app, id, WebviewUrl::App("apps/overlay/index.html".into()))
+                .title(id)
+                .visible(false)
+                .accept_first_mouse(true)
+                .shadow(true);
 
         builder
     }

@@ -81,6 +81,8 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
             preload_snap_overlay(app.handle())?;
+            #[cfg(target_os = "macos")]
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())

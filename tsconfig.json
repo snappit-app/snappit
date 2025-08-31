@@ -22,9 +22,11 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./shared/*"],
+      "@overlay/*": ["./apps/overlay*"],
+      "@settings/*": ["./apps/settings*"],
     }
   },
-  "include": ["src"],
+  "include": ["src", "shared/tauri", "apps/overlay/index.tsx", "apps/overlay/snap_overlay.tsx", "shared/ui", "shared/libs", "shared/vite-env.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

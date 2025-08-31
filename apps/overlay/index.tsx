@@ -1,4 +1,4 @@
-import "./snap_overlay.css";
+import "./index.css";
 
 import { render } from "solid-js/web";
 

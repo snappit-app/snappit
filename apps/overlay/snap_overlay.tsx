@@ -1,8 +1,9 @@
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { createMemo, createSignal, onMount } from "solid-js";
+import { createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
 import { TESSERACT_WORKER } from "@/libs/tesseract_worker";
 import { captureRegion, getLastShotData, RegionCaptureParams } from "@/tauri/region_capture";
+import { registerShowSnapShortcut, unregisterShowSnapShortcut } from "@/tauri/show_snap_overlay";
 import { closeSnapOverlay } from "@/tauri/show_snap_overlay";
 
 const DEFAULT_POS = { x: 0, y: 0 };
@@ -58,7 +59,12 @@ function SnapOverlay() {
   };
 
   onMount(async () => {
+    registerShowSnapShortcut();
     await TESSERACT_WORKER;
+
+    onCleanup(() => {
+      unregisterShowSnapShortcut();
+    });
   });
 
   return (

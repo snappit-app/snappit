@@ -10,7 +10,16 @@ export default defineConfig(async () => ({
   clearScreen: false,
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(__dirname, "./shared"),
+      "@overlay": path.resolve(__dirname, "./apps/overlay"),
+    },
+  },
+  build: {
+    rollupOptions: {
+      input: {
+        overlay: path.resolve(__dirname, "apps/overlay/index.html"),
+        // settings: path.resolve(__dirname, "apps/settings/index.html"),
+      },
     },
   },
   server: {
