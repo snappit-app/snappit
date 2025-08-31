@@ -1,13 +1,24 @@
 use crate::text_snap_errors::TextSnapResult;
 use objc2_app_kit::NSScreenSaverWindowLevel;
 use tauri::{
-    AppHandle, Error as TauriError, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder, Wry,
+    AppHandle, Emitter, Error as TauriError, Manager, WebviewUrl, WebviewWindow,
+    WebviewWindowBuilder, Wry,
 };
 
 use crate::platform::Platform;
 pub struct TextSnapOverlay;
 
 impl TextSnapOverlay {
+    pub fn hide(&self, app: &AppHandle<Wry>) -> TextSnapResult<(WebviewWindow)> {
+        let overlay = app
+            .get_webview_window("snap_overlay")
+            .ok_or_else(|| TauriError::WebviewNotFound)?;
+
+        overlay.hide()?;
+        overlay.emit("snap_overlay:hidden", true)?;
+        Ok(overlay)
+    }
+
     pub fn show(&self, app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
         let monitor = Platform::monitor_from_cursor(&app)?;
         let physical_size = monitor.size().clone();
@@ -22,6 +33,7 @@ impl TextSnapOverlay {
         self.set_window_level(overlay.as_ref().window(), NSScreenSaverWindowLevel);
 
         overlay.show()?;
+        overlay.emit("snap_overlay:shown", true)?;
         overlay.set_focus()?;
 
         Ok(overlay)

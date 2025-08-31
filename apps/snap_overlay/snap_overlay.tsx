@@ -1,10 +1,9 @@
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import { createMemo, createSignal, onMount } from "solid-js";
 
 import { TESSERACT_WORKER } from "@/libs/tesseract_worker";
-import { captureRegion, getLastShotData, RegionCaptureParams } from "@/tauri/region_capture";
-import { registerShowSnapShortcut, unregisterShowSnapShortcut } from "@/tauri/show_snap_overlay";
-import { closeSnapOverlay } from "@/tauri/show_snap_overlay";
+import { RegionCaptureApi, RegionCaptureParams } from "@/tauri/region_capture";
+import { SnapOverlayApi } from "@/tauri/snap_overlay_api";
 
 const DEFAULT_POS = { x: 0, y: 0 };
 
@@ -46,11 +45,11 @@ function SnapOverlay() {
       setStartPos(DEFAULT_POS);
       setCurrentPos(DEFAULT_POS);
 
-      await captureRegion(p);
+      await RegionCaptureApi.captureRegion(p);
 
-      closeSnapOverlay();
+      SnapOverlayApi.closeSnapOverlay();
 
-      const imageData = await getLastShotData();
+      const imageData = await RegionCaptureApi.getLastShotData();
       const worker = await TESSERACT_WORKER;
       const ret = await worker.recognize(imageData);
 
@@ -59,12 +58,28 @@ function SnapOverlay() {
   };
 
   onMount(async () => {
-    registerShowSnapShortcut();
+    SnapOverlayApi.registerShowOverlayShortcut();
     await TESSERACT_WORKER;
-
-    onCleanup(() => {
-      unregisterShowSnapShortcut();
+    const overlay = await SnapOverlayApi.getSnapOverlay();
+    const unlistenShown = await overlay?.listen("snap_overlay:shown", () => {
+      SnapOverlayApi.registerHideOverlayShortcut();
     });
+    const unlistenHidden = await overlay?.listen("snap_overlay:hidden", () => {
+      SnapOverlayApi.unregisterHideOverlayShortcut();
+    });
+
+    return () => {
+      SnapOverlayApi.unregisterShowOverlayShortcut();
+      SnapOverlayApi.unregisterHideOverlayShortcut();
+
+      if (unlistenShown) {
+        unlistenShown();
+      }
+
+      if (unlistenHidden) {
+        unlistenHidden();
+      }
+    };
   });
 
   return (

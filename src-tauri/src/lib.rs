@@ -3,7 +3,6 @@ mod platform;
 mod region_capture;
 mod text_snap_errors;
 mod text_snap_overlay;
-mod text_snap_shortcuts;
 mod text_snap_tray;
 use img_protocol::{handle_img_request, IMAGE};
 use region_capture::{RegionCapture, RegionCaptureParams};
@@ -44,6 +43,12 @@ fn show_snap_overlay(app: AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
+#[tauri::command]
+fn hide_snap_overlay(app: AppHandle) -> tauri::Result<()> {
+    TextSnapOverlay.hide(&app)?;
+    Ok(())
+}
+
 fn preload_snap_overlay(app: &tauri::AppHandle) -> tauri::Result<()> {
     TextSnapOverlay.preload(app)?;
     Ok(())
@@ -54,6 +59,9 @@ pub fn run() {
     tauri::Builder::default()
         .register_uri_scheme_protocol("img", move |_app, req| handle_img_request(&req))
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_log::Builder::default().build())
+        .plugin(tauri_plugin_clipboard_manager::init())
         .setup(|app| {
             preload_snap_overlay(app.handle())?;
             TextSnapTray::init(app.handle())?;
@@ -62,12 +70,10 @@ pub fn run() {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
             Ok(())
         })
-        .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_log::Builder::default().build())
-        .plugin(tauri_plugin_clipboard_manager::init())
         .invoke_handler(tauri::generate_handler![
             region_capture,
             show_snap_overlay,
+            hide_snap_overlay,
             get_last_shot_dim
         ])
         .run(tauri::generate_context!())
