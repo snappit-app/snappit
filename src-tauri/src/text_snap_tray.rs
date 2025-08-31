@@ -4,8 +4,8 @@ use tauri::{
     AppHandle, Wry,
 };
 
-use crate::snap_overlay::SnapOverlay;
 use crate::text_snap_errors::TextSnapResult;
+use crate::text_snap_overlay::TextSnapOverlay;
 
 #[derive(Clone, Copy, Debug)]
 pub enum TextSnapTrayItem {
@@ -72,7 +72,7 @@ impl TextSnapTrayItem {
 
 pub const TRAY_ITEMS: &[TextSnapTrayItem] = &[
     TextSnapTrayItem::item_with_accelerator("capture", "Capture", true, "cmd+c", |app| {
-        SnapOverlay.show(app)?;
+        TextSnapOverlay.show(app)?;
         Ok(())
     }),
     TextSnapTrayItem::item("settings", "Settings", true, |_| Ok(())),

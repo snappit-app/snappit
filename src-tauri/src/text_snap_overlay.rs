@@ -5,9 +5,9 @@ use tauri::{
 };
 
 use crate::platform::Platform;
-pub struct SnapOverlay;
+pub struct TextSnapOverlay;
 
-impl SnapOverlay {
+impl TextSnapOverlay {
     pub fn show(&self, app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
         let monitor = Platform::monitor_from_cursor(&app)?;
         let physical_size = monitor.size().clone();
