@@ -16,11 +16,19 @@ impl TextSnapOverlay {
             .get_webview_window(Self::ID)
             .ok_or_else(|| TauriError::WebviewNotFound)?;
 
-        #[cfg(target_os = "macos")]
-        app.set_activation_policy(tauri::ActivationPolicy::Accessory)?;
-
         overlay.hide()?;
         overlay.emit("snap_overlay:hidden", true)?;
+
+        let has_opened = app
+            .webview_windows()
+            .values()
+            .any(|win| win.is_visible().unwrap_or(false));
+
+        if !has_opened {
+            #[cfg(target_os = "macos")]
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory)?;
+        }
+
         Ok(overlay)
     }
 

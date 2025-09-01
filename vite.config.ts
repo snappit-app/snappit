@@ -10,8 +10,9 @@ export default defineConfig(async () => ({
   clearScreen: false,
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./shared"),
+      "@shared": path.resolve(__dirname, "./shared"),
       "@overlay": path.resolve(__dirname, "./apps/overlay"),
+      "@settings": path.resolve(__dirname, "./apps/settings"),
     },
   },
   build: {

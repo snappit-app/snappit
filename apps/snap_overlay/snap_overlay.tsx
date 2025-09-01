@@ -1,9 +1,8 @@
+import { TESSERACT_WORKER } from "@shared/libs/tesseract_worker";
+import { RegionCaptureApi, RegionCaptureParams } from "@shared/tauri/region_capture";
+import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { createMemo, createSignal, onMount } from "solid-js";
-
-import { TESSERACT_WORKER } from "@/libs/tesseract_worker";
-import { RegionCaptureApi, RegionCaptureParams } from "@/tauri/region_capture";
-import { SnapOverlayApi } from "@/tauri/snap_overlay_api";
 
 const DEFAULT_POS = { x: 0, y: 0 };
 

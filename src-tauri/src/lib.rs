@@ -5,6 +5,7 @@ mod text_snap_errors;
 mod text_snap_overlay;
 mod text_snap_settings;
 mod text_snap_tray;
+
 use img_protocol::{handle_img_request, IMAGE};
 use region_capture::{RegionCapture, RegionCaptureParams};
 use tauri::AppHandle;
@@ -65,6 +66,7 @@ fn hide_settings(app: AppHandle) -> tauri::Result<()> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_store::Builder::new().build())
         .register_uri_scheme_protocol("img", move |_app, req| handle_img_request(&req))
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
@@ -73,10 +75,15 @@ pub fn run() {
         .setup(|app| {
             TextSnapOverlay::preload(app.handle())?;
             TextSnapSettings::preload(app.handle())?;
+
+            TextSnapSettings::show(app.handle())?;
+            // TextSnapSettings::hide(app.handle())?;
+
+            // #[cfg(target_os = "macos")]
+            // app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
             TextSnapTray::init(app.handle())?;
 
-            #[cfg(target_os = "macos")]
-            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

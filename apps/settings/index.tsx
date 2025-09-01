@@ -4,4 +4,4 @@ import { render } from "solid-js/web";
 
 import Settings from "./settings";
 
-render(() => <Settings />, document.getElementById("settings-root") as HTMLElement);
+render(() => <Settings />, document.getElementById("root") as HTMLElement);

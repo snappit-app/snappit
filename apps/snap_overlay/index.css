@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
-#snap_overlay-root {
+#root {
   height: 100%;
 }
 
 @layer base {
   body,
   html,
-  #snap_overlay-root {
+  #root {
     display: contains;
     height: 100%;
   }

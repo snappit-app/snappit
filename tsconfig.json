@@ -22,9 +22,9 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./shared/*"],
-      "@overlay/*": ["./apps/snap_overlay*"],
-      "@settings/*": ["./apps/settings*"],
+      "@shared/*": ["./shared/*"],
+      "@overlay/*": ["./apps/snap_overlay/*"],
+      "@settings/*": ["./apps/settings/*"]
     }
   },
   "include": ["apps", "shared"],

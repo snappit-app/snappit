@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { register, unregister } from "@tauri-apps/plugin-global-shortcut";
 
-const SHOW_SNAP_OVERLAY_SHORTCUT = "CommandOrControl+Shift+2";
+export const SHOW_SNAP_OVERLAY_DEFAULT_SHORTCUT = "CommandOrControl+Shift+2";
 const HIDE_SNAP_OVERLAY_SHORTCUT = "Escape";
 
 export abstract class SnapOverlayApi {
@@ -23,7 +23,7 @@ export abstract class SnapOverlayApi {
   }
 
   static async unregisterShowOverlayShortcut() {
-    await unregister(SHOW_SNAP_OVERLAY_SHORTCUT);
+    await unregister(SHOW_SNAP_OVERLAY_DEFAULT_SHORTCUT);
   }
 
   static async registerHideOverlayShortcut() {
@@ -35,7 +35,7 @@ export abstract class SnapOverlayApi {
   }
 
   static async registerShowOverlayShortcut() {
-    await register(SHOW_SNAP_OVERLAY_SHORTCUT, (e) => {
+    await register(SHOW_SNAP_OVERLAY_DEFAULT_SHORTCUT, (e) => {
       if (e.state === "Pressed") {
         SnapOverlayApi.showSnapOverlay();
       }

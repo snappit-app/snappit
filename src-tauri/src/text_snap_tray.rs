@@ -102,7 +102,6 @@ pub struct TextSnapTray;
 impl TextSnapTray {
     pub fn init(app: &AppHandle<Wry>) -> TextSnapResult<TrayIcon> {
         let menu = Menu::new(app)?;
-
         for def in TRAY_ITEMS {
             match def {
                 TextSnapTrayItem::Item {
