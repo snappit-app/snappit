@@ -33,7 +33,7 @@ function SnapOverlay() {
     }
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = async (e: MouseEvent) => {
     if (!isSelecting) return;
     setCurrentPos({ x: e.clientX, y: e.clientY });
   };

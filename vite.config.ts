@@ -18,7 +18,7 @@ export default defineConfig(async () => ({
     rollupOptions: {
       input: {
         overlay: path.resolve(__dirname, "apps/snap_overlay/index.html"),
-        // settings: path.resolve(__dirname, "apps/settings/index.html"),
+        settings: path.resolve(__dirname, "apps/settings/index.html"),
       },
     },
   },

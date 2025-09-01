@@ -1,4 +1,5 @@
 use crate::text_snap_errors::{TextSnapError, TextSnapResult};
+use objc2_app_kit::NSWindowLevel;
 use tauri::{LogicalPosition, LogicalSize, Monitor, Wry};
 use xcap::Monitor as XCapMonitor;
 
@@ -72,5 +73,16 @@ impl Platform {
             .ok_or(TextSnapError::MonitorNotFound)?;
 
         Ok(monitor)
+    }
+
+    pub fn set_window_level(window: tauri::Window, level: NSWindowLevel) {
+        let c_window = window.clone();
+        _ = window.run_on_main_thread(move || unsafe {
+            let ns_win = c_window
+                .ns_window()
+                .expect("Failed to get native window handle")
+                as *const objc2_app_kit::NSWindow;
+            (*ns_win).setLevel(level);
+        });
     }
 }

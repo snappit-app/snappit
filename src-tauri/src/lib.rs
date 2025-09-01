@@ -3,6 +3,7 @@ mod platform;
 mod region_capture;
 mod text_snap_errors;
 mod text_snap_overlay;
+mod text_snap_settings;
 mod text_snap_tray;
 use img_protocol::{handle_img_request, IMAGE};
 use region_capture::{RegionCapture, RegionCaptureParams};
@@ -10,7 +11,7 @@ use tauri::AppHandle;
 use text_snap_overlay::TextSnapOverlay;
 use text_snap_tray::TextSnapTray;
 
-use crate::img_protocol::ImageSlot;
+use crate::{img_protocol::ImageSlot, text_snap_settings::TextSnapSettings};
 
 #[tauri::command]
 fn get_last_shot_dim() -> tauri::Result<Option<(u32, u32)>> {
@@ -39,18 +40,25 @@ fn region_capture(app: AppHandle, params: RegionCaptureParams) -> tauri::Result<
 
 #[tauri::command]
 fn show_snap_overlay(app: AppHandle) -> tauri::Result<()> {
-    TextSnapOverlay.show(&app)?;
+    TextSnapOverlay::show(&app)?;
     Ok(())
 }
 
 #[tauri::command]
 fn hide_snap_overlay(app: AppHandle) -> tauri::Result<()> {
-    TextSnapOverlay.hide(&app)?;
+    TextSnapOverlay::hide(&app)?;
     Ok(())
 }
 
-fn preload_snap_overlay(app: &tauri::AppHandle) -> tauri::Result<()> {
-    TextSnapOverlay.preload(app)?;
+#[tauri::command]
+fn show_settings(app: AppHandle) -> tauri::Result<()> {
+    TextSnapSettings::show(&app)?;
+    Ok(())
+}
+
+#[tauri::command]
+fn hide_settings(app: AppHandle) -> tauri::Result<()> {
+    TextSnapSettings::hide(&app)?;
     Ok(())
 }
 
@@ -63,7 +71,8 @@ pub fn run() {
         .plugin(tauri_plugin_log::Builder::default().build())
         .plugin(tauri_plugin_clipboard_manager::init())
         .setup(|app| {
-            preload_snap_overlay(app.handle())?;
+            TextSnapOverlay::preload(app.handle())?;
+            TextSnapSettings::preload(app.handle())?;
             TextSnapTray::init(app.handle())?;
 
             #[cfg(target_os = "macos")]
@@ -74,6 +83,8 @@ pub fn run() {
             region_capture,
             show_snap_overlay,
             hide_snap_overlay,
+            show_settings,
+            hide_settings,
             get_last_shot_dim
         ])
         .run(tauri::generate_context!())
