@@ -7,7 +7,7 @@ import { splitProps } from "solid-js";
 export const buttonVariants = cva("bg-accent flex justify-center items-center", {
   variants: {
     size: {
-      sm: "min-w-[32px] p-2 rounded",
+      sm: "min-w-[36px] p-2 rounded",
       lg: "min-w-[68px] p-5 rounded-lg",
     },
     type: {
