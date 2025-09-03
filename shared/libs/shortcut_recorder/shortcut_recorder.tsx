@@ -1,5 +1,5 @@
 import { createEventListener } from "@solid-primitives/event-listener";
-import { createSignal } from "solid-js";
+import { createMemo, createSignal } from "solid-js";
 
 import { isModKey, MOD_KEYS_MAP, MOD_KEYS_ORDER } from "./constants";
 import { getFormattedError, getOrderedKeys } from "./lib";
@@ -35,6 +35,16 @@ const createShortcutRecorder = ({
 
   const [activeModKeys, setActiveModKeys] = createSignal<Set<string>>(new Set());
   const [activeNonModKey, setActiveNonModKey] = createSignal<string>("");
+
+  // Snapshot of the combo at the moment the non-mod key was pressed
+  const [candidateCombo, setCandidateCombo] = createSignal<{
+    modKeys: Set<string>;
+    nonModKey: string;
+  } | null>(null);
+
+  const candidate = createMemo(() =>
+    candidateCombo() ? [...Array.from(candidateCombo()!.modKeys), candidateCombo()!.nonModKey] : [],
+  );
 
   const excludedModKeysSet = new Set(
     excludedModKeys.filter((key) => isModKey(key)).map((key) => MOD_KEYS_MAP[key]),
@@ -111,6 +121,9 @@ const createShortcutRecorder = ({
     setActiveNonModKey((prevNonModKey) => {
       if (!isModKey(keycode)) {
         if (!excludedKeysSet.has(keycode)) {
+          // Snapshot the combo at the moment the non-mod key is pressed to avoid release-order issues
+          const modsAtPress = new Set(activeModKeys());
+          setCandidateCombo({ modKeys: modsAtPress, nonModKey: keycode });
           updateShortcutFromActiveKeys(activeModKeys(), keycode);
           // replace the newly pressed non mod key with old one
           return keycode;
@@ -138,12 +151,52 @@ const createShortcutRecorder = ({
       const newModKeys = new Set(prevModKeys);
       if (isModKey(keycode) && !excludedModKeysSet.has(MOD_KEYS_MAP[keycode])) {
         newModKeys.delete(MOD_KEYS_MAP[keycode]);
+        // Note: do not finalize here; if a candidateCombo exists we will finalize using its snapshot on non-mod key release
       }
       updateShortcutFromActiveKeys(newModKeys, activeNonModKey());
       return newModKeys;
     });
 
     setActiveNonModKey((prevNonModKey) => {
+      const cand = candidateCombo();
+
+      // If the released key is the non-mod key we recorded, finalize using the snapshot
+      if (!isModKey(keycode) && cand && cand.nonModKey === keycode) {
+        const numModKeysAtPress = cand.modKeys.size;
+
+        if (numModKeysAtPress < minModKeys) {
+          const err = getFormattedError(ShortcutRecorderErrorCode.MIN_MOD_KEYS_REQUIRED, {
+            minModKeys,
+          });
+          setError(err);
+          resetRecording();
+          setCandidateCombo(null);
+          return "";
+        }
+
+        // Construct the shortcut string from the snapshot (order-insensitive via getOrderedKeys)
+        const ordered = getOrderedKeys(cand.nonModKey, cand.modKeys);
+        const shortcutStr = ordered.join("");
+
+        if (excludedShortcutsSet.has(shortcutStr)) {
+          const err = getFormattedError(ShortcutRecorderErrorCode.SHORTCUT_NOT_ALLOWED, {
+            shortcutStr,
+          });
+          setError(err);
+          resetRecording();
+          setCandidateCombo(null);
+          return "";
+        }
+
+        // Save the snapshot-based shortcut and stop recording
+        setShortcut(ordered);
+        setSavedShortcut(ordered);
+        setCandidateCombo(null);
+        stopRecording();
+        return "";
+      }
+
+      // If a different non-mod key is released or no candidate exists, fall back to prior behavior
       if (
         !isModKey(keycode) &&
         !excludedKeysSet.has(keycode) &&
@@ -175,6 +228,7 @@ const createShortcutRecorder = ({
         stopRecording();
         return "";
       }
+
       return prevNonModKey;
     });
   };
@@ -193,6 +247,7 @@ const createShortcutRecorder = ({
 
   const resetRecording = (): void => {
     setShortcut([]);
+    setCandidateCombo(null);
     setActiveModKeys(new Set<string>());
     setActiveNonModKey("");
   };
@@ -213,6 +268,7 @@ const createShortcutRecorder = ({
 
   const stopRecording = (): void => {
     resetRecording();
+    setCandidateCombo(null);
     setIsRecording(false);
     setError({
       code: ShortcutRecorderErrorCode.NONE,
@@ -225,6 +281,7 @@ const createShortcutRecorder = ({
 
   return {
     shortcut,
+    candidate,
     savedShortcut,
     isRecording,
     error,

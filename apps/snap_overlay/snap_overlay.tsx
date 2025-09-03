@@ -57,7 +57,6 @@ function SnapOverlay() {
   };
 
   onMount(async () => {
-    SnapOverlayApi.registerShowShortcut();
     await TESSERACT_WORKER;
     const overlay = await SnapOverlayApi.get();
     const unlistenShown = await overlay?.listen("snap_overlay:shown", () => {
@@ -68,9 +67,6 @@ function SnapOverlay() {
     });
 
     return () => {
-      SnapOverlayApi.unregisterShortcut();
-      SnapOverlayApi.unregisterHideShortcut();
-
       if (unlistenShown) {
         unlistenShown();
       }

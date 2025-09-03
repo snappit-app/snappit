@@ -23,9 +23,9 @@ const MOD_PROFILE = {
   },
   linux: {
     Meta: "Super",
-    Control: "Ctrl",
-    Alt: "Alt",
-    Shift: "Shift",
+    Control: "⌃",
+    Alt: "⌥",
+    Shift: "⇧",
     Super: "Super",
   },
 } as const satisfies Record<SupportedPlatforms, Record<string, string>>;
@@ -173,7 +173,7 @@ const MOD_FROM_CODE = (code: string): "Meta" | "Control" | "Alt" | "Shift" | nul
 
 // ---- Public API --------------------------------------------------------------
 export interface DisplayOptions {
-  Platform?: SupportedPlatforms; // force Platform; default auto-detect
+  platform?: SupportedPlatforms; // force Platform; default auto-detect
   preferTextOnMac?: boolean; // if true, mac will use text ("Cmd", "Opt", …) not glyphs
   showPlusBetween?: boolean; // used by formatCombo
 }
@@ -182,9 +182,7 @@ const MAC_TEXT_MODS = { Meta: "Cmd", Alt: "Opt", Shift: "Shift", Control: "Ctrl"
 
 /** Get display label/icon for a single code (using optional `KeyboardEvent.key` as hint) */
 export function displayKey(code: string, keyHint?: string, opts: DisplayOptions = {}): string {
-  const os = (opts.Platform ?? platform()) as SupportedPlatforms;
-
-  console.log(os);
+  const os = (opts.platform ?? platform()) as SupportedPlatforms;
 
   // 1) Modifiers
   const mod = MOD_FROM_CODE(code);
@@ -247,7 +245,241 @@ export function formatCombo(
   };
 
   const display = (p: (typeof parsed)[0]) => displayKey(p.code, p.keyHint, opts);
-  const joiner = (opts.showPlusBetween ?? (opts.Platform ?? platform()) !== "macos") ? " + " : "";
+  const joiner = (opts.showPlusBetween ?? (opts.platform ?? platform()) !== "macos") ? " + " : "";
 
   return [...mods.sort(sortMod).map(display), ...others.map(display)].join(joiner);
+}
+
+export function isModKey(code: string): boolean {
+  return !!MOD_FROM_CODE(code);
+}
+
+const GLOBAL_SHORTCUT_MAP: Record<string, string> = {
+  Meta: "Super",
+  Control: "Control",
+  Alt: "Alt",
+  Shift: "Shift",
+};
+
+export function toGlobalShortcut(codes: string[]): string {
+  return codes
+    .map((code) => {
+      const mod = MOD_FROM_CODE(code);
+      if (mod) return GLOBAL_SHORTCUT_MAP[mod];
+      const letterMatch = /^Key([A-Z])$/.exec(code);
+      if (letterMatch) return letterMatch[1];
+      const digitMatch = /^Digit(\d)$/.exec(code);
+      if (digitMatch) return digitMatch[1];
+      return displayKey(code);
+    })
+    .join("+");
+}
+
+// Build reverse map for BASE_SPECIAL labels back to codes.
+// In case of duplicate labels, first encountered wins.
+const REVERSE_SPECIAL_LABEL_TO_CODE: Record<string, string> = (() => {
+  const map: Record<string, string> = {};
+  for (const [code, label] of Object.entries(BASE_SPECIAL)) {
+    if (!(label in map)) map[label] = code;
+  }
+  return map;
+})();
+
+// Normalize utility for modifier synonyms
+const normalizeToken = (t: string) => t.trim();
+
+// Map common global-shortcut modifier aliases to canonical codes
+function modAliasToCode(token: string, os: SupportedPlatforms): string | null {
+  const raw = normalizeToken(token);
+  const simple = raw.toLowerCase().replace(/[^a-z]/g, "");
+
+  switch (simple) {
+    // Meta / Super family
+    case "super":
+    case "win":
+    case "windows":
+    case "meta":
+    case "command":
+    case "cmd":
+      return "Meta";
+    // Cross-platform alias
+    case "commandorcontrol":
+    case "cmdorctrl":
+    case "cmdorcontrol":
+      return os === "macos" ? "Meta" : "Control";
+    // Control family
+    case "control":
+    case "ctrl":
+      return "Control";
+    // Alt / Option
+    case "alt":
+    case "option":
+    case "opt":
+      return "Alt";
+    // Shift
+    case "shift":
+      return "Shift";
+    default:
+      return null;
+  }
+}
+
+// Tokenize a global shortcut string while preserving standalone "+" key presses.
+// Example: "Alt++" -> ["Alt", "+"]
+function tokenizeGlobalShortcut(input: string): string[] {
+  const out: string[] = [];
+  let cur = "";
+  let lastWasPlus = false;
+  for (const ch of input) {
+    if (ch === "+") {
+      if (lastWasPlus) {
+        // "++" implies a literal plus key between separators
+        out.push("+");
+        lastWasPlus = false; // treat this as consumed literal
+        continue;
+      }
+      if (cur) out.push(cur);
+      cur = "";
+      lastWasPlus = true;
+    } else {
+      cur += ch;
+      lastWasPlus = false;
+    }
+  }
+  if (cur) out.push(cur);
+  return out.map((t) => t.trim()).filter((t) => t.length > 0);
+}
+
+/**
+ * Reverse mapping of a global shortcut string back to keyboard codes.
+ * Example: "Super+Shift+K" -> ["Meta", "Shift", "KeyK"]
+ */
+export function fromGlobalShortcut(shortcut: string): string[] {
+  const os = platform() as SupportedPlatforms;
+  const tokens = tokenizeGlobalShortcut(shortcut);
+
+  const result: string[] = [];
+  for (const token of tokens) {
+    // 1) Modifiers and their aliases
+    const mod = modAliasToCode(token, os);
+    if (mod) {
+      result.push(mod);
+      continue;
+    }
+
+    // 2) Single letter -> KeyX
+    if (/^[a-z]$/i.test(token)) {
+      result.push(`Key${token.toUpperCase()}`);
+      continue;
+    }
+
+    // 3) Single digit -> DigitN
+    if (/^\d$/.test(token)) {
+      result.push(`Digit${token}`);
+      continue;
+    }
+
+    // 4) Function keys like F1..F24
+    const fn = /^F([1-9]|1[0-9]|2[0-4])$/i.exec(token);
+    if (fn) {
+      result.push(`F${fn[1]}`);
+      continue;
+    }
+
+    // 5) Literal plus token -> prefer numpad add
+    if (token === "+") {
+      result.push("NumpadAdd");
+      continue;
+    }
+
+    // 6) Direct reverse of special labels (exact match)
+    if (token in REVERSE_SPECIAL_LABEL_TO_CODE) {
+      result.push(REVERSE_SPECIAL_LABEL_TO_CODE[token]);
+      continue;
+    }
+
+    // 7) Common label synonyms fallback
+    const t = token.trim();
+    switch (t) {
+      case "Esc":
+      case "Escape":
+        result.push("Escape");
+        continue;
+      case "Enter":
+        result.push("Enter");
+        continue;
+      case "Space":
+      case "Spacebar":
+        result.push("Space");
+        continue;
+      case "PgUp":
+      case "PageUp":
+        result.push("PageUp");
+        continue;
+      case "PgDn":
+      case "PageDown":
+        result.push("PageDown");
+        continue;
+      case "Back":
+        result.push("BrowserBack");
+        continue;
+      case "Forward":
+        result.push("BrowserForward");
+        continue;
+      case "Mute":
+        result.push("AudioVolumeMute");
+        continue;
+      case "Vol +":
+      case "Volume+":
+        result.push("AudioVolumeUp");
+        continue;
+      case "Vol -":
+      case "Volume-":
+        result.push("AudioVolumeDown");
+        continue;
+      case "↑":
+      case "ArrowUp":
+      case "Up":
+        result.push("ArrowUp");
+        continue;
+      case "↓":
+      case "ArrowDown":
+      case "Down":
+        result.push("ArrowDown");
+        continue;
+      case "←":
+      case "ArrowLeft":
+      case "Left":
+        result.push("ArrowLeft");
+        continue;
+      case "→":
+      case "ArrowRight":
+      case "Right":
+        result.push("ArrowRight");
+        continue;
+      case "-":
+        result.push("Minus");
+        continue;
+      case "=":
+        result.push("Equal");
+        continue;
+      case ",":
+        result.push("Comma");
+        continue;
+      case ".":
+        result.push("Period");
+        continue;
+      case "/":
+        result.push("Slash");
+        continue;
+      case "\\":
+        result.push("Backslash");
+        continue;
+    }
+
+    // 8) Last resort: assume it's already a code
+    result.push(t);
+  }
+
+  return result;
 }

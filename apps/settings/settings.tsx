@@ -1,8 +1,29 @@
 import { General } from "@settings/general";
-import { Button } from "@shared/ui/button";
+import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
+import { createEffect, onCleanup } from "solid-js";
 
 function Settings() {
+  const [storeShortcut] = SnapOverlayApi.createShortcut();
+
+  createEffect<string>((prev) => {
+    const curr = storeShortcut();
+
+    if (prev) {
+      SnapOverlayApi.unregisterShowShortcut(prev);
+    }
+
+    SnapOverlayApi.registerShowShortcut(curr);
+    return curr;
+  });
+
+  onCleanup(() => {
+    const curr = storeShortcut();
+    if (curr) {
+      SnapOverlayApi.unregisterShowShortcut(curr);
+    }
+  });
+
   return (
     <main class="h-full">
       <Tabs defaultValue="account" class="h-full flex flex-col">
@@ -21,15 +42,6 @@ function Settings() {
           <TabsContent value="ocr">password</TabsContent>
           <TabsContent value="about">Change your password here.</TabsContent>
         </div>
-
-        <footer class="p-3 flex gap-3 justify-end border-t-1">
-          <Button size="sm" variant={"outline"}>
-            Cancel
-          </Button>
-          <Button size="sm" variant={"secondary"}>
-            Save
-          </Button>
-        </footer>
       </Tabs>
     </main>
   );

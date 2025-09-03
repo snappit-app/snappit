@@ -33,4 +33,4 @@ export function isModKey(key: string): key is keyof typeof MOD_KEYS_MAP {
 }
 
 // defines in the order in which mod keys are displayed
-export const MOD_KEYS_ORDER: string[] = ["Control", "Shift", "Alt", "Meta"];
+export const MOD_KEYS_ORDER: string[] = ["Meta", "Control", "Shift", "Alt"];

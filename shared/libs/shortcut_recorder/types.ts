@@ -25,6 +25,7 @@ export interface ShortcutRecorderOptions {
 
 export interface ShortcutRecorderReturn {
   shortcut: Accessor<string[]>;
+  candidate: Accessor<string[]>;
   savedShortcut: Accessor<string[]>;
   isRecording: Accessor<boolean>;
   error: Accessor<ShortcutRecorderError>;
