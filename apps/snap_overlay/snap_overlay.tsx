@@ -46,7 +46,7 @@ function SnapOverlay() {
 
       await RegionCaptureApi.captureRegion(p);
 
-      SnapOverlayApi.closeSnapOverlay();
+      SnapOverlayApi.close();
 
       const imageData = await RegionCaptureApi.getLastShotData();
       const worker = await TESSERACT_WORKER;
@@ -57,19 +57,19 @@ function SnapOverlay() {
   };
 
   onMount(async () => {
-    SnapOverlayApi.registerShowOverlayShortcut();
+    SnapOverlayApi.registerShowShortcut();
     await TESSERACT_WORKER;
-    const overlay = await SnapOverlayApi.getSnapOverlay();
+    const overlay = await SnapOverlayApi.get();
     const unlistenShown = await overlay?.listen("snap_overlay:shown", () => {
-      SnapOverlayApi.registerHideOverlayShortcut();
+      SnapOverlayApi.registerHideShortcut();
     });
     const unlistenHidden = await overlay?.listen("snap_overlay:hidden", () => {
-      SnapOverlayApi.unregisterHideOverlayShortcut();
+      SnapOverlayApi.unregisterHideShortcut();
     });
 
     return () => {
-      SnapOverlayApi.unregisterShowOverlayShortcut();
-      SnapOverlayApi.unregisterHideOverlayShortcut();
+      SnapOverlayApi.unregisterShortcut();
+      SnapOverlayApi.unregisterHideShortcut();
 
       if (unlistenShown) {
         unlistenShown();

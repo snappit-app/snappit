@@ -66,6 +66,7 @@ fn hide_settings(app: AppHandle) -> tauri::Result<()> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .register_uri_scheme_protocol("img", move |_app, req| handle_img_request(&req))
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())

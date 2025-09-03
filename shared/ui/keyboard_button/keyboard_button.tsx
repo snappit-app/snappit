@@ -1,35 +1,38 @@
 import { cn } from "@shared/libs/cn";
-import { makeEventListener } from "@solid-primitives/event-listener";
-import { createMemo, createSignal } from "solid-js";
+import { displayKey } from "@shared/libs/shortcut_recorder";
+import { cva, VariantProps } from "class-variance-authority";
+import { splitProps } from "solid-js";
 
-export type keyboardButtonProps = {
+export const buttonVariants = cva("w-[72px] h-[72px] bg-accent flex justify-center items-center", {
+  variants: {
+    size: {
+      sm: "w-[20px] h-[20px] rounded text-xs",
+      lg: "w-[72px] h-[72px] rounded-lg text-xl",
+    },
+  },
+  defaultVariants: {
+    size: "lg",
+  },
+});
+
+export type keyboardButtonProps = VariantProps<typeof buttonVariants> & {
   key: string;
+  class?: string;
 };
 
 export function KeyboardButton(props: keyboardButtonProps) {
-  const [keyPressed, setKeyPressed] = createSignal(false);
-
-  const bgClass = createMemo(() => (keyPressed() ? "bg-gray-200" : ""));
-
-  makeEventListener(window, "keydown", (e: KeyboardEvent) => {
-    if (e.key.toLowerCase() === props.key.toLowerCase()) {
-      setKeyPressed(true);
-    }
-  });
-  makeEventListener(window, "keyup", (e: KeyboardEvent) => {
-    if (e.key.toLowerCase() === props.key.toLowerCase()) {
-      setKeyPressed(false);
-    }
-  });
+  const [local] = splitProps(props as keyboardButtonProps, ["class", "size"]);
 
   return (
     <div
       class={cn(
-        "w-[72px] h-[72px] bg-accent flex justify-center items-center rounded-md",
-        bgClass(),
+        buttonVariants({
+          size: local.size,
+        }),
+        local.class,
       )}
     >
-      <span class="text-sm text-accent-foreground">{props.key}</span>
+      <kbd class="text-accent-foreground">{displayKey(props.key)}</kbd>
     </div>
   );
 }
