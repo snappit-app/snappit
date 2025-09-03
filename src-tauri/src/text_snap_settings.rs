@@ -71,7 +71,7 @@ impl TextSnapSettings {
             Self::ID,
             WebviewUrl::App("apps/settings/index.html".into()),
         )
-        .title(Self::ID)
+        .title("TextSnap Settings")
         .visible(false)
         .accept_first_mouse(true)
         .shadow(true);

@@ -66,6 +66,7 @@ fn hide_settings(app: AppHandle) -> tauri::Result<()> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .register_uri_scheme_protocol("img", move |_app, req| handle_img_request(&req))
@@ -78,10 +79,10 @@ pub fn run() {
             TextSnapSettings::preload(app.handle())?;
 
             TextSnapSettings::show(app.handle())?;
-            // TextSnapSettings::hide(app.handle())?;
+            TextSnapSettings::hide(app.handle())?;
 
-            // #[cfg(target_os = "macos")]
-            // app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+            #[cfg(target_os = "macos")]
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             TextSnapTray::init(app.handle())?;
 

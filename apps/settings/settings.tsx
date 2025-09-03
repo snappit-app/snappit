@@ -30,7 +30,7 @@ function Settings() {
         <header class="p-3 border-b-1">
           <TabsList>
             <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="ocr">OCR Settings</TabsTrigger>
+            <TabsTrigger value="preferences">Preferences</TabsTrigger>
             <TabsTrigger value="about">About</TabsTrigger>
           </TabsList>
         </header>

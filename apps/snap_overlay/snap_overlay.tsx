@@ -2,8 +2,13 @@ import { TESSERACT_WORKER } from "@shared/libs/tesseract_worker";
 import { RegionCaptureApi, RegionCaptureParams } from "@shared/tauri/region_capture";
 import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import {
+  isPermissionGranted,
+  requestPermission,
+  sendNotification,
+} from "@tauri-apps/plugin-notification";
 import { createMemo, createSignal, onMount } from "solid-js";
-
+import { RecognizeResult } from "tesseract.js";
 const DEFAULT_POS = { x: 0, y: 0 };
 
 function SnapOverlay() {
@@ -50,13 +55,32 @@ function SnapOverlay() {
 
       const imageData = await RegionCaptureApi.getLastShotData();
       const worker = await TESSERACT_WORKER;
-      const ret = await worker.recognize(imageData);
 
-      writeText(ret.data.text);
+      let res: RecognizeResult | null = null;
+      worker.recognize(imageData).then(async (recognized) => {
+        res = recognized;
+        writeText(recognized.data.text);
+        if (await isPermissionGranted()) {
+          sendNotification({ title: "TextSnap", body: "Text was copied to the clipboard" });
+        }
+      });
+
+      setTimeout(async () => {
+        if (!res && (await isPermissionGranted())) {
+          sendNotification({ title: "TextSnap", body: "TextSnap is processing..." });
+        }
+      }, 1500);
     }
   };
 
   onMount(async () => {
+    let permissionGranted = await isPermissionGranted();
+
+    if (!permissionGranted) {
+      const permission = await requestPermission();
+      permissionGranted = permission === "granted";
+    }
+
     await TESSERACT_WORKER;
     const overlay = await SnapOverlayApi.get();
     const unlistenShown = await overlay?.listen("snap_overlay:shown", () => {
