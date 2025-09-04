@@ -34,7 +34,7 @@ function Settings() {
           <TabsList>
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="preferences">Preferences</TabsTrigger>
-            <TabsTrigger value="about">About</TabsTrigger>``
+            <TabsTrigger value="about">About</TabsTrigger>
           </TabsList>
         </header>
 

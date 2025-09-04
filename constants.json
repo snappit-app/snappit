@@ -3,7 +3,8 @@
     "file": "settings.json",
     "keys": {
       "theme": "theme",
-      "hotkey_capture": "hotkey.capture"
+      "hotkey_capture": "hotkey.capture",
+      "settings_initialized": "settings.initialized"
     }
   },
   "windows": {

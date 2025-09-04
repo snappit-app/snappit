@@ -15,6 +15,7 @@ pub struct TextSnapStoreType {
 pub struct TextSpanStoreKeys {
     pub theme: String,
     pub hotkey_capture: String,
+    pub settings_initialized: String,
 }
 #[derive(Debug, Deserialize)]
 pub struct TextSnapWindows {

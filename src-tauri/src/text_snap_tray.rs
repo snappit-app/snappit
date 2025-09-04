@@ -8,7 +8,10 @@ use tauri::{
 };
 
 use crate::text_snap_overlay::TextSnapOverlay;
-use crate::{text_snap_errors::TextSnapResult, text_snap_settings::TextSnapSettings};
+use crate::{
+    text_snap_consts::TEXT_SNAP_CONSTS, text_snap_errors::TextSnapResult,
+    text_snap_settings::TextSnapSettings, text_snap_store::TextSnapStore,
+};
 
 #[derive(EnumString, AsRefStr, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TextSnapTrayItemId {
@@ -27,7 +30,7 @@ pub enum TextSnapTrayItem {
         title: &'static str,
         enabled: bool,
         handler: fn(&AppHandle<Wry>) -> TextSnapResult<()>,
-        accelerator: Option<&'static str>,
+        accelerator_store_key: Option<fn() -> String>,
     },
     Separator,
 }
@@ -43,7 +46,7 @@ impl TextSnapTrayItem {
             id,
             title,
             enabled,
-            accelerator: None,
+            accelerator_store_key: None,
             handler,
         }
     }
@@ -52,14 +55,14 @@ impl TextSnapTrayItem {
         id: TextSnapTrayItemId,
         title: &'static str,
         enabled: bool,
-        accelerator: &'static str,
+        accelerator_store_key: fn() -> String,
         handler: fn(&AppHandle<Wry>) -> TextSnapResult<()>,
     ) -> Self {
         Self::Item {
             id,
             title,
             enabled,
-            accelerator: Some(accelerator),
+            accelerator_store_key: Some(accelerator_store_key),
             handler,
         }
     }
@@ -83,12 +86,16 @@ impl TextSnapTrayItem {
     }
 }
 
+fn hotkey_capture_key() -> String {
+    TEXT_SNAP_CONSTS.store.keys.hotkey_capture.clone()
+}
+
 pub const TRAY_ITEMS: &[TextSnapTrayItem] = &[
     TextSnapTrayItem::item_with_accelerator(
         TextSnapTrayItemId::Capture,
         "Capture",
         true,
-        "Super+Shift+2",
+        hotkey_capture_key,
         |app| {
             TextSnapOverlay::show(app)?;
             Ok(())
@@ -130,12 +137,7 @@ impl TextSnapTray {
     ) -> TextSnapResult<()> {
         let tray = app.tray_by_id(Self::TRAY_ID).expect("tray not found");
 
-        log::info!("shortcut={:?}", id);
-        log::info!("shortcut={:?}", accelerator);
-
         if let Some(menu) = MENU.get() {
-            log::info!("menu exist");
-
             for kind in menu.items()? {
                 match kind {
                     MenuItemKind::MenuItem(item) => {
@@ -174,10 +176,25 @@ impl TextSnapTray {
                     id,
                     title,
                     enabled,
-                    accelerator,
+                    accelerator_store_key,
                     ..
                 } => {
-                    let item = MenuItem::with_id(app, id.as_ref(), title, *enabled, *accelerator)?;
+                    // Resolve accelerator from store by the provided key path
+                    let resolved_accelerator = if let Some(key_fn) = accelerator_store_key {
+                        let key = key_fn();
+                        TextSnapStore::get_value(app, key.as_str())?
+                            .and_then(|v| v.as_str().map(|s| s.to_string()))
+                    } else {
+                        None
+                    };
+
+                    let item = MenuItem::with_id(
+                        app,
+                        id.as_ref(),
+                        title,
+                        *enabled,
+                        resolved_accelerator.as_deref(),
+                    )?;
                     menu.append(&item)?;
                 }
                 TextSnapTrayItem::Separator => {

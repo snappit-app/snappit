@@ -10,6 +10,7 @@ mod text_snap_tray;
 
 use img_protocol::{handle_img_request, IMAGE};
 use region_capture::{RegionCapture, RegionCaptureParams};
+use serde_json::json;
 use tauri::AppHandle;
 use text_snap_overlay::TextSnapOverlay;
 use text_snap_tray::TextSnapTray;
@@ -95,10 +96,26 @@ pub fn run() {
             TextSnapSettings::preload(app.handle())?;
 
             TextSnapSettings::show(app.handle())?;
-            TextSnapSettings::hide(app.handle())?;
 
-            #[cfg(target_os = "macos")]
-            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+            let initialized = TextSnapStore::get_value(
+                app.handle(),
+                TEXT_SNAP_CONSTS.store.keys.settings_initialized.as_str(),
+            )?
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+
+            if initialized {
+                #[cfg(target_os = "macos")]
+                app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
+                TextSnapSettings::hide(app.handle())?;
+            } else {
+                TextSnapStore::set_value(
+                    app.handle(),
+                    TEXT_SNAP_CONSTS.store.keys.settings_initialized.as_str(),
+                    Some(json!(true)),
+                )?;
+            }
 
             TextSnapTray::init(app.handle())?;
 
