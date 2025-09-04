@@ -3,6 +3,8 @@ import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
 import { createEffect, onCleanup } from "solid-js";
 
+import { TextSnapTrayApi } from "@/shared/tauri/snap_tray_api";
+
 function Settings() {
   const [storeShortcut] = SnapOverlayApi.createShortcut();
 
@@ -14,6 +16,7 @@ function Settings() {
     }
 
     SnapOverlayApi.registerShowShortcut(curr);
+    TextSnapTrayApi.updateCaptureShortcut();
     return curr;
   });
 
@@ -31,7 +34,7 @@ function Settings() {
           <TabsList>
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="preferences">Preferences</TabsTrigger>
-            <TabsTrigger value="about">About</TabsTrigger>
+            <TabsTrigger value="about">About</TabsTrigger>``
           </TabsList>
         </header>
 

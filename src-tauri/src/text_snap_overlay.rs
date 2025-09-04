@@ -1,5 +1,5 @@
-use crate::platform::Platform;
 use crate::text_snap_errors::TextSnapResult;
+use crate::{platform::Platform, text_snap_consts::TEXT_SNAP_CONSTS};
 #[cfg(target_os = "macos")]
 use objc2_app_kit::NSScreenSaverWindowLevel;
 use tauri::{
@@ -9,11 +9,9 @@ use tauri::{
 pub struct TextSnapOverlay;
 
 impl TextSnapOverlay {
-    pub const ID: &str = "snap_overlay";
-
     pub fn hide(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
         let overlay = app
-            .get_webview_window(Self::ID)
+            .get_webview_window(TEXT_SNAP_CONSTS.windows.overlay.as_str())
             .ok_or_else(|| TauriError::WebviewNotFound)?;
 
         overlay.hide()?;
@@ -36,7 +34,7 @@ impl TextSnapOverlay {
         let monitor = Platform::monitor_from_cursor(&app)?;
         let physical_size = monitor.size().clone();
         let overlay = app
-            .get_webview_window(Self::ID)
+            .get_webview_window(TEXT_SNAP_CONSTS.windows.overlay.as_str())
             .ok_or_else(|| TauriError::WebviewNotFound)?;
 
         overlay.set_size(physical_size)?;
@@ -74,10 +72,10 @@ impl TextSnapOverlay {
     fn builder<'a>(app: &'a AppHandle<Wry>) -> WebviewWindowBuilder<'a, Wry, AppHandle<Wry>> {
         let builder = WebviewWindow::builder(
             app,
-            Self::ID,
+            TEXT_SNAP_CONSTS.windows.overlay.as_str(),
             WebviewUrl::App("apps/snap_overlay/index.html".into()),
         )
-        .title(Self::ID)
+        .title(TEXT_SNAP_CONSTS.windows.overlay.as_str())
         .visible(false)
         .accept_first_mouse(true);
 

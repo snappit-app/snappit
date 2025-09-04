@@ -4,14 +4,14 @@ import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { register, unregister } from "@tauri-apps/plugin-global-shortcut";
 import { createMemo } from "solid-js";
 
+import { TEXT_SNAP_CONSTS } from "@/shared/constants";
+
 export const SHOW_SNAP_OVERLAY_DEFAULT_SHORTCUT = "CommandOrControl+Shift+2";
 const HIDE_SNAP_OVERLAY_SHORTCUT = "Escape";
 
-const SNAP_OVERLAY_SHORTCUT_STORE_KEY = "show_overlay";
-
 export abstract class SnapOverlayApi {
   static async get() {
-    return WebviewWindow.getByLabel("snap_overlay");
+    return WebviewWindow.getByLabel(TEXT_SNAP_CONSTS.windows.overlay);
   }
 
   static async close() {
@@ -47,7 +47,7 @@ export abstract class SnapOverlayApi {
 
   static createShortcut() {
     const [storeShortcut, setStoreShortcut] = TextSnapStore.createValue<string>(
-      SNAP_OVERLAY_SHORTCUT_STORE_KEY,
+      TEXT_SNAP_CONSTS.store.keys.hotkey_capture,
     );
     const shortcut = createMemo(() => storeShortcut() ?? SHOW_SNAP_OVERLAY_DEFAULT_SHORTCUT);
     return [shortcut, setStoreShortcut] as const;

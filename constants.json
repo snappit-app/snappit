@@ -1,0 +1,13 @@
+{
+  "store": {
+    "file": "settings.json",
+    "keys": {
+      "theme": "theme",
+      "hotkey_capture": "hotkey.capture"
+    }
+  },
+  "windows": {
+    "settings": "settings",
+    "overlay": "snap_overlay"
+  }
+}

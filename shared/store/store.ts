@@ -1,7 +1,7 @@
 import { load, Store } from "@tauri-apps/plugin-store";
 import { createResource, createRoot, Resource } from "solid-js";
 
-export const STORE_FILE = "settings.json";
+import { TEXT_SNAP_CONSTS } from "@/shared/constants";
 
 export abstract class TextSnapStore {
   private static _storeSingleton: {
@@ -22,7 +22,7 @@ export abstract class TextSnapStore {
     if (!this._storeSingleton) {
       const inst = createRoot((dispose) => {
         const [store] = createResource<Store>(async () => {
-          return await load(STORE_FILE);
+          return await load(TEXT_SNAP_CONSTS.store.file);
         });
 
         return { store, dispose } as const;

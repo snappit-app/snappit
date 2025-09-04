@@ -1,9 +1,11 @@
 mod img_protocol;
 mod platform;
 mod region_capture;
+mod text_snap_consts;
 mod text_snap_errors;
 mod text_snap_overlay;
 mod text_snap_settings;
+mod text_snap_store;
 mod text_snap_tray;
 
 use img_protocol::{handle_img_request, IMAGE};
@@ -12,7 +14,11 @@ use tauri::AppHandle;
 use text_snap_overlay::TextSnapOverlay;
 use text_snap_tray::TextSnapTray;
 
-use crate::{img_protocol::ImageSlot, text_snap_settings::TextSnapSettings};
+use crate::{
+    img_protocol::ImageSlot, text_snap_consts::TEXT_SNAP_CONSTS,
+    text_snap_settings::TextSnapSettings, text_snap_store::TextSnapStore,
+    text_snap_tray::TextSnapTrayItemId,
+};
 
 #[tauri::command]
 fn get_last_shot_dim() -> tauri::Result<Option<(u32, u32)>> {
@@ -63,6 +69,16 @@ fn hide_settings(app: AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
+#[tauri::command]
+fn update_tray_shortcut(app: AppHandle) -> tauri::Result<()> {
+    let shortcut =
+        TextSnapStore::get_value(&app, TEXT_SNAP_CONSTS.store.keys.hotkey_capture.as_str())?
+            .and_then(|v| v.as_str().map(|s| s.to_string()));
+
+    TextSnapTray::update_shortcut(&app, TextSnapTrayItemId::Capture, shortcut.as_deref())?;
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -94,7 +110,8 @@ pub fn run() {
             hide_snap_overlay,
             show_settings,
             hide_settings,
-            get_last_shot_dim
+            get_last_shot_dim,
+            update_tray_shortcut
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

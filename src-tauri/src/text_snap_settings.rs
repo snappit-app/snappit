@@ -3,16 +3,14 @@ use tauri::{
     WebviewWindowBuilder, WindowEvent, Wry,
 };
 
-use crate::text_snap_errors::TextSnapResult;
+use crate::{text_snap_consts::TEXT_SNAP_CONSTS, text_snap_errors::TextSnapResult};
 
 pub struct TextSnapSettings;
 
 impl TextSnapSettings {
-    pub const ID: &str = "settings";
-
     pub fn hide(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
         let window = app
-            .get_webview_window(Self::ID)
+            .get_webview_window(TEXT_SNAP_CONSTS.windows.settings.as_str())
             .ok_or_else(|| TauriError::WebviewNotFound)?;
 
         #[cfg(target_os = "macos")]
@@ -25,7 +23,7 @@ impl TextSnapSettings {
 
     pub fn show(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
         let window = app
-            .get_webview_window(Self::ID)
+            .get_webview_window(TEXT_SNAP_CONSTS.windows.settings.as_str())
             .ok_or_else(|| TauriError::WebviewNotFound)?;
 
         #[cfg(target_os = "macos")]
@@ -68,7 +66,7 @@ impl TextSnapSettings {
     fn builder<'a>(app: &'a AppHandle<Wry>) -> WebviewWindowBuilder<'a, Wry, AppHandle<Wry>> {
         let builder = WebviewWindow::builder(
             app,
-            Self::ID,
+            TEXT_SNAP_CONSTS.windows.settings.as_str(),
             WebviewUrl::App("apps/settings/index.html".into()),
         )
         .title("TextSnap Settings")

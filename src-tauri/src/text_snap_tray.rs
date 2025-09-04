@@ -1,3 +1,6 @@
+use std::sync::OnceLock;
+use strum_macros::{AsRefStr, EnumString};
+use tauri::menu::MenuItemKind;
 use tauri::{
     menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem},
     tray::{TrayIcon, TrayIconBuilder},
@@ -7,10 +10,20 @@ use tauri::{
 use crate::text_snap_overlay::TextSnapOverlay;
 use crate::{text_snap_errors::TextSnapResult, text_snap_settings::TextSnapSettings};
 
+#[derive(EnumString, AsRefStr, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum TextSnapTrayItemId {
+    #[strum(serialize = "capture")]
+    Capture,
+    #[strum(serialize = "settings")]
+    Settings,
+    #[strum(serialize = "quit")]
+    Quit,
+}
+
 #[derive(Clone, Copy, Debug)]
 pub enum TextSnapTrayItem {
     Item {
-        id: &'static str,
+        id: TextSnapTrayItemId,
         title: &'static str,
         enabled: bool,
         handler: fn(&AppHandle<Wry>) -> TextSnapResult<()>,
@@ -21,7 +34,7 @@ pub enum TextSnapTrayItem {
 
 impl TextSnapTrayItem {
     pub const fn item(
-        id: &'static str,
+        id: TextSnapTrayItemId,
         title: &'static str,
         enabled: bool,
         handler: fn(&AppHandle<Wry>) -> TextSnapResult<()>,
@@ -36,7 +49,7 @@ impl TextSnapTrayItem {
     }
 
     pub const fn item_with_accelerator(
-        id: &'static str,
+        id: TextSnapTrayItemId,
         title: &'static str,
         enabled: bool,
         accelerator: &'static str,
@@ -64,23 +77,29 @@ impl TextSnapTrayItem {
 
     pub fn matches_id(&self, id: &str) -> bool {
         match self {
-            TextSnapTrayItem::Item { id: item_id, .. } => *item_id == id,
+            TextSnapTrayItem::Item { id: item_id, .. } => item_id.as_ref() == id,
             TextSnapTrayItem::Separator => false,
         }
     }
 }
 
 pub const TRAY_ITEMS: &[TextSnapTrayItem] = &[
-    TextSnapTrayItem::item_with_accelerator("capture", "Capture", true, "cmd+c", |app| {
-        TextSnapOverlay::show(app)?;
-        Ok(())
-    }),
-    TextSnapTrayItem::item("settings", "Settings", true, |app| {
+    TextSnapTrayItem::item_with_accelerator(
+        TextSnapTrayItemId::Capture,
+        "Capture",
+        true,
+        "Super+Shift+2",
+        |app| {
+            TextSnapOverlay::show(app)?;
+            Ok(())
+        },
+    ),
+    TextSnapTrayItem::item(TextSnapTrayItemId::Settings, "Settings", true, |app| {
         TextSnapSettings::show(app)?;
         Ok(())
     }),
     TextSnapTrayItem::separator(),
-    TextSnapTrayItem::item("quit", "Quit", true, |app| {
+    TextSnapTrayItem::item(TextSnapTrayItemId::Quit, "Quit", true, |app| {
         app.exit(0);
         Ok(())
     }),
@@ -99,9 +118,56 @@ impl<'a> TryFrom<&'a MenuEvent> for &'a TextSnapTrayItem {
 
 pub struct TextSnapTray;
 
+static MENU: OnceLock<Menu<Wry>> = OnceLock::new();
+
 impl TextSnapTray {
+    const TRAY_ID: &str = "main";
+
+    pub fn update_shortcut(
+        app: &AppHandle<Wry>,
+        id: TextSnapTrayItemId,
+        accelerator: Option<&str>,
+    ) -> TextSnapResult<()> {
+        let tray = app.tray_by_id(Self::TRAY_ID).expect("tray not found");
+
+        log::info!("shortcut={:?}", id);
+        log::info!("shortcut={:?}", accelerator);
+
+        if let Some(menu) = MENU.get() {
+            log::info!("menu exist");
+
+            for kind in menu.items()? {
+                match kind {
+                    MenuItemKind::MenuItem(item) => {
+                        if item.id().as_ref() == id.as_ref() {
+                            item.set_accelerator(accelerator)?;
+                        }
+                    }
+                    MenuItemKind::Check(item) => {
+                        if item.id().as_ref() == id.as_ref() {
+                            item.set_accelerator(accelerator)?;
+                        }
+                    }
+                    MenuItemKind::Icon(item) => {
+                        if item.id().as_ref() == id.as_ref() {
+                            item.set_accelerator(accelerator)?;
+                        }
+                    }
+                    // Other kinds don't have accelerators we can set
+                    MenuItemKind::Submenu(_) | MenuItemKind::Predefined(_) => {}
+                }
+            }
+
+            tray.set_menu(Some(menu.clone()))?;
+        }
+
+        Ok(())
+    }
+
     pub fn init(app: &AppHandle<Wry>) -> TextSnapResult<TrayIcon> {
         let menu = Menu::new(app)?;
+        let _ = MENU.set(menu.clone());
+
         for def in TRAY_ITEMS {
             match def {
                 TextSnapTrayItem::Item {
@@ -111,7 +177,7 @@ impl TextSnapTray {
                     accelerator,
                     ..
                 } => {
-                    let item = MenuItem::with_id(app, id, title, *enabled, *accelerator)?;
+                    let item = MenuItem::with_id(app, id.as_ref(), title, *enabled, *accelerator)?;
                     menu.append(&item)?;
                 }
                 TextSnapTrayItem::Separator => {
@@ -120,7 +186,7 @@ impl TextSnapTray {
             }
         }
 
-        let tray = TrayIconBuilder::new()
+        let tray = TrayIconBuilder::with_id(Self::TRAY_ID)
             .menu(&menu)
             .show_menu_on_left_click(true)
             .icon(app.default_window_icon().unwrap().clone())

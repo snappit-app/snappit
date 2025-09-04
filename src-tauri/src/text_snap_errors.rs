@@ -1,4 +1,5 @@
 use tauri::Error as TauriError;
+use tauri_plugin_store::Error as StoreError;
 use thiserror::Error;
 use xcap::XCapError;
 
@@ -9,6 +10,9 @@ pub enum TextSnapError {
 
     #[error("XCapError error: {0}")]
     XCap(#[from] XCapError),
+
+    #[error("Store error: {0}")]
+    Store(#[from] StoreError),
 
     #[error("Monitor not found under cursor")]
     MonitorNotFound,
@@ -21,6 +25,7 @@ impl From<TextSnapError> for TauriError {
         match err {
             TextSnapError::Tauri(e) => e,
             TextSnapError::XCap(e) => TauriError::Anyhow(e.into()),
+            TextSnapError::Store(e) => TauriError::Anyhow(e.into()),
             TextSnapError::MonitorNotFound => TauriError::Anyhow(
                 std::io::Error::new(std::io::ErrorKind::NotFound, "Monitor not found").into(),
             ),
@@ -33,6 +38,7 @@ impl From<TextSnapError> for XCapError {
         match err {
             TextSnapError::XCap(e) => e,
             TextSnapError::Tauri(e) => XCapError::Error(e.to_string()),
+            TextSnapError::Store(e) => XCapError::Error(e.to_string()),
             TextSnapError::MonitorNotFound => XCapError::new("Monitor not found under cursor"),
         }
     }
