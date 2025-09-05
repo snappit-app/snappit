@@ -4,11 +4,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
 import { createEffect, onCleanup } from "solid-js";
 
 import { Preferences } from "@/apps/settings/preferences";
-import { createTheme } from "@/shared/libs/theme";
 import { TextSnapTrayApi } from "@/shared/tauri/snap_tray_api";
+import { Theme } from "@/shared/theme";
 
 function Settings() {
-  createTheme();
+  Theme.create();
   const [storeShortcut] = SnapOverlayApi.createShortcut();
 
   createEffect<string>((prev) => {

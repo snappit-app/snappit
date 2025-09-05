@@ -9,7 +9,6 @@ export abstract class TextSnapStore {
     store: Resource<Store>;
   } | null = null;
 
-  // Per-key singleton cache for values inside the class
   private static _valueSingletons: Map<
     string,
     {
