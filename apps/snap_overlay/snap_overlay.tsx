@@ -10,6 +10,7 @@ import { createMemo, createSignal, onMount } from "solid-js";
 import { RecognizeResult } from "tesseract.js";
 
 import { RegionCaptureApi, RegionCaptureParams } from "@/shared/tauri/region_capture_api";
+
 const DEFAULT_POS = { x: 0, y: 0 };
 
 function SnapOverlay() {
@@ -62,13 +63,19 @@ function SnapOverlay() {
         res = recognized;
         writeText(recognized.data.text);
         if (await isPermissionGranted()) {
-          sendNotification({ title: "TextSnap", body: "Text was copied to the clipboard" });
+          sendNotification({
+            title: "TextSnap",
+            body: "Text was copied to the clipboard",
+          });
         }
       });
 
       setTimeout(async () => {
         if (!res && (await isPermissionGranted())) {
-          sendNotification({ title: "TextSnap", body: "TextSnap is processing..." });
+          sendNotification({
+            title: "TextSnap",
+            body: "TextSnap is processing...",
+          });
         }
       }, 1500);
     }

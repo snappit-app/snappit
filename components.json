@@ -10,7 +10,7 @@
     "prefix": ""
   },
   "alias": {
-    "component": "@shared/ui",
+    "component": "@shared/",
     "cn": "@shared/libs/cn"
   }
 }

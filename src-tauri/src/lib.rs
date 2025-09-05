@@ -94,7 +94,6 @@ pub fn run() {
         .setup(|app| {
             TextSnapOverlay::preload(app.handle())?;
             TextSnapSettings::preload(app.handle())?;
-
             TextSnapSettings::show(app.handle())?;
 
             let initialized = TextSnapStore::get_value(
@@ -104,10 +103,7 @@ pub fn run() {
             .and_then(|v| v.as_bool())
             .unwrap_or(false);
 
-            if initialized {
-                #[cfg(target_os = "macos")]
-                app.set_activation_policy(tauri::ActivationPolicy::Accessory);
-
+            if !initialized {
                 TextSnapSettings::hide(app.handle())?;
             } else {
                 TextSnapStore::set_value(

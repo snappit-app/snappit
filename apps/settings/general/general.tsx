@@ -26,13 +26,13 @@ export function General() {
   });
 
   return (
-    <div class="h-full flex flex-col">
-      <div class="p-9">
+    <div class="h-full flex flex-col p-6">
+      <div class="mb-6">
         <h1 class="font-bold text-3xl">Welcome to TextSnap</h1>
         <p class="">your personal screen assistant</p>
       </div>
 
-      <div class="border mx-9 p-6 rounded-lg">
+      <div class="border p-6 rounded-lg">
         <div class="flex items-center gap-5 mb-3">
           <h2 class="font-bold text-lg">Snap shortcut</h2>
           <div class="flex gap-2" />

@@ -3,9 +3,12 @@ import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
 import { createEffect, onCleanup } from "solid-js";
 
+import { Preferences } from "@/apps/settings/preferences";
+import { createTheme } from "@/shared/libs/theme";
 import { TextSnapTrayApi } from "@/shared/tauri/snap_tray_api";
 
 function Settings() {
+  createTheme();
   const [storeShortcut] = SnapOverlayApi.createShortcut();
 
   createEffect<string>((prev) => {
@@ -42,7 +45,9 @@ function Settings() {
           <TabsContent class="h-full" value="general">
             <General />
           </TabsContent>
-          <TabsContent value="ocr">password</TabsContent>
+          <TabsContent value="preferences">
+            <Preferences />
+          </TabsContent>
           <TabsContent value="about">Change your password here.</TabsContent>
         </div>
       </Tabs>

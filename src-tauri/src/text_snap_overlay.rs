@@ -20,7 +20,9 @@ impl TextSnapOverlay {
         let has_opened = app
             .webview_windows()
             .values()
-            .any(|win| win.is_visible().unwrap_or(false));
+            .any(|win| win.is_visible().unwrap_or(false) || win.is_minimized().unwrap_or(false));
+
+        log::info!("{:?}", has_opened);
 
         if !has_opened {
             #[cfg(target_os = "macos")]
