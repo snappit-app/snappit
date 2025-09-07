@@ -21,6 +21,7 @@ function SnapOverlay() {
   Theme.create();
   let unlistenShown: UnlistenFn | undefined;
   let unlistenHidden: UnlistenFn | undefined;
+
   const [isSelecting, setIsSelecting] = createSignal(false);
   const [startPos, setStartPos] = createSignal(DEFAULT_POS);
   const [currentPos, setCurrentPos] = createSignal(DEFAULT_POS);
@@ -52,6 +53,9 @@ function SnapOverlay() {
   };
 
   const handleMouseUp = async (e: MouseEvent) => {
+    if (!isSelecting()) {
+      return;
+    }
     if (e.button === 0) {
       setIsSelecting(false);
       const p = params();
@@ -66,6 +70,7 @@ function SnapOverlay() {
       const worker = await TESSERACT_WORKER;
 
       let res: RecognizeResult | null = null;
+
       worker.recognize(imageData).then(async (recognized) => {
         res = recognized;
         writeText(recognized.data.text);
@@ -123,24 +128,23 @@ function SnapOverlay() {
     }
   });
 
-  const onButtonClick = (e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
   return (
-    <div class="h-full w-full relative bg-transparent">
-      <div
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseMove={handleMouseMove}
-        class="h-full w-full bg-black opacity-50 cursor-crosshair"
-      >
-        {isSelecting() && <div class="bg-white absolute pointer-events-none" style={rectStyle()} />}
-      </div>
+    <>
+      <div class="h-full w-full relative bg-transparent">
+        <div
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          class="h-full w-full bg-black opacity-50 cursor-crosshair"
+        >
+          {isSelecting() && (
+            <div class="bg-white absolute pointer-events-none" style={rectStyle()} />
+          )}
+        </div>
 
-      <Tools class="absolute bottom-[5%]" />
-    </div>
+        {<Tools />}
+      </div>
+    </>
   );
 }
 

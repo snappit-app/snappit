@@ -76,7 +76,6 @@ export abstract class Theme {
       const next =
         stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
 
-      console.log(stored);
       setTheme(next);
     } catch (err) {
       console.error(err);
