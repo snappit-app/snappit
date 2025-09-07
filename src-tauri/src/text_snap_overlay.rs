@@ -14,8 +14,8 @@ impl TextSnapOverlay {
             .get_webview_window(TEXT_SNAP_CONSTS.windows.overlay.as_str())
             .ok_or_else(|| TauriError::WebviewNotFound)?;
 
-        overlay.hide()?;
         overlay.emit("snap_overlay:hidden", true)?;
+        overlay.hide()?;
 
         let has_opened = app
             .webview_windows()
@@ -44,7 +44,7 @@ impl TextSnapOverlay {
 
         #[cfg(target_os = "macos")]
         {
-            Platform::set_window_level(overlay.as_ref().window(), NSScreenSaverWindowLevel);
+            // Platform::set_window_level(overlay.as_ref().window(), NSScreenSaverWindowLevel);
             app.set_activation_policy(tauri::ActivationPolicy::Regular)?;
         }
 
@@ -59,7 +59,7 @@ impl TextSnapOverlay {
         let window_builder = Self::builder(app)
             .fullscreen(false)
             .shadow(false)
-            .always_on_top(true)
+            .always_on_top(false)
             .content_protected(true)
             .skip_taskbar(true)
             .closable(true)

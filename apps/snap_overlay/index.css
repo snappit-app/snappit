@@ -1,14 +1,21 @@
 @import "tailwindcss";
+@import "@shared/global.css";
 
 #root {
   height: 100%;
 }
 
 @layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
   body,
   html,
   #root {
-    display: contains;
     height: 100%;
+  }
+  body {
+    /* Ensure components inherit correct foreground color */
+    @apply text-foreground;
   }
 }

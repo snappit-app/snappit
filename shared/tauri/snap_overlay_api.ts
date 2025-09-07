@@ -1,7 +1,8 @@
 import { TextSnapStore } from "@shared/store";
 import { invoke } from "@tauri-apps/api/core";
+import { EventCallback } from "@tauri-apps/api/event";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { register, unregister } from "@tauri-apps/plugin-global-shortcut";
+import { isRegistered, register, register, unregister } from "@tauri-apps/plugin-global-shortcut";
 import { createMemo } from "solid-js";
 
 import { TEXT_SNAP_CONSTS } from "@/shared/constants";
@@ -26,15 +27,16 @@ export abstract class SnapOverlayApi {
   }
 
   static async unregisterShowShortcut(shortcut: string) {
-    await unregister(shortcut);
+    return await unregister(shortcut);
   }
 
   static async registerHideShortcut() {
-    await register(HIDE_SNAP_OVERLAY_SHORTCUT, (e) => {
-      if (e.state === "Released") {
-        SnapOverlayApi.close();
-      }
-    });
+    const registered = await isRegistered(HIDE_SNAP_OVERLAY_SHORTCUT);
+    if (!registered) {
+      await register(HIDE_SNAP_OVERLAY_SHORTCUT, (e) => {
+        if (e.state === "Released") SnapOverlayApi.close();
+      });
+    }
   }
 
   static async registerShowShortcut(shortcut: string) {
@@ -51,5 +53,15 @@ export abstract class SnapOverlayApi {
     );
     const shortcut = createMemo(() => storeShortcut() ?? SHOW_SNAP_OVERLAY_DEFAULT_SHORTCUT);
     return [shortcut, setStoreShortcut] as const;
+  }
+
+  static async onShown<T>(handler: EventCallback<T>) {
+    const overlay = await this.get();
+    return overlay?.listen("snap_overlay:shown", handler);
+  }
+
+  static async onHidden<T>(handler: EventCallback<T>) {
+    const overlay = await this.get();
+    return overlay?.listen("snap_overlay:hidden", handler);
   }
 }

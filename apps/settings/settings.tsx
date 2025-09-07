@@ -1,11 +1,12 @@
-import { General } from "@settings/general";
 import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
 import { createEffect, onCleanup } from "solid-js";
 
-import { Preferences } from "@/apps/settings/preferences";
 import { TextSnapTrayApi } from "@/shared/tauri/snap_tray_api";
 import { Theme } from "@/shared/theme";
+
+import { General } from "./general";
+import { Preferences } from "./preferences";
 
 function Settings() {
   Theme.create();

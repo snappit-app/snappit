@@ -34,6 +34,13 @@ const config = tseslint.config(
       ...solid.configs["flat/recommended"].rules,
       "import-sort/imports": "warn",
       "import-sort/exports": "warn",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+        },
+      ],
       "prettier/prettier": [
         "error",
         {
