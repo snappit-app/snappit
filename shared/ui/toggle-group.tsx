@@ -3,6 +3,7 @@ import type { ToggleGroupItemProps, ToggleGroupRootProps } from "@kobalte/core/t
 import { ToggleGroup as ToggleGroupPrimitive } from "@kobalte/core/toggle-group";
 import { cn } from "@shared/libs/cn";
 import type { VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
 import type { Accessor, ParentProps, ValidComponent } from "solid-js";
 import { createContext, createMemo, splitProps, useContext } from "solid-js";
 
@@ -19,6 +20,19 @@ const useToggleGroup = () => {
 
   return context;
 };
+
+const toggleGroupRootVariants = cva("flex items-center justify-center gap-1 rounded-md p-1", {
+  variants: {
+    variant: {
+      default: "bg-muted",
+      outline: "bg-muted",
+      ghost: "bg-transparent",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+  },
+});
 
 type toggleGroupProps<T extends ValidComponent = "div"> = ParentProps<
   ToggleGroupRootProps<T> &
@@ -44,7 +58,7 @@ export const ToggleGroup = <T extends ValidComponent = "div">(
 
   return (
     <ToggleGroupPrimitive
-      class={cn("flex items-center justify-center gap-1 bg-muted rounded-md p-1", local.class)}
+      class={cn(toggleGroupRootVariants({ variant: local.variant }), local.class)}
       {...rest}
     >
       <ToggleGroupContext.Provider value={value}>{local.children}</ToggleGroupContext.Provider>

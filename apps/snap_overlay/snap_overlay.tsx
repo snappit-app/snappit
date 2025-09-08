@@ -142,7 +142,7 @@ function SnapOverlay() {
           )}
         </div>
 
-        {<Tools />}
+        {!isSelecting() && <Tools />}
       </div>
     </>
   );
