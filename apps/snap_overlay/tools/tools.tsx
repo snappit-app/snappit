@@ -5,6 +5,9 @@ import { createSignal, JSX, splitProps } from "solid-js";
 import { cn } from "@/shared/libs/cn";
 import { createDnd } from "@/shared/libs/dnd";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
+import { tooltip } from "@/shared/ui/tooltip";
+
+void tooltip;
 
 export type toolsProps = JSX.HTMLAttributes<HTMLDivElement> & {
   class?: string;
@@ -38,21 +41,31 @@ export function Tools(props: toolsProps) {
       </div>
 
       <ToggleGroup value={value()} variant={"ghost"}>
-        <ToggleGroupItem value="smart" onClick={() => setValue("smart")}>
-          <BsMagic />
-        </ToggleGroupItem>
-        <ToggleGroupItem value="copy" onClick={() => setValue("copy")}>
-          <BiRegularCopy />
-        </ToggleGroupItem>
-        <ToggleGroupItem value="ruler" onClick={() => setValue("ruler")}>
-          <BiSolidRuler />
-        </ToggleGroupItem>
-        <ToggleGroupItem value="dropper" onClick={() => setValue("dropper")}>
-          <BiSolidEyedropper />
-        </ToggleGroupItem>
-        <ToggleGroupItem value="scan" onClick={() => setValue("scan")}>
-          <BiRegularQrScan />
-        </ToggleGroupItem>
+        <div use:tooltip={"Smart Tool"}>
+          <ToggleGroupItem value="smart" onClick={() => setValue("smart")}>
+            <BsMagic />
+          </ToggleGroupItem>
+        </div>
+        <div use:tooltip={"Text Capture"}>
+          <ToggleGroupItem value="copy" onClick={() => setValue("copy")}>
+            <BiRegularCopy />
+          </ToggleGroupItem>
+        </div>
+        <div use:tooltip={"Ruler Tool"}>
+          <ToggleGroupItem value="ruler" onClick={() => setValue("ruler")}>
+            <BiSolidRuler />
+          </ToggleGroupItem>
+        </div>
+        <div use:tooltip={"Color Picker"}>
+          <ToggleGroupItem value="dropper" onClick={() => setValue("dropper")}>
+            <BiSolidEyedropper />
+          </ToggleGroupItem>
+        </div>
+        <div use:tooltip={"QR Scanner"}>
+          <ToggleGroupItem value="scan" onClick={() => setValue("scan")}>
+            <BiRegularQrScan />
+          </ToggleGroupItem>
+        </div>
       </ToggleGroup>
     </div>
   );

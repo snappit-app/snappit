@@ -32,12 +32,54 @@ function SnapOverlay() {
     height: Math.abs(currentPos().y - startPos().y),
   }));
 
-  const rectStyle = createMemo(() => ({
-    left: Math.min(startPos().x, currentPos().x).toString() + "px",
-    top: Math.min(startPos().y, currentPos().y).toString() + "px",
-    width: Math.abs(currentPos().x - startPos().x).toString() + "px",
-    height: Math.abs(currentPos().y - startPos().y).toString() + "px",
-  }));
+  const overlaySlices = createMemo(() => {
+    const p = params();
+    const x = p.x;
+    const y = p.y;
+    const w = p.width;
+    const h = p.height;
+
+    return {
+      // Area above the selection
+      top: {
+        left: "0px",
+        top: "0px",
+        right: "0px",
+        height: `${y}px`,
+      },
+      // Area to the left of the selection
+      left: {
+        left: "0px",
+        top: `${y}px`,
+        width: `${x}px`,
+        height: `${h}px`,
+      },
+      // Area to the right of the selection
+      right: {
+        left: `${x + w}px`,
+        right: "0px",
+        top: `${y}px`,
+        height: `${h}px`,
+      },
+      // Area below the selection
+      bottom: {
+        left: "0px",
+        right: "0px",
+        top: `${y + h}px`,
+        bottom: "0px",
+      },
+    };
+  });
+
+  const selectionRect = createMemo(() => {
+    const p = params();
+    return {
+      left: `${p.x}px`,
+      top: `${p.y}px`,
+      width: `${p.width}px`,
+      height: `${p.height}px`,
+    };
+  });
 
   const handleMouseDown = (e: MouseEvent) => {
     if (e.button === 0) {
@@ -73,6 +115,9 @@ function SnapOverlay() {
 
       worker.recognize(imageData).then(async (recognized) => {
         res = recognized;
+        if (!recognized.data.text.length) {
+          return;
+        }
         writeText(recognized.data.text);
         if (await isPermissionGranted()) {
           sendNotification({
@@ -135,14 +180,25 @@ function SnapOverlay() {
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
           onMouseMove={handleMouseMove}
-          class="h-full w-full bg-black opacity-50 cursor-crosshair"
+          class="absolute inset-0 cursor-crosshair"
         >
+          {!isSelecting() && <div class="absolute inset-0 bg-black opacity-50" />}
+
           {isSelecting() && (
-            <div class="bg-white absolute pointer-events-none" style={rectStyle()} />
+            <>
+              <div class="absolute bg-black opacity-50" style={overlaySlices().top} />
+              <div class="absolute bg-black opacity-50" style={overlaySlices().left} />
+              <div class="absolute bg-black opacity-50" style={overlaySlices().right} />
+              <div class="absolute bg-black opacity-50" style={overlaySlices().bottom} />
+              <div
+                class="absolute pointer-events-none border-1 border-white"
+                style={selectionRect()}
+              />
+            </>
           )}
         </div>
 
-        {!isSelecting() && <Tools />}
+        <Tools />
       </div>
     </>
   );
