@@ -16,18 +16,18 @@ use tauri::AppHandle;
 use text_snap_overlay::TextSnapOverlay;
 use text_snap_tray::TextSnapTray;
 
-use crate::text_snap_ocr::TextSnapOcr;
 use crate::{
-    text_snap_consts::TEXT_SNAP_CONSTS, text_snap_settings::TextSnapSettings,
-    text_snap_store::TextSnapStore, text_snap_tray::TextSnapTrayItemId,
+    text_snap_consts::TEXT_SNAP_CONSTS, text_snap_ocr::TextSnapOcr,
+    text_snap_settings::TextSnapSettings, text_snap_store::TextSnapStore,
+    text_snap_tray::TextSnapTrayItemId,
 };
 
 #[tauri::command]
-fn recognize_region_text(app: AppHandle, params: RegionCaptureParams) -> tauri::Result<()> {
+fn recognize_region_text(app: AppHandle, params: RegionCaptureParams) -> tauri::Result<String> {
     let image = RegionCapture::capture(&app, params)?;
-    TextSnapOcr::recognize(&app, image)?;
+    let text = TextSnapOcr::recognize(image)?;
 
-    Ok(())
+    Ok(text)
 }
 
 #[tauri::command]

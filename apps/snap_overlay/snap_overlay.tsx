@@ -19,7 +19,6 @@ function SnapOverlay() {
   Theme.create();
   let unlistenShown: UnlistenFn | undefined;
   let unlistenHidden: UnlistenFn | undefined;
-  let unlistenRecognized: UnlistenFn | undefined;
 
   const [isSelecting, setIsSelecting] = createSignal(false);
   const [startPos, setStartPos] = createSignal(DEFAULT_POS);
@@ -105,7 +104,14 @@ function SnapOverlay() {
 
       SnapOverlayApi.close();
 
-      await RegionCaptureApi.recognizeRegionText(p);
+      const text = await RegionCaptureApi.recognizeRegionText(p);
+      writeText(text);
+      if (await isPermissionGranted()) {
+        sendNotification({
+          title: "TextSnap",
+          body: "Text was copied to the clipboard",
+        });
+      }
     }
   };
 
@@ -124,19 +130,6 @@ function SnapOverlay() {
     unlistenHidden = await SnapOverlayApi.onHidden(async () => {
       await SnapOverlayApi.unregisterHideShortcut();
     });
-
-    unlistenRecognized = await SnapOverlayApi.onRecognized<string>(async (event) => {
-      if (event.payload) {
-        writeText(event.payload);
-
-        if (await isPermissionGranted()) {
-          sendNotification({
-            title: "TextSnap",
-            body: "Text was copied to the clipboard",
-          });
-        }
-      }
-    });
   });
 
   onCleanup(async () => {
@@ -146,10 +139,6 @@ function SnapOverlay() {
 
     if (unlistenHidden) {
       unlistenHidden();
-    }
-
-    if (unlistenRecognized) {
-      unlistenRecognized();
     }
 
     try {
