@@ -1,4 +1,3 @@
-import { TESSERACT_WORKER } from "@shared/libs/tesseract_worker";
 import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
 import { UnlistenFn } from "@tauri-apps/api/event";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
@@ -8,7 +7,6 @@ import {
   sendNotification,
 } from "@tauri-apps/plugin-notification";
 import { createMemo, createSignal, onCleanup, onMount } from "solid-js";
-import { RecognizeResult } from "tesseract.js";
 
 import { RegionCaptureApi, RegionCaptureParams } from "@/shared/tauri/region_capture_api";
 import { Theme } from "@/shared/theme";
@@ -21,6 +19,7 @@ function SnapOverlay() {
   Theme.create();
   let unlistenShown: UnlistenFn | undefined;
   let unlistenHidden: UnlistenFn | undefined;
+  let unlistenRecognized: UnlistenFn | undefined;
 
   const [isSelecting, setIsSelecting] = createSignal(false);
   const [startPos, setStartPos] = createSignal(DEFAULT_POS);
@@ -104,37 +103,9 @@ function SnapOverlay() {
       setStartPos(DEFAULT_POS);
       setCurrentPos(DEFAULT_POS);
 
-      await RegionCaptureApi.captureRegion(p);
-
       SnapOverlayApi.close();
 
-      const imageData = await RegionCaptureApi.getLastShotData();
-      const worker = await TESSERACT_WORKER;
-
-      let res: RecognizeResult | null = null;
-
-      worker.recognize(imageData).then(async (recognized) => {
-        res = recognized;
-        if (!recognized.data.text.length) {
-          return;
-        }
-        writeText(recognized.data.text);
-        if (await isPermissionGranted()) {
-          sendNotification({
-            title: "TextSnap",
-            body: "Text was copied to the clipboard",
-          });
-        }
-      });
-
-      setTimeout(async () => {
-        if (!res && (await isPermissionGranted())) {
-          sendNotification({
-            title: "TextSnap",
-            body: "TextSnap is processing...",
-          });
-        }
-      }, 1500);
+      await RegionCaptureApi.recognizeRegionText(p);
     }
   };
 
@@ -146,14 +117,25 @@ function SnapOverlay() {
       permissionGranted = permission === "granted";
     }
 
-    await TESSERACT_WORKER;
-
     unlistenShown = await SnapOverlayApi.onShown(async () => {
       await Theme.syncThemeFromStore();
       await SnapOverlayApi.registerHideShortcut();
     });
     unlistenHidden = await SnapOverlayApi.onHidden(async () => {
       await SnapOverlayApi.unregisterHideShortcut();
+    });
+
+    unlistenRecognized = await SnapOverlayApi.onRecognized<string>(async (event) => {
+      if (event.payload) {
+        writeText(event.payload);
+
+        if (await isPermissionGranted()) {
+          sendNotification({
+            title: "TextSnap",
+            body: "Text was copied to the clipboard",
+          });
+        }
+      }
     });
   });
 
@@ -164,6 +146,10 @@ function SnapOverlay() {
 
     if (unlistenHidden) {
       unlistenHidden();
+    }
+
+    if (unlistenRecognized) {
+      unlistenRecognized();
     }
 
     try {

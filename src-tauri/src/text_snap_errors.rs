@@ -2,6 +2,7 @@ use tauri::Error as TauriError;
 use tauri_plugin_store::Error as StoreError;
 use thiserror::Error;
 use xcap::XCapError;
+use paddle_ocr_rs::ocr_error::OcrError;
 
 #[derive(Error, Debug)]
 pub enum TextSnapError {
@@ -14,8 +15,20 @@ pub enum TextSnapError {
     #[error("Store error: {0}")]
     Store(#[from] StoreError),
 
+    #[error("OCR error: {0}")]
+    Ocr(#[from] OcrError),
+
     #[error("Monitor not found under cursor")]
     MonitorNotFound,
+
+    #[error("Bad RGBA frame size")]
+    BadRgbaFrameSize,
+
+    #[error("Model DIR not found")]
+    ModelDirNotFound,
+
+    #[error("Missing models: need det, cls, rec .onnx files")]
+    PaddleModelNotFound,
 }
 
 pub type TextSnapResult<T> = Result<T, TextSnapError>;
@@ -26,8 +39,22 @@ impl From<TextSnapError> for TauriError {
             TextSnapError::Tauri(e) => e,
             TextSnapError::XCap(e) => TauriError::Anyhow(e.into()),
             TextSnapError::Store(e) => TauriError::Anyhow(e.into()),
+            TextSnapError::Ocr(e) => TauriError::Anyhow(e.into()),
             TextSnapError::MonitorNotFound => TauriError::Anyhow(
                 std::io::Error::new(std::io::ErrorKind::NotFound, "Monitor not found").into(),
+            ),
+            TextSnapError::BadRgbaFrameSize => TauriError::Anyhow(
+                std::io::Error::new(std::io::ErrorKind::InvalidData, "Bad RGBA frame size").into(),
+            ),
+            TextSnapError::ModelDirNotFound => TauriError::Anyhow(
+                std::io::Error::new(std::io::ErrorKind::NotFound, "Model DIR not found").into(),
+            ),
+            TextSnapError::PaddleModelNotFound => TauriError::Anyhow(
+                std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "Missing models: need det, cls, rec .onnx files",
+                )
+                .into(),
             ),
         }
     }
@@ -39,7 +66,13 @@ impl From<TextSnapError> for XCapError {
             TextSnapError::XCap(e) => e,
             TextSnapError::Tauri(e) => XCapError::Error(e.to_string()),
             TextSnapError::Store(e) => XCapError::Error(e.to_string()),
+            TextSnapError::Ocr(e) => XCapError::Error(e.to_string()),
             TextSnapError::MonitorNotFound => XCapError::new("Monitor not found under cursor"),
+            TextSnapError::BadRgbaFrameSize => XCapError::new("Bad RGBA frame size"),
+            TextSnapError::ModelDirNotFound => XCapError::new("Model DIR not found"),
+            TextSnapError::PaddleModelNotFound => {
+                XCapError::new("Missing models: need det, cls, rec .onnx files")
+            }
         }
     }
 }

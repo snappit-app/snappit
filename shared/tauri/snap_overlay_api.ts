@@ -1,8 +1,8 @@
 import { TextSnapStore } from "@shared/store";
 import { invoke } from "@tauri-apps/api/core";
-import { EventCallback } from "@tauri-apps/api/event";
+import { EventCallback, listen } from "@tauri-apps/api/event";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { isRegistered, register, register, unregister } from "@tauri-apps/plugin-global-shortcut";
+import { isRegistered, register, unregister } from "@tauri-apps/plugin-global-shortcut";
 import { createMemo } from "solid-js";
 
 import { TEXT_SNAP_CONSTS } from "@/shared/constants";
@@ -63,5 +63,9 @@ export abstract class SnapOverlayApi {
   static async onHidden<T>(handler: EventCallback<T>) {
     const overlay = await this.get();
     return overlay?.listen("snap_overlay:hidden", handler);
+  }
+
+  static async onRecognized<T>(handler: EventCallback<T>) {
+    return listen<T>("ocr:recognized", handler);
   }
 }
