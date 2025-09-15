@@ -15,4 +15,9 @@ impl TextSnapOcr {
 
         Ok(text)
     }
+
+    pub fn preload(app: &tauri::AppHandle) -> TextSnapResult<()> {
+        TextSnapTesseractOcr::set_tessdata_prefix(app)?;
+        Ok(())
+    }
 }

@@ -79,6 +79,9 @@ pub fn run() {
             TextSnapSettings::preload(app.handle())?;
             TextSnapSettings::show(app.handle())?;
 
+            #[cfg(all(not(debug_assertions)))]
+            TextSnapOcr::preload(app.handle())?;
+
             let initialized = TextSnapStore::get_value(
                 app.handle(),
                 TEXT_SNAP_CONSTS.store.keys.settings_initialized.as_str(),
