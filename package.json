@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "tauri dev",
+    "build-tauri": "tauri build",
     "lint": "eslint .",
     "format": "eslint . --fix",
     "dev": "vite",
