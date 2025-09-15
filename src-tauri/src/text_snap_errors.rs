@@ -1,7 +1,6 @@
 use std::str::Utf8Error;
 
 use leptess::{leptonica::PixError, tesseract::TessInitError};
-use paddle_ocr_rs::ocr_error::OcrError;
 use tauri::Error as TauriError;
 use tauri_plugin_store::Error as StoreError;
 use thiserror::Error;
@@ -17,9 +16,6 @@ pub enum TextSnapError {
 
     #[error("Store error: {0}")]
     Store(#[from] StoreError),
-
-    #[error("OCR error: {0}")]
-    Ocr(#[from] OcrError),
 
     #[error("PixError error: {0}")]
     PixError(#[from] PixError),
@@ -51,7 +47,6 @@ impl From<TextSnapError> for TauriError {
             TextSnapError::Tauri(e) => e,
             TextSnapError::XCap(e) => TauriError::Anyhow(e.into()),
             TextSnapError::Store(e) => TauriError::Anyhow(e.into()),
-            TextSnapError::Ocr(e) => TauriError::Anyhow(e.into()),
             TextSnapError::PixError(e) => TauriError::Anyhow(e.into()),
             TextSnapError::TessInitError(e) => TauriError::Anyhow(e.into()),
             TextSnapError::Utf8Error(e) => TauriError::Anyhow(e.into()),
@@ -81,7 +76,6 @@ impl From<TextSnapError> for XCapError {
             TextSnapError::XCap(e) => e,
             TextSnapError::Tauri(e) => XCapError::Error(e.to_string()),
             TextSnapError::Store(e) => XCapError::Error(e.to_string()),
-            TextSnapError::Ocr(e) => XCapError::Error(e.to_string()),
             TextSnapError::PixError(e) => XCapError::Error(e.to_string()),
             TextSnapError::TessInitError(e) => XCapError::Error(e.to_string()),
             TextSnapError::Utf8Error(e) => XCapError::Error(e.to_string()),
