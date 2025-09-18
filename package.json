@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "start": "tauri dev",
+    "start-release": "tauri dev --release",
     "build-tauri": "tauri build",
+    "resolve-dylib": "sh ./resolve-paths.sh ./src-tauri/resources/lib-mac ./src-tauri/resources/lib-mac",
+    "check-dylib": "sh ./resolve-paths.sh --dry-run  ./src-tauri/resources/lib-mac ./src-tauri/resources/lib-mac",
     "lint": "eslint .",
     "format": "eslint . --fix",
     "dev": "vite",

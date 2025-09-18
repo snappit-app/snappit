@@ -30,6 +30,7 @@ impl RegionCapture {
         let _start = Instant::now();
         let image = monitor.capture_region(params.x, params.y, params.width, params.height)?;
 
+        #[cfg(debug_assertions)]
         Self::save_image(&image);
 
         Ok(image)

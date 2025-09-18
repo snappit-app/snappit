@@ -25,7 +25,7 @@ use crate::{
 #[tauri::command]
 fn recognize_region_text(app: AppHandle, params: RegionCaptureParams) -> tauri::Result<String> {
     let image = RegionCapture::capture(&app, params)?;
-    let text = TextSnapOcr::recognize(image)?;
+    let text = TextSnapOcr::recognize(&app, image)?;
 
     Ok(text)
 }
@@ -79,7 +79,7 @@ pub fn run() {
             TextSnapSettings::preload(app.handle())?;
             TextSnapSettings::show(app.handle())?;
 
-            #[cfg(all(not(debug_assertions)))]
+            #[cfg(target_os = "macos")]
             TextSnapOcr::preload(app.handle())?;
 
             let initialized = TextSnapStore::get_value(

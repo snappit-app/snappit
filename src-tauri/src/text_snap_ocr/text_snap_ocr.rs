@@ -8,10 +8,13 @@ use crate::{
 pub struct TextSnapOcr;
 
 impl TextSnapOcr {
-    pub fn recognize(image: ImageBuffer<Rgba<u8>, Vec<u8>>) -> TextSnapResult<String> {
+    pub fn recognize(
+        app: &tauri::AppHandle,
+        image: ImageBuffer<Rgba<u8>, Vec<u8>>,
+    ) -> TextSnapResult<String> {
         let dyn_img = (image.width(), image.height(), image.into_raw()).into_dynamic()?;
 
-        let text = TextSnapTesseractOcr::recognize(&dyn_img)?;
+        let text = TextSnapTesseractOcr::recognize(app, &dyn_img)?;
 
         Ok(text)
     }
