@@ -15,7 +15,7 @@ impl TextSnapTesseractOcr {
         let _ = img.write_to(&mut Cursor::new(&mut buf), ImageFormat::Png);
         let data_path = Self::get_data_path(app)?;
 
-        let mut lt = LepTess::new(data_path.to_str(), "eng")?;
+        let mut lt = LepTess::new(data_path.to_str(), "eng+rus")?;
         lt.set_image_from_mem(&buf)?;
         lt.set_source_resolution(300);
 
