@@ -8,58 +8,67 @@ import {
 } from "@tauri-apps/plugin-notification";
 import { createMemo, createSignal, onCleanup, onMount } from "solid-js";
 
+import { cn } from "@/shared/libs/cn";
+import { createSelection } from "@/shared/libs/selection";
 import { RegionCaptureApi, RegionCaptureParams } from "@/shared/tauri/region_capture_api";
 import { Theme } from "@/shared/theme";
 
 import { Tools } from "./tools";
-
-const DEFAULT_POS = { x: 0, y: 0 };
 
 function SnapOverlay() {
   Theme.create();
   let unlistenShown: UnlistenFn | undefined;
   let unlistenHidden: UnlistenFn | undefined;
 
-  const [isSelecting, setIsSelecting] = createSignal(false);
-  const [startPos, setStartPos] = createSignal(DEFAULT_POS);
-  const [currentPos, setCurrentPos] = createSignal(DEFAULT_POS);
-  const params = createMemo<RegionCaptureParams>(() => ({
-    x: Math.min(startPos().x, currentPos().x),
-    y: Math.min(startPos().y, currentPos().y),
-    width: Math.abs(currentPos().x - startPos().x),
-    height: Math.abs(currentPos().y - startPos().y),
-  }));
+  const [cursorStyle, setCursorStyle] = createSignal("cursor-crosshair");
+
+  const onSelected = async (selection: RegionCaptureParams) => {
+    setCursorStyle("cursor-default");
+    SnapOverlayApi.close();
+
+    const text = await RegionCaptureApi.recognizeRegionText(selection);
+
+    setCursorStyle("cursor-crosshair");
+
+    if (text) {
+      writeText(text);
+      if (await isPermissionGranted()) {
+        sendNotification({
+          title: "TextSnap",
+          body: "Text was copied to the clipboard",
+        });
+      }
+    }
+  };
+
+  const [selection, isSelecting, onSelectionStart] = createSelection(onSelected);
 
   const overlaySlices = createMemo(() => {
-    const p = params();
+    const p = selection();
     const x = p.x;
     const y = p.y;
     const w = p.width;
     const h = p.height;
 
     return {
-      // Area above the selection
       top: {
         left: "0px",
         top: "0px",
         right: "0px",
         height: `${y}px`,
       },
-      // Area to the left of the selection
       left: {
         left: "0px",
         top: `${y}px`,
         width: `${x}px`,
         height: `${h}px`,
       },
-      // Area to the right of the selection
       right: {
         left: `${x + w}px`,
         right: "0px",
         top: `${y}px`,
         height: `${h}px`,
       },
-      // Area below the selection
       bottom: {
         left: "0px",
         right: "0px",
@@ -70,7 +79,7 @@ function SnapOverlay() {
   });
 
   const selectionRect = createMemo(() => {
-    const p = params();
+    const p = selection();
     return {
       left: `${p.x}px`,
       top: `${p.y}px`,
@@ -78,42 +87,6 @@ function SnapOverlay() {
       height: `${p.height}px`,
     };
   });
-
-  const handleMouseDown = (e: MouseEvent) => {
-    if (e.button === 0) {
-      setIsSelecting(true);
-      setStartPos({ x: e.clientX, y: e.clientY });
-      setCurrentPos({ x: e.clientX, y: e.clientY });
-    }
-  };
-
-  const handleMouseMove = async (e: MouseEvent) => {
-    if (!isSelecting) return;
-    setCurrentPos({ x: e.clientX, y: e.clientY });
-  };
-
-  const handleMouseUp = async (e: MouseEvent) => {
-    if (!isSelecting()) {
-      return;
-    }
-    if (e.button === 0) {
-      setIsSelecting(false);
-      const p = params();
-      setStartPos(DEFAULT_POS);
-      setCurrentPos(DEFAULT_POS);
-
-      SnapOverlayApi.close();
-
-      const text = await RegionCaptureApi.recognizeRegionText(p);
-      writeText(text);
-      if (await isPermissionGranted()) {
-        sendNotification({
-          title: "TextSnap",
-          body: "Text was copied to the clipboard",
-        });
-      }
-    }
-  };
 
   onMount(async () => {
     let permissionGranted = await isPermissionGranted();
@@ -151,12 +124,7 @@ function SnapOverlay() {
   return (
     <>
       <div class="h-full w-full relative bg-transparent">
-        <div
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onMouseMove={handleMouseMove}
-          class="absolute inset-0 cursor-crosshair"
-        >
+        <div onMouseDown={onSelectionStart} class={cn("absolute inset-0", cursorStyle())}>
           {!isSelecting() && <div class="absolute inset-0 bg-black opacity-50" />}
 
           {isSelecting() && (
