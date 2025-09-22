@@ -7,6 +7,7 @@ const DEFAULT_QR_SIZE = 240;
 const MIN_QR_SIZE = 120;
 const MAX_QR_SIZE = 820;
 const QR_SIZE_STEP = 20;
+const CAPTURE_PADDING = 100;
 
 export type QrScannerFrame = {
   size: number;
@@ -27,9 +28,6 @@ export type QrScannerInstance = {
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
 const clampCenterToViewport = (x: number, y: number, size: number) => {
-  if (typeof window === "undefined") {
-    return { x, y };
-  }
   const half = size / 2;
   const width = window.innerWidth;
   const height = window.innerHeight;
@@ -66,12 +64,20 @@ export function createQrScanner(options: CreateQrScannerOptions): QrScannerInsta
     const size = Math.round(qrSize());
     const center = qrCenter();
     const half = size / 2;
-    let left = center.x - half;
-    let top = center.y - half;
+
+    const padding = CAPTURE_PADDING;
+
+    const halfWithPadding = half + padding;
+
+    let left = center.x - halfWithPadding;
+    let top = center.y - halfWithPadding;
+
+    const paddedSize = size + padding * 2;
 
     if (typeof window !== "undefined") {
-      const maxLeft = Math.max(0, window.innerWidth - size);
-      const maxTop = Math.max(0, window.innerHeight - size);
+      const maxLeft = Math.max(0, window.innerWidth - paddedSize);
+      const maxTop = Math.max(0, window.innerHeight - paddedSize);
+
       left = clamp(left, 0, maxLeft);
       top = clamp(top, 0, maxTop);
     }
@@ -79,8 +85,8 @@ export function createQrScanner(options: CreateQrScannerOptions): QrScannerInsta
     return {
       x: Math.max(0, Math.round(left)),
       y: Math.max(0, Math.round(top)),
-      width: size,
-      height: size,
+      width: paddedSize,
+      height: paddedSize,
     };
   };
 
