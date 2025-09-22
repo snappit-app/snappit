@@ -4,6 +4,7 @@ mod text_snap_consts;
 mod text_snap_errors;
 mod text_snap_ocr;
 mod text_snap_overlay;
+mod text_snap_qr;
 mod text_snap_settings;
 mod text_snap_store;
 mod text_snap_tray;
@@ -17,7 +18,7 @@ use text_snap_overlay::TextSnapOverlay;
 use text_snap_tray::TextSnapTray;
 
 use crate::{
-    text_snap_consts::TEXT_SNAP_CONSTS, text_snap_ocr::TextSnapOcr,
+    text_snap_consts::TEXT_SNAP_CONSTS, text_snap_ocr::TextSnapOcr, text_snap_qr::TextSnapQr,
     text_snap_settings::TextSnapSettings, text_snap_store::TextSnapStore,
     text_snap_tray::TextSnapTrayItemId,
 };
@@ -28,6 +29,14 @@ fn recognize_region_text(app: AppHandle, params: RegionCaptureParams) -> tauri::
     let text = TextSnapOcr::recognize(&app, image)?;
 
     Ok(text)
+}
+
+#[tauri::command]
+fn scan_region_qr(app: AppHandle, params: RegionCaptureParams) -> tauri::Result<Option<String>> {
+    let image = RegionCapture::capture(&app, params)?;
+    let result = TextSnapQr::scan(image)?;
+
+    Ok(result)
 }
 
 #[tauri::command]
@@ -106,7 +115,8 @@ pub fn run() {
             show_settings,
             hide_settings,
             update_tray_shortcut,
-            recognize_region_text
+            recognize_region_text,
+            scan_region_qr,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

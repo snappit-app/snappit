@@ -22,6 +22,8 @@ impl TextSnapOverlay {
             .values()
             .any(|win| win.is_visible().unwrap_or(false) || win.is_minimized().unwrap_or(false));
 
+        log::info!("{:?}", has_opened);
+
         if !has_opened {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory)?;
@@ -42,7 +44,7 @@ impl TextSnapOverlay {
 
         #[cfg(target_os = "macos")]
         {
-            Platform::set_window_level(overlay.as_ref().window(), NSScreenSaverWindowLevel);
+            // Platform::set_window_level(overlay.as_ref().window(), NSScreenSaverWindowLevel);
             app.set_activation_policy(tauri::ActivationPolicy::Regular)?;
         }
 
@@ -57,7 +59,7 @@ impl TextSnapOverlay {
         let window_builder = Self::builder(app)
             .fullscreen(false)
             .shadow(false)
-            .always_on_top(true)
+            .always_on_top(false)
             .content_protected(true)
             .skip_taskbar(true)
             .closable(true)

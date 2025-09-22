@@ -11,4 +11,8 @@ export abstract class RegionCaptureApi {
   static async recognizeRegionText(params: RegionCaptureParams) {
     return invoke<string>("recognize_region_text", { params });
   }
+
+  static async scanRegionQr(params: RegionCaptureParams) {
+    return invoke<string | null>("scan_region_qr", { params });
+  }
 }

@@ -6,14 +6,15 @@ import {
   requestPermission,
   sendNotification,
 } from "@tauri-apps/plugin-notification";
-import { createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js";
 
 import { cn } from "@/shared/libs/cn";
 import { createSelection } from "@/shared/libs/selection";
 import { RegionCaptureApi, RegionCaptureParams } from "@/shared/tauri/region_capture_api";
 import { Theme } from "@/shared/theme";
 
-import { Tools } from "./tools";
+import { AreaSelection, Tools, ToolValue } from "./tools";
+import { createQrScanner, QrScanner } from "./tools/qr-scanner";
 
 function SnapOverlay() {
   Theme.create();
@@ -21,6 +22,24 @@ function SnapOverlay() {
   let unlistenHidden: UnlistenFn | undefined;
 
   const [cursorStyle, setCursorStyle] = createSignal("cursor-crosshair");
+  const [activeTool, setActiveTool] = createSignal<ToolValue>("smart");
+  const isQrTool = createMemo(() => activeTool() === "scan");
+
+  const qrScanner = createQrScanner({
+    isActive: isQrTool,
+    onScanSuccess: async (content) => {
+      console.log(content);
+      SnapOverlayApi.close();
+      await writeText(content);
+
+      if (await isPermissionGranted()) {
+        sendNotification({
+          title: "TextSnap — QR",
+          body: `${content}`,
+        });
+      }
+    },
+  });
 
   const onSelected = async (selection: RegionCaptureParams) => {
     setCursorStyle("cursor-default");
@@ -31,7 +50,7 @@ function SnapOverlay() {
     setCursorStyle("cursor-crosshair");
 
     if (text) {
-      writeText(text);
+      await writeText(text);
       if (await isPermissionGranted()) {
         sendNotification({
           title: "TextSnap",
@@ -43,50 +62,12 @@ function SnapOverlay() {
 
   const [selection, isSelecting, onSelectionStart] = createSelection(onSelected);
 
-  const overlaySlices = createMemo(() => {
-    const p = selection();
-    const x = p.x;
-    const y = p.y;
-    const w = p.width;
-    const h = p.height;
-
-    return {
-      top: {
-        left: "0px",
-        top: "0px",
-        right: "0px",
-        height: `${y}px`,
-      },
-      left: {
-        left: "0px",
-        top: `${y}px`,
-        width: `${x}px`,
-        height: `${h}px`,
-      },
-      right: {
-        left: `${x + w}px`,
-        right: "0px",
-        top: `${y}px`,
-        height: `${h}px`,
-      },
-      bottom: {
-        left: "0px",
-        right: "0px",
-        top: `${y + h}px`,
-        bottom: "0px",
-      },
-    };
-  });
-
-  const selectionRect = createMemo(() => {
-    const p = selection();
-    return {
-      left: `${p.x}px`,
-      top: `${p.y}px`,
-      width: `${p.width}px`,
-      height: `${p.height}px`,
-    };
-  });
+  const onOverlayMouseDown = (event: MouseEvent) => {
+    if (isQrTool()) {
+      return;
+    }
+    onSelectionStart(event);
+  };
 
   onMount(async () => {
     let permissionGranted = await isPermissionGranted();
@@ -124,24 +105,17 @@ function SnapOverlay() {
   return (
     <>
       <div class="h-full w-full relative bg-transparent">
-        <div onMouseDown={onSelectionStart} class={cn("absolute inset-0", cursorStyle())}>
-          {!isSelecting() && <div class="absolute inset-0 bg-black opacity-50" />}
+        <div onMouseDown={onOverlayMouseDown} class={cn("absolute inset-0", cursorStyle())}>
+          {!isSelecting() && !isQrTool() && <div class="absolute inset-0 bg-black opacity-50" />}
 
-          {isSelecting() && (
-            <>
-              <div class="absolute bg-black opacity-50" style={overlaySlices().top} />
-              <div class="absolute bg-black opacity-50" style={overlaySlices().left} />
-              <div class="absolute bg-black opacity-50" style={overlaySlices().right} />
-              <div class="absolute bg-black opacity-50" style={overlaySlices().bottom} />
-              <div
-                class="absolute pointer-events-none border-1 border-white"
-                style={selectionRect()}
-              />
-            </>
-          )}
+          <Show when={isSelecting()}>
+            <AreaSelection selection={selection} />
+          </Show>
+
+          <Show when={qrScanner.frame()}>{(frame) => <QrScanner frame={frame} />}</Show>
         </div>
 
-        <Tools />
+        <Tools value={activeTool()} onValueChange={(tool) => setActiveTool(tool)} />
       </div>
     </>
   );
