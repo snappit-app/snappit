@@ -23,7 +23,10 @@ function SnapOverlay() {
 
   const [cursorStyle, setCursorStyle] = createSignal("cursor-crosshair");
   const [activeTool, setActiveTool] = createSignal<ToolValue>("smart");
+  const [mouseOnTools, setMouseOnTools] = createSignal<boolean>(false);
   const isQrTool = createMemo(() => activeTool() === "scan");
+  const [selection, isSelecting, onSelectionStart] = createSelection(onSelected);
+  const showBackdrop = createMemo(() => (!isSelecting() && !isQrTool()) || mouseOnTools());
 
   const qrScanner = createQrScanner({
     isActive: isQrTool,
@@ -41,7 +44,14 @@ function SnapOverlay() {
     },
   });
 
-  const onSelected = async (selection: RegionCaptureParams) => {
+  const onOverlayMouseDown = (event: MouseEvent) => {
+    if (isQrTool()) {
+      return;
+    }
+    onSelectionStart(event);
+  };
+
+  async function onSelected(selection: RegionCaptureParams) {
     setCursorStyle("cursor-default");
     SnapOverlayApi.close();
 
@@ -58,16 +68,7 @@ function SnapOverlay() {
         });
       }
     }
-  };
-
-  const [selection, isSelecting, onSelectionStart] = createSelection(onSelected);
-
-  const onOverlayMouseDown = (event: MouseEvent) => {
-    if (isQrTool()) {
-      return;
-    }
-    onSelectionStart(event);
-  };
+  }
 
   onMount(async () => {
     let permissionGranted = await isPermissionGranted();
@@ -105,17 +106,26 @@ function SnapOverlay() {
   return (
     <>
       <div class="h-full w-full relative bg-transparent">
-        <div onMouseDown={onOverlayMouseDown} class={cn("absolute inset-0", cursorStyle())}>
-          {!isSelecting() && !isQrTool() && <div class="absolute inset-0 bg-black opacity-50" />}
+        <div onMouseDown={onOverlayMouseDown} class={cn("absolute inset-0 ", cursorStyle())}>
+          <Show when={showBackdrop()}>
+            <div class="absolute inset-0 bg-backdrop" />
+          </Show>
 
           <Show when={isSelecting()}>
             <AreaSelection selection={selection} />
           </Show>
 
-          <Show when={qrScanner.frame()}>{(frame) => <QrScanner frame={frame} />}</Show>
+          <Show when={isQrTool() && !mouseOnTools() && qrScanner.frame()}>
+            {(frame) => <QrScanner frame={frame} />}
+          </Show>
         </div>
 
-        <Tools value={activeTool()} onValueChange={(tool) => setActiveTool(tool)} />
+        <Tools
+          onpointerover={() => setMouseOnTools(true)}
+          onpointerleave={() => setMouseOnTools(false)}
+          value={activeTool()}
+          onValueChange={(tool) => setActiveTool(tool)}
+        />
       </div>
     </>
   );

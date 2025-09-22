@@ -1,5 +1,5 @@
 import { createEventListener } from "@solid-primitives/event-listener";
-import type { Accessor, JSX } from "solid-js";
+import type { Accessor } from "solid-js";
 import { createEffect, createMemo, createSignal, untrack } from "solid-js";
 
 import { RegionCaptureApi, type RegionCaptureParams } from "@/shared/tauri/region_capture_api";
@@ -9,9 +9,8 @@ const MAX_QR_SIZE = 820;
 const QR_SIZE_STEP = 20;
 
 export type QrScannerFrame = {
-  style: JSX.CSSProperties;
-  cornerLength: number;
-  cornerRadius: number;
+  size: number;
+  center: { x: number; y: number };
 };
 
 export type CreateQrScannerOptions = {
@@ -86,7 +85,6 @@ export function createQrScanner(options: CreateQrScannerOptions): QrScannerInsta
   };
 
   const detectAndScan = async () => {
-    console.log(isActive());
     if (!isActive()) {
       return;
     }
@@ -96,34 +94,16 @@ export function createQrScanner(options: CreateQrScannerOptions): QrScannerInsta
 
     const result = await RegionCaptureApi.scanRegionQr(params);
 
-    console.log(result);
     setIsScanning(false);
     if (result) {
       await options.onScanSuccess(result);
     }
   };
 
-  const frame = createMemo<QrScannerFrame | undefined>(() => {
-    if (!options.isActive()) return undefined;
-    const size = qrSize();
-    const center = qrCenter();
-
-    const style: JSX.CSSProperties = {
-      width: `${size}px`,
-      height: `${size}px`,
-      left: `${center.x - size / 2}px`,
-      top: `${center.y - size / 2}px`,
-    };
-
-    const cornerLength = clamp(Math.round(size * 0.25), 24, 64);
-    const cornerRadius = clamp(Math.round(cornerLength / 2.5), 6, 18);
-
-    return {
-      style,
-      cornerLength,
-      cornerRadius,
-    };
-  });
+  const frame = createMemo<QrScannerFrame | undefined>(() => ({
+    size: qrSize(),
+    center: qrCenter(),
+  }));
 
   createEffect(() => {
     if (!options.isActive()) {
@@ -148,9 +128,14 @@ export function createQrScanner(options: CreateQrScannerOptions): QrScannerInsta
 
   createEventListener(window, "keydown", (event: KeyboardEvent) => {
     if (event.altKey || event.ctrlKey || event.metaKey) return;
-    if (event.key === "+" || event.key === "=" || event.key === "-" || event.key === "_") {
+    if (event.key === "+" || event.key === "=") {
       event.preventDefault();
       adjustQrSize(QR_SIZE_STEP);
+    }
+
+    if (event.key === "-" || event.key === "_") {
+      event.preventDefault();
+      adjustQrSize(-QR_SIZE_STEP);
     }
 
     if (event.key.toLocaleLowerCase() === "enter" && !isScanning()) {
@@ -182,69 +167,21 @@ export function createQrScanner(options: CreateQrScannerOptions): QrScannerInsta
 }
 
 export function QrScanner(props: { frame: Accessor<QrScannerFrame> }) {
-  const cornerSize = createMemo(() => `${props.frame().cornerLength}px`);
-  const cornerRadiusPx = createMemo(() => `${props.frame().cornerRadius}px`);
-  const cornerColor = "rgba(255, 255, 255, 0.9)";
-  const cornerThickness = 3;
+  const styles = createMemo(() => ({
+    width: `${props.frame().size}px`,
+    height: `${props.frame().size}px`,
+    left: `${props.frame().center.x - props.frame().size / 2}px`,
+    top: `${props.frame().center.y - props.frame().size / 2}px`,
+  }));
 
   return (
-    <div class="absolute pointer-events-none" style={props.frame().style}>
-      <div
-        class="absolute inset-0"
-        style={{
-          "border-radius": cornerRadiusPx(),
-          "box-shadow": "0 0 0 9999px rgba(0,0,0,0.35)",
-        }}
-      />
+    <div class="absolute pointer-events-none animate-qr-pulse" style={styles()}>
+      <div class="absolute inset-0 rounded-[18%] shadow-[0_0_0_9999px_var(--color-backdrop)]" />
 
-      <div
-        class="absolute"
-        style={{
-          width: cornerSize(),
-          height: cornerSize(),
-          top: "0",
-          left: "0",
-          "border-top": `${cornerThickness}px solid ${cornerColor}`,
-          "border-left": `${cornerThickness}px solid ${cornerColor}`,
-          "border-top-left-radius": cornerRadiusPx(),
-        }}
-      />
-      <div
-        class="absolute"
-        style={{
-          width: cornerSize(),
-          height: cornerSize(),
-          top: "0",
-          right: "0",
-          "border-top": `${cornerThickness}px solid ${cornerColor}`,
-          "border-right": `${cornerThickness}px solid ${cornerColor}`,
-          "border-top-right-radius": cornerRadiusPx(),
-        }}
-      />
-      <div
-        class="absolute"
-        style={{
-          width: cornerSize(),
-          height: cornerSize(),
-          bottom: "0",
-          left: "0",
-          "border-bottom": `${cornerThickness}px solid ${cornerColor}`,
-          "border-left": `${cornerThickness}px solid ${cornerColor}`,
-          "border-bottom-left-radius": cornerRadiusPx(),
-        }}
-      />
-      <div
-        class="absolute"
-        style={{
-          width: cornerSize(),
-          height: cornerSize(),
-          bottom: "0",
-          right: "0",
-          "border-bottom": `${cornerThickness}px solid ${cornerColor}`,
-          "border-right": `${cornerThickness}px solid ${cornerColor}`,
-          "border-bottom-right-radius": cornerRadiusPx(),
-        }}
-      />
+      <div class="absolute top-0 left-0 w-[25%] h-[25%] border-t-[5px] border-t-card border-l-[5px] border-l-card rounded-tl-[70%]" />
+      <div class="absolute top-0 right-0 w-[25%] h-[25%] border-t-[5px] border-t-card border-r-[5px] border-r-card rounded-tr-[70%]" />
+      <div class="absolute bottom-0 left-0 w-[25%] h-[25%] border-b-[5px] border-b-card border-l-[5px] border-l-card rounded-bl-[70%]" />
+      <div class="absolute bottom-0 right-0 w-[25%] h-[25%] border-b-[5px] border-b-card border-r-[3px] border-r-card rounded-br-[70%]" />
     </div>
   );
 }

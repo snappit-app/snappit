@@ -50,10 +50,10 @@ export function AreaSelection(props: { selection: Accessor<RegionCaptureParams> 
 
   return (
     <>
-      <div class="absolute bg-black opacity-50" style={overlaySlices().top} />
-      <div class="absolute bg-black opacity-50" style={overlaySlices().left} />
-      <div class="absolute bg-black opacity-50" style={overlaySlices().right} />
-      <div class="absolute bg-black opacity-50" style={overlaySlices().bottom} />
+      <div class="absolute bg-backdrop" style={overlaySlices().top} />
+      <div class="absolute bg-backdrop" style={overlaySlices().left} />
+      <div class="absolute bg-backdrop" style={overlaySlices().right} />
+      <div class="absolute bg-backdrop" style={overlaySlices().bottom} />
       <div class="absolute pointer-events-none border-1 border-white" style={selectionRect()} />
     </>
   );
