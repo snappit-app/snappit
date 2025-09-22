@@ -1,15 +1,32 @@
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Mutex;
+use std::thread;
+use std::time::Duration;
+
 use crate::text_snap_errors::TextSnapResult;
 use crate::{platform::Platform, text_snap_consts::TEXT_SNAP_CONSTS};
 #[cfg(target_os = "macos")]
 use objc2_app_kit::NSScreenSaverWindowLevel;
+use once_cell::sync::Lazy;
 use tauri::{
-    AppHandle, Emitter, Error as TauriError, Manager, WebviewUrl, WebviewWindow,
+    AppHandle, Emitter, Error as TauriError, Manager, Monitor, WebviewUrl, WebviewWindow,
     WebviewWindowBuilder, Wry,
 };
 pub struct TextSnapOverlay;
 
+static OVERLAY_LAST_MONITOR: Lazy<Mutex<Option<Monitor>>> = Lazy::new(|| Mutex::new(None));
+
+static MONITOR_THREAD_RUNNING: Lazy<AtomicBool> = Lazy::new(|| AtomicBool::new(false));
+
 impl TextSnapOverlay {
     pub fn hide(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
+        {
+            let mut last = OVERLAY_LAST_MONITOR.lock().unwrap();
+            *last = None;
+        }
+
+        Self::unsubscribe_monitor_changes();
+
         let overlay = app
             .get_webview_window(TEXT_SNAP_CONSTS.windows.overlay.as_str())
             .ok_or_else(|| TauriError::WebviewNotFound)?;
@@ -34,6 +51,12 @@ impl TextSnapOverlay {
 
     pub fn show(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
         let monitor = Platform::monitor_from_cursor(&app)?;
+        {
+            let mut last = OVERLAY_LAST_MONITOR.lock().unwrap();
+            *last = Some(monitor.clone());
+        }
+
+        Self::subscribe_monitor_changes(app);
         let physical_size = monitor.size().clone();
         let overlay = app
             .get_webview_window(TEXT_SNAP_CONSTS.windows.overlay.as_str())
@@ -82,5 +105,36 @@ impl TextSnapOverlay {
         .accept_first_mouse(true);
 
         builder
+    }
+
+    fn subscribe_monitor_changes(app: &AppHandle<Wry>) {
+        let app_handle = app.clone();
+        MONITOR_THREAD_RUNNING.store(true, Ordering::SeqCst);
+
+        thread::spawn(move || {
+            while MONITOR_THREAD_RUNNING.load(Ordering::SeqCst) {
+                if let Err(e) = Self::detect_monitor_changed(&app_handle) {
+                    eprintln!("on_monitor_changes error: {:?}", e);
+                }
+                thread::sleep(Duration::from_millis(16));
+            }
+        });
+    }
+
+    fn unsubscribe_monitor_changes() {
+        MONITOR_THREAD_RUNNING.store(false, Ordering::SeqCst);
+    }
+
+    fn detect_monitor_changed(app: &AppHandle<Wry>) -> TextSnapResult<()> {
+        let monitor = Platform::monitor_from_cursor(&app)?;
+        let last_monitor = OVERLAY_LAST_MONITOR.lock().unwrap().clone();
+
+        if let Some(last) = last_monitor {
+            if monitor.position() != last.position() {
+                Self::show(app)?;
+            }
+        }
+
+        Ok(())
     }
 }

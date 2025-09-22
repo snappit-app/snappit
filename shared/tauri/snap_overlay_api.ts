@@ -18,6 +18,7 @@ export abstract class SnapOverlayApi {
   static async close() {
     return invoke("hide_snap_overlay");
   }
+
   static async show() {
     return invoke("show_snap_overlay");
   }
