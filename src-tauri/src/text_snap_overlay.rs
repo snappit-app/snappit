@@ -116,7 +116,7 @@ impl TextSnapOverlay {
                 if let Err(e) = Self::detect_monitor_changed(&app_handle) {
                     eprintln!("on_monitor_changes error: {:?}", e);
                 }
-                thread::sleep(Duration::from_millis(16));
+                thread::sleep(Duration::from_millis(150));
             }
         });
     }
