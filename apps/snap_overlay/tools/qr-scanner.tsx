@@ -1,13 +1,21 @@
 import { createEventListener } from "@solid-primitives/event-listener";
+import { throttle } from "@solid-primitives/scheduled";
+import { createTimer } from "@solid-primitives/timer";
 import type { Accessor } from "solid-js";
 import { createEffect, createMemo, createSignal, untrack } from "solid-js";
 
+import { clamp } from "@/shared/libs/clamp";
 import { RegionCaptureApi, type RegionCaptureParams } from "@/shared/tauri/region_capture_api";
 const DEFAULT_QR_SIZE = 240;
 const MIN_QR_SIZE = 120;
 const MAX_QR_SIZE = 820;
 const QR_SIZE_STEP = 20;
 const CAPTURE_PADDING = 100;
+const SCAN_INTERVAL_MS = 220;
+const STATIC_FRAME_RESAMPLE_MS = 2000;
+const POSITION_THRESHOLD_PX = 16;
+const RECENT_PAYLOAD_CACHE_SIZE = 6;
+const RECENT_PAYLOAD_TTL_MS = 30_000;
 
 export type QrScannerFrame = {
   size: number;
@@ -24,8 +32,6 @@ export type QrScannerInstance = {
   frame: Accessor<QrScannerFrame | undefined>;
   isScanning: Accessor<boolean>;
 };
-
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
 const clampCenterToViewport = (x: number, y: number, size: number) => {
   const half = size / 2;
@@ -45,6 +51,10 @@ export function createQrScanner(options: CreateQrScannerOptions): QrScannerInsta
   const [qrSize, setQrSize] = createSignal(DEFAULT_QR_SIZE);
   const [qrCenter, setQrCenter] = createSignal({ x: 0, y: 0 });
   const [isScanning, setIsScanning] = createSignal(false);
+  const recentPayloads: Array<{ value: string; timestamp: number }> = [];
+
+  let lastScanAt = 0;
+  let lastScanFrame: QrScannerFrame | undefined;
 
   const isActive = () => untrack(() => options.isActive());
 
@@ -58,6 +68,41 @@ export function createQrScanner(options: CreateQrScannerOptions): QrScannerInsta
       setQrCenter((pos) => clampCenterToViewport(pos.x, pos.y, next));
       return next;
     });
+  };
+
+  const throttleAdjust = throttle(adjustQrSize, 32);
+
+  const prunePayloadCache = (now: number) => {
+    const cutoff = now - RECENT_PAYLOAD_TTL_MS;
+    while (recentPayloads.length && recentPayloads[0]!.timestamp < cutoff) {
+      recentPayloads.shift();
+    }
+    if (recentPayloads.length > RECENT_PAYLOAD_CACHE_SIZE) {
+      recentPayloads.splice(0, recentPayloads.length - RECENT_PAYLOAD_CACHE_SIZE);
+    }
+  };
+
+  const isPayloadRecent = (payload: string, now: number) => {
+    prunePayloadCache(now);
+    return recentPayloads.some((entry) => entry.value === payload);
+  };
+
+  const rememberPayload = (payload: string, now: number) => {
+    recentPayloads.push({ value: payload, timestamp: now });
+    prunePayloadCache(now);
+  };
+
+  const shouldScanFrame = (currentFrame: QrScannerFrame, now: number) => {
+    if (!lastScanFrame) return true;
+    const dx = currentFrame.center.x - lastScanFrame.center.x;
+    const dy = currentFrame.center.y - lastScanFrame.center.y;
+    const distance = Math.hypot(dx, dy);
+    const sizeDiff = Math.abs(currentFrame.size - lastScanFrame.size);
+
+    if (distance >= POSITION_THRESHOLD_PX || sizeDiff >= POSITION_THRESHOLD_PX) {
+      return true;
+    }
+    return now - lastScanAt >= STATIC_FRAME_RESAMPLE_MS;
   };
 
   const getCaptureParams = (): RegionCaptureParams => {
@@ -90,19 +135,42 @@ export function createQrScanner(options: CreateQrScannerOptions): QrScannerInsta
     };
   };
 
-  const detectAndScan = async () => {
-    if (!isActive()) {
+  const detectAndScan = async (force = false) => {
+    if (!isActive() || isScanning()) {
+      return;
+    }
+
+    const now = new Date().getTime();
+    const currentFrame: QrScannerFrame = {
+      size: qrSize(),
+      center: qrCenter(),
+    };
+
+    if (!force && !shouldScanFrame(currentFrame, now)) {
       return;
     }
 
     setIsScanning(true);
-    const params = getCaptureParams();
+    lastScanAt = now;
+    lastScanFrame = currentFrame;
 
-    const result = await RegionCaptureApi.scanRegionQr(params);
+    try {
+      const params = getCaptureParams();
 
-    setIsScanning(false);
-    if (result) {
+      const result = await RegionCaptureApi.scanRegionQr(params);
+      if (!result) {
+        await options.onScanFailure?.();
+        return;
+      }
+
+      if (isPayloadRecent(result, now)) {
+        return;
+      }
+
+      rememberPayload(result, now);
       await options.onScanSuccess(result);
+    } finally {
+      setIsScanning(false);
     }
   };
 
@@ -110,6 +178,15 @@ export function createQrScanner(options: CreateQrScannerOptions): QrScannerInsta
     size: qrSize(),
     center: qrCenter(),
   }));
+
+  createTimer(
+    () => {
+      recentPayloads.splice(0);
+      void untrack(() => detectAndScan());
+    },
+    SCAN_INTERVAL_MS,
+    setInterval,
+  );
 
   createEffect(() => {
     if (!options.isActive()) {
@@ -124,14 +201,6 @@ export function createQrScanner(options: CreateQrScannerOptions): QrScannerInsta
     updateQrCenter(centerX, centerY, DEFAULT_QR_SIZE);
   });
 
-  createEventListener(window, "pointerup", (event: PointerEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (!isScanning()) {
-      detectAndScan();
-    }
-  });
-
   createEventListener(window, "keydown", (event: KeyboardEvent) => {
     if (event.altKey || event.ctrlKey || event.metaKey) return;
     if (event.key === "+" || event.key === "=") {
@@ -142,10 +211,6 @@ export function createQrScanner(options: CreateQrScannerOptions): QrScannerInsta
     if (event.key === "-" || event.key === "_") {
       event.preventDefault();
       adjustQrSize(-QR_SIZE_STEP);
-    }
-
-    if (event.key.toLocaleLowerCase() === "enter" && !isScanning()) {
-      detectAndScan();
     }
   });
 
@@ -163,7 +228,7 @@ export function createQrScanner(options: CreateQrScannerOptions): QrScannerInsta
     }
     event.preventDefault();
     const direction = event.deltaY < 0 ? 1 : -1;
-    adjustQrSize(direction * QR_SIZE_STEP);
+    throttleAdjust(direction * QR_SIZE_STEP);
   });
 
   return {
@@ -180,14 +245,48 @@ export function QrScanner(props: { frame: Accessor<QrScannerFrame> }) {
     top: `${props.frame().center.y - props.frame().size / 2}px`,
   }));
 
+  const borderWidth = createMemo(() => `${clamp(Math.round(props.frame().size / 48), 4, 8)}px`);
+
   return (
     <div class="absolute pointer-events-none animate-qr-pulse" style={styles()}>
-      <div class="absolute inset-0 rounded-[18%] shadow-[0_0_0_9999px_var(--color-backdrop)]" />
+      <div class="absolute inset-0 rounded-[15%] shadow-[0_0_0_9999px_var(--color-backdrop)]" />
 
-      <div class="absolute top-0 left-0 w-[25%] h-[25%] border-t-[5px] border-t-card border-l-[5px] border-l-card rounded-tl-[70%]" />
-      <div class="absolute top-0 right-0 w-[25%] h-[25%] border-t-[5px] border-t-card border-r-[5px] border-r-card rounded-tr-[70%]" />
-      <div class="absolute bottom-0 left-0 w-[25%] h-[25%] border-b-[5px] border-b-card border-l-[5px] border-l-card rounded-bl-[70%]" />
-      <div class="absolute bottom-0 right-0 w-[25%] h-[25%] border-b-[5px] border-b-card border-r-[3px] border-r-card rounded-br-[70%]" />
+      <div
+        class="absolute w-[25%] h-[25%] border-t-card border-l-card rounded-tl-[70%]"
+        style={{
+          top: `-${borderWidth()}`,
+          left: `-${borderWidth()}`,
+          "border-top-width": borderWidth(),
+          "border-left-width": borderWidth(),
+        }}
+      />
+      <div
+        class="absolute w-[25%] h-[25%] border-t-card border-r-card rounded-tr-[70%]"
+        style={{
+          top: `-${borderWidth()}`,
+          right: `-${borderWidth()}`,
+          "border-top-width": borderWidth(),
+          "border-right-width": borderWidth(),
+        }}
+      />
+      <div
+        class="absolute w-[25%] h-[25%] border-b-card border-l-card rounded-bl-[70%]"
+        style={{
+          bottom: `-${borderWidth()}`,
+          left: `-${borderWidth()}`,
+          "border-bottom-width": borderWidth(),
+          "border-left-width": borderWidth(),
+        }}
+      />
+      <div
+        class="absolute w-[25%] h-[25%] border-b-card border-r-card rounded-br-[70%]"
+        style={{
+          bottom: `-${borderWidth()}`,
+          right: `-${borderWidth()}`,
+          "border-bottom-width": borderWidth(),
+          "border-right-width": borderWidth(),
+        }}
+      />
     </div>
   );
 }

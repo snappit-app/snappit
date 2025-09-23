@@ -6,6 +6,7 @@ import {
   requestPermission,
   sendNotification,
 } from "@tauri-apps/plugin-notification";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js";
 
 import { cn } from "@/shared/libs/cn";
@@ -16,39 +17,71 @@ import { Theme } from "@/shared/theme";
 import { AreaSelection, Tools, ToolValue } from "./tools";
 import { createQrScanner, QrScanner } from "./tools/qr-scanner";
 
+const normalizeHttpUrl = (raw: string) => {
+  const value = raw.trim();
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.toString() : undefined;
+  } catch {
+    if (/^www\./i.test(value)) {
+      return `https://${value}`;
+    }
+    return undefined;
+  }
+};
+
+const notifyQr = async (body: string) => {
+  if (await isPermissionGranted()) {
+    sendNotification({
+      title: "TextSnap — QR",
+      body,
+    });
+  }
+};
+
 function SnapOverlay() {
   Theme.create();
   let unlistenShown: UnlistenFn | undefined;
   let unlistenHidden: UnlistenFn | undefined;
 
   const [cursorStyle, setCursorStyle] = createSignal("cursor-crosshair");
+  const [overlayVisible, setOverlayVisible] = createSignal(false);
   const [activeTool, setActiveTool] = createSignal<ToolValue>("smart");
   const [mouseOnTools, setMouseOnTools] = createSignal<boolean>(false);
-  const isQrTool = createMemo(() => activeTool() === "scan");
   const [selection, isSelecting, onSelectionStart] = createSelection(onSelected);
+
+  const isQrTool = createMemo(() => activeTool() === "scan");
+  const isQrActive = createMemo(() => isQrTool() && overlayVisible());
   const showBackdrop = createMemo(() => (!isSelecting() && !isQrTool()) || mouseOnTools());
 
   const qrScanner = createQrScanner({
-    isActive: isQrTool,
+    isActive: isQrActive,
     onScanSuccess: async (content) => {
       console.log(content);
-      SnapOverlayApi.close();
-      await writeText(content);
+      const normalizedUrl = normalizeHttpUrl(content);
 
-      if (await isPermissionGranted()) {
-        sendNotification({
-          title: "TextSnap — QR",
-          body: `${content}`,
-        });
+      if (normalizedUrl) {
+        try {
+          await openUrl(normalizedUrl);
+          await notifyQr(`Opened: ${normalizedUrl}`);
+        } catch (err) {
+          console.error("Failed to open QR URL", err);
+          await writeText(content);
+          await notifyQr(`Copied: ${content}`);
+        }
+      } else {
+        await writeText(content);
+        await notifyQr(`Copied: ${content}`);
       }
+
+      SnapOverlayApi.close();
     },
   });
 
   const onOverlayMouseDown = (event: MouseEvent) => {
-    if (isQrTool()) {
-      return;
+    if (activeTool() === "smart" || activeTool() === "copy") {
+      onSelectionStart(event);
     }
-    onSelectionStart(event);
   };
 
   async function onSelected(selection: RegionCaptureParams) {
@@ -80,9 +113,11 @@ function SnapOverlay() {
 
     unlistenShown = await SnapOverlayApi.onShown(async () => {
       await Theme.syncThemeFromStore();
+      setOverlayVisible(true);
       await SnapOverlayApi.registerHideShortcut();
     });
     unlistenHidden = await SnapOverlayApi.onHidden(async () => {
+      setOverlayVisible(false);
       await SnapOverlayApi.unregisterHideShortcut();
     });
   });
