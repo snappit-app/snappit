@@ -140,7 +140,7 @@ function SnapOverlay() {
 
   return (
     <>
-      <div class="h-full w-full relative bg-transparent">
+      <div class="h-full w-full relative bg-transparent overflow-hidden scroll-none">
         <div onMouseDown={onOverlayMouseDown} class={cn("absolute inset-0 ", cursorStyle())}>
           <Show when={showBackdrop()}>
             <div class="absolute inset-0 bg-backdrop" />

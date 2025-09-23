@@ -67,7 +67,9 @@ impl TextSnapOverlay {
 
         #[cfg(target_os = "macos")]
         {
-            // Platform::set_window_level(overlay.as_ref().window(), NSScreenSaverWindowLevel);
+            #[cfg(not(debug_assertions))]
+            Platform::set_window_level(overlay.as_ref().window(), NSScreenSaverWindowLevel);
+
             app.set_activation_policy(tauri::ActivationPolicy::Regular)?;
         }
 
@@ -82,7 +84,7 @@ impl TextSnapOverlay {
         let window_builder = Self::builder(app)
             .fullscreen(false)
             .shadow(false)
-            .always_on_top(false)
+            .always_on_top(cfg!(not(debug_assertions)))
             .content_protected(true)
             .skip_taskbar(true)
             .closable(true)
@@ -116,7 +118,7 @@ impl TextSnapOverlay {
                 if let Err(e) = Self::detect_monitor_changed(&app_handle) {
                     eprintln!("on_monitor_changes error: {:?}", e);
                 }
-                thread::sleep(Duration::from_millis(150));
+                thread::sleep(Duration::from_millis(100));
             }
         });
     }

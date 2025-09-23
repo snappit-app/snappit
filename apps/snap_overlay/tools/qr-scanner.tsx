@@ -2,13 +2,13 @@ import { createEventListener } from "@solid-primitives/event-listener";
 import { throttle } from "@solid-primitives/scheduled";
 import { createTimer } from "@solid-primitives/timer";
 import type { Accessor } from "solid-js";
-import { createEffect, createMemo, createSignal, untrack } from "solid-js";
+import { createEffect, createMemo, createSignal, For, untrack } from "solid-js";
 
 import { clamp } from "@/shared/libs/clamp";
 import { RegionCaptureApi, type RegionCaptureParams } from "@/shared/tauri/region_capture_api";
 const DEFAULT_QR_SIZE = 240;
 const MIN_QR_SIZE = 120;
-const MAX_QR_SIZE = 820;
+const MAX_QR_SIZE = 620;
 const QR_SIZE_STEP = 20;
 const CAPTURE_PADDING = 100;
 const SCAN_INTERVAL_MS = 220;
@@ -58,9 +58,11 @@ export function createQrScanner(options: CreateQrScannerOptions): QrScannerInsta
 
   const isActive = () => untrack(() => options.isActive());
 
-  const updateQrCenter = (x: number, y: number, size = qrSize()) => {
+  const updateQrCenter = (x: number, y: number, size: number) => {
     setQrCenter(clampCenterToViewport(x, y, size));
   };
+
+  const throttleCenter = throttle(updateQrCenter, 16);
 
   const adjustQrSize = (delta: number) => {
     setQrSize((prev) => {
@@ -198,7 +200,7 @@ export function createQrScanner(options: CreateQrScannerOptions): QrScannerInsta
 
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
-    updateQrCenter(centerX, centerY, DEFAULT_QR_SIZE);
+    throttleCenter(centerX, centerY, DEFAULT_QR_SIZE);
   });
 
   createEventListener(window, "keydown", (event: KeyboardEvent) => {
@@ -219,7 +221,9 @@ export function createQrScanner(options: CreateQrScannerOptions): QrScannerInsta
       return;
     }
 
-    updateQrCenter(event.clientX, event.clientY);
+    console.log(event.clientX, "event.clientX");
+    console.log(event.clientY, "event.clientY");
+    throttleCenter(event.clientX, event.clientY, qrSize());
   });
 
   createEventListener(window, "wheel", (event: WheelEvent) => {
@@ -245,48 +249,55 @@ export function QrScanner(props: { frame: Accessor<QrScannerFrame> }) {
     top: `${props.frame().center.y - props.frame().size / 2}px`,
   }));
 
-  const borderWidth = createMemo(() => `${clamp(Math.round(props.frame().size / 48), 4, 8)}px`);
+  const borderWidth = createMemo(() => clamp(Math.round(props.frame().size / 48), 4, 8));
+
+  const arcPaths = createMemo(() => {
+    const { size } = props.frame();
+    const stroke = borderWidth();
+    const radiusMax = Math.max(size / 2 - stroke, stroke);
+    const radius = Math.max(Math.min(size * 0.12, radiusMax), stroke);
+    const inset = stroke / 4;
+
+    const h = stroke / 2;
+    const i = inset;
+
+    const topLeft = `M ${i + radius} ${i - h} A ${radius} ${radius} 0 0 0 ${i - h} ${i + radius}`;
+    const topRight = `M ${size - i - radius} ${i - h} A ${radius} ${radius} 0 0 1 ${size - i + h} ${i + radius}`;
+    const bottomLeft = `M ${i - h} ${size - i - radius} A ${radius} ${radius} 0 0 0 ${i + radius} ${size - i + h}`;
+    const bottomRight = `M ${size - i + h} ${size - i - radius} A ${radius} ${radius} 0 0 1 ${size - i - radius} ${size - i + h}`;
+
+    return {
+      size,
+      paths: [topLeft, topRight, bottomLeft, bottomRight],
+    };
+  });
 
   return (
     <div class="absolute pointer-events-none animate-qr-pulse" style={styles()}>
-      <div class="absolute inset-0 rounded-[15%] shadow-[0_0_0_9999px_var(--color-backdrop)]" />
+      <div class="absolute inset-0 rounded-[12%] shadow-[0_0_0_9999px_var(--color-backdrop)]" />
+      <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute bottom-[10%] left-[12%] h-[18%] w-[28%] rounded-full" />
+        <div class="absolute bottom-[10%] right-[12%] h-[18%] w-[28%] rounded-full" />
+      </div>
 
-      <div
-        class="absolute w-[25%] h-[25%] border-t-card border-l-card rounded-tl-[70%]"
-        style={{
-          top: `-${borderWidth()}`,
-          left: `-${borderWidth()}`,
-          "border-top-width": borderWidth(),
-          "border-left-width": borderWidth(),
-        }}
-      />
-      <div
-        class="absolute w-[25%] h-[25%] border-t-card border-r-card rounded-tr-[70%]"
-        style={{
-          top: `-${borderWidth()}`,
-          right: `-${borderWidth()}`,
-          "border-top-width": borderWidth(),
-          "border-right-width": borderWidth(),
-        }}
-      />
-      <div
-        class="absolute w-[25%] h-[25%] border-b-card border-l-card rounded-bl-[70%]"
-        style={{
-          bottom: `-${borderWidth()}`,
-          left: `-${borderWidth()}`,
-          "border-bottom-width": borderWidth(),
-          "border-left-width": borderWidth(),
-        }}
-      />
-      <div
-        class="absolute w-[25%] h-[25%] border-b-card border-r-card rounded-br-[70%]"
-        style={{
-          bottom: `-${borderWidth()}`,
-          right: `-${borderWidth()}`,
-          "border-bottom-width": borderWidth(),
-          "border-right-width": borderWidth(),
-        }}
-      />
+      <svg
+        class="absolute inset-0 overflow-visible"
+        viewBox={`0 0 ${arcPaths().size} ${arcPaths().size}`}
+        xmlns="http://www.w3.org/2000/svg"
+        stroke="white"
+        stroke-width={borderWidth()}
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        fill="none"
+        filter="url(#cornerShadow)"
+      >
+        <defs>
+          <filter id="cornerShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="0" stdDeviation="1" flood-color="black" flood-opacity="0.6" />
+          </filter>
+        </defs>
+        <For each={arcPaths().paths}>{(d) => <path d={d} />}</For>
+      </svg>
     </div>
   );
 }
