@@ -1,0 +1,10 @@
+export const DEFAULT_QR_SIZE = 240;
+export const MIN_QR_SIZE = 120;
+export const MAX_QR_SIZE = 620;
+export const QR_SIZE_STEP = 20;
+export const CAPTURE_PADDING = 100;
+export const SCAN_INTERVAL_MS = 220;
+export const STATIC_FRAME_RESAMPLE_MS = 2000;
+export const POSITION_THRESHOLD_PX = 16;
+export const RECENT_PAYLOAD_CACHE_SIZE = 6;
+export const RECENT_PAYLOAD_TTL_MS = 30_000;

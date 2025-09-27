@@ -1,43 +1,16 @@
 import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
 import { UnlistenFn } from "@tauri-apps/api/event";
-import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import {
-  isPermissionGranted,
-  requestPermission,
-  sendNotification,
-} from "@tauri-apps/plugin-notification";
-import { openUrl } from "@tauri-apps/plugin-opener";
+import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
 import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js";
 
+import { AreaSelection, createSelection, onAreaSelected } from "@/apps/snap_overlay/area_selection";
+import { createQrScanner, onScanSuccess, QrScanner } from "@/apps/snap_overlay/qr-scan";
 import { cn } from "@/shared/libs/cn";
-import { createSelection } from "@/shared/libs/selection";
-import { RegionCaptureApi, RegionCaptureParams } from "@/shared/tauri/region_capture_api";
+import { RegionCaptureParams } from "@/shared/tauri/region_capture_api";
 import { Theme } from "@/shared/theme";
+import { Overlay, StaticBackdrop } from "@/shared/ui/overlay/overlay";
 
-import { AreaSelection, Tools, ToolValue } from "./tools";
-import { createQrScanner, QrScanner } from "./tools/qr-scanner";
-
-const normalizeHttpUrl = (raw: string) => {
-  const value = raw.trim();
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:" ? url.toString() : undefined;
-  } catch {
-    if (/^www\./i.test(value)) {
-      return `https://${value}`;
-    }
-    return undefined;
-  }
-};
-
-const notifyQr = async (body: string) => {
-  if (await isPermissionGranted()) {
-    sendNotification({
-      title: "TextSnap — QR",
-      body,
-    });
-  }
-};
+import { Tools, ToolValue } from "./tools";
 
 function SnapOverlay() {
   Theme.create();
@@ -48,7 +21,13 @@ function SnapOverlay() {
   const [overlayVisible, setOverlayVisible] = createSignal(false);
   const [activeTool, setActiveTool] = createSignal<ToolValue>("smart");
   const [mouseOnTools, setMouseOnTools] = createSignal<boolean>(false);
-  const [selection, isSelecting, onSelectionStart] = createSelection(onSelected);
+  const [selection, isSelecting, onSelectionStart] = createSelection(
+    async (selection: RegionCaptureParams) => {
+      setCursorStyle("cursor-default");
+      await onAreaSelected(selection, activeTool() === "smart");
+      setCursorStyle("cursor-crosshair");
+    },
+  );
 
   const isQrTool = createMemo(() => activeTool() === "scan");
   const isQrActive = createMemo(() => isQrTool() && overlayVisible());
@@ -56,26 +35,7 @@ function SnapOverlay() {
 
   const qrScanner = createQrScanner({
     isActive: isQrActive,
-    onScanSuccess: async (content) => {
-      console.log(content);
-      const normalizedUrl = normalizeHttpUrl(content);
-
-      if (normalizedUrl) {
-        try {
-          await openUrl(normalizedUrl);
-          await notifyQr(`Opened: ${normalizedUrl}`);
-        } catch (err) {
-          console.error("Failed to open QR URL", err);
-          await writeText(content);
-          await notifyQr(`Copied: ${content}`);
-        }
-      } else {
-        await writeText(content);
-        await notifyQr(`Copied: ${content}`);
-      }
-
-      SnapOverlayApi.close();
-    },
+    onScanSuccess,
   });
 
   const onOverlayMouseDown = (event: MouseEvent) => {
@@ -83,25 +43,6 @@ function SnapOverlay() {
       onSelectionStart(event);
     }
   };
-
-  async function onSelected(selection: RegionCaptureParams) {
-    setCursorStyle("cursor-default");
-    SnapOverlayApi.close();
-
-    const text = await RegionCaptureApi.recognizeRegionText(selection);
-
-    setCursorStyle("cursor-crosshair");
-
-    if (text) {
-      await writeText(text);
-      if (await isPermissionGranted()) {
-        sendNotification({
-          title: "TextSnap",
-          body: "Text was copied to the clipboard",
-        });
-      }
-    }
-  }
 
   onMount(async () => {
     let permissionGranted = await isPermissionGranted();
@@ -139,30 +80,28 @@ function SnapOverlay() {
   });
 
   return (
-    <>
-      <div class="h-full w-full relative bg-transparent overflow-hidden scroll-none">
-        <div onMouseDown={onOverlayMouseDown} class={cn("absolute inset-0 ", cursorStyle())}>
-          <Show when={showBackdrop()}>
-            <div class="absolute inset-0 bg-backdrop" />
-          </Show>
+    <Overlay>
+      <div onMouseDown={onOverlayMouseDown} class={cn("absolute inset-0 ", cursorStyle())}>
+        <Show when={showBackdrop()}>
+          <StaticBackdrop />
+        </Show>
 
-          <Show when={isSelecting()}>
-            <AreaSelection selection={selection} />
-          </Show>
+        <Show when={isSelecting()}>
+          <AreaSelection pos={selection} />
+        </Show>
 
-          <Show when={isQrTool() && !mouseOnTools() && qrScanner.frame()}>
-            {(frame) => <QrScanner frame={frame} />}
-          </Show>
-        </div>
-
-        <Tools
-          onpointerover={() => setMouseOnTools(true)}
-          onpointerleave={() => setMouseOnTools(false)}
-          value={activeTool()}
-          onValueChange={(tool) => setActiveTool(tool)}
-        />
+        <Show when={isQrTool() && !mouseOnTools() && qrScanner.frame()}>
+          {(frame) => <QrScanner frame={frame} />}
+        </Show>
       </div>
-    </>
+
+      <Tools
+        onpointerover={() => setMouseOnTools(true)}
+        onpointerleave={() => setMouseOnTools(false)}
+        value={activeTool()}
+        onValueChange={(tool) => setActiveTool(tool)}
+      />
+    </Overlay>
   );
 }
 

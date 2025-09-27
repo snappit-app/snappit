@@ -4,7 +4,7 @@ import { JSX, splitProps } from "solid-js";
 
 import { cn } from "@/shared/libs/cn";
 import { createDnd } from "@/shared/libs/dnd";
-import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
+import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle_group";
 import { tooltip } from "@/shared/ui/tooltip";
 
 void tooltip;

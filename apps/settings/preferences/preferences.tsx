@@ -1,6 +1,6 @@
 import { Theme } from "@/shared/theme";
 import { Switch, SwitchControl, SwitchLabel, SwitchThumb } from "@/shared/ui/switch";
-import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
+import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle_group";
 
 export function Preferences() {
   const [theme, setTheme] = Theme.create();
