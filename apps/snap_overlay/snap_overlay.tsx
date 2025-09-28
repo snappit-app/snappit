@@ -1,7 +1,5 @@
 import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
-import { UnlistenFn } from "@tauri-apps/api/event";
-import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
-import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js";
+import { createEffect, createMemo, createSignal, onCleanup, onMount, Show } from "solid-js";
 
 import { AreaSelection, createSelection, onAreaSelected } from "@/apps/snap_overlay/area_selection";
 import { createQrScanner, onScanSuccess, QrScanner } from "@/apps/snap_overlay/qr-scan";
@@ -14,11 +12,8 @@ import { Tools, ToolValue } from "./tools";
 
 function SnapOverlay() {
   Theme.create();
-  let unlistenShown: UnlistenFn | undefined;
-  let unlistenHidden: UnlistenFn | undefined;
 
   const [cursorStyle, setCursorStyle] = createSignal("cursor-crosshair");
-  const [overlayVisible, setOverlayVisible] = createSignal(false);
   const [activeTool, setActiveTool] = createSignal<ToolValue>("smart");
   const [mouseOnTools, setMouseOnTools] = createSignal<boolean>(false);
   const [selection, isSelecting, onSelectionStart] = createSelection(
@@ -30,11 +25,10 @@ function SnapOverlay() {
   );
 
   const isQrTool = createMemo(() => activeTool() === "scan");
-  const isQrActive = createMemo(() => isQrTool() && overlayVisible());
   const showBackdrop = createMemo(() => (!isSelecting() && !isQrTool()) || mouseOnTools());
 
   const qrScanner = createQrScanner({
-    isActive: isQrActive,
+    isActive: isQrTool,
     onScanSuccess,
   });
 
@@ -45,37 +39,17 @@ function SnapOverlay() {
   };
 
   onMount(async () => {
-    let permissionGranted = await isPermissionGranted();
-
-    if (!permissionGranted) {
-      const permission = await requestPermission();
-      permissionGranted = permission === "granted";
-    }
-
-    unlistenShown = await SnapOverlayApi.onShown(async () => {
-      await Theme.syncThemeFromStore();
-      setOverlayVisible(true);
-      await SnapOverlayApi.registerHideShortcut();
-    });
-    unlistenHidden = await SnapOverlayApi.onHidden(async () => {
-      setOverlayVisible(false);
-      await SnapOverlayApi.unregisterHideShortcut();
-    });
+    await Theme.syncThemeFromStore();
+    await SnapOverlayApi.registerHideShortcut();
   });
 
   onCleanup(async () => {
-    if (unlistenShown) {
-      unlistenShown();
-    }
+    await SnapOverlayApi.unregisterHideShortcut();
+  });
 
-    if (unlistenHidden) {
-      unlistenHidden();
-    }
-
-    try {
-      await SnapOverlayApi.unregisterHideShortcut();
-    } catch (err) {
-      console.log(err);
+  createEffect(() => {
+    if (isSelecting()) {
+      setMouseOnTools(false);
     }
   });
 
@@ -96,6 +70,11 @@ function SnapOverlay() {
       </div>
 
       <Tools
+        class={cn(
+          "transition-[opacity,transform] duration-200 ease-in-out pointer-events-auto",
+          isSelecting() ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100",
+        )}
+        aria-hidden={isSelecting()}
         onpointerover={() => setMouseOnTools(true)}
         onpointerleave={() => setMouseOnTools(false)}
         value={activeTool()}

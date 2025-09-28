@@ -90,7 +90,8 @@ impl TextSnapOverlay {
             .closable(true)
             .decorations(false)
             .transparent(true)
-            .visible(false);
+            .visible(false)
+            .resizable(false);
         let window = window_builder.build()?;
 
         Ok(window)

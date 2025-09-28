@@ -19,7 +19,7 @@ export type toolsProps = JSX.HTMLAttributes<HTMLDivElement> & {
 
 export function Tools(props: toolsProps) {
   const [local, rest] = splitProps(props as toolsProps, ["class", "value", "onValueChange"]);
-  const { setEl, pos, onHandlePointerDown } = createDnd();
+  const { setEl, pos, onHandlePointerDown } = createDnd({ initialPosition: "bottomCenter" });
 
   return (
     <div

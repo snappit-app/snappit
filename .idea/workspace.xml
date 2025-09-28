@@ -12,18 +12,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f10ecd03-ea8a-4841-ab37-6df17632449d" name="Changes" comment="initial commit">
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/text-snap.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/text-snap.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src-tauri/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src-tauri/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src-tauri/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src-tauri/src/snap_overlay.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/src/snap_overlay.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/snap_overlay/SnapOverlay.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/snap_overlay/SnapOverlay.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/snap_overlay/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/snap_overlay/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src-tauri/src/region_capture.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/src/region_capture.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -173,6 +162,7 @@
       <workItem from="1756227632892" duration="134000" />
       <workItem from="1756279191283" duration="26000" />
       <workItem from="1756279218579" duration="75000" />
+      <workItem from="1759049233818" duration="134000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
