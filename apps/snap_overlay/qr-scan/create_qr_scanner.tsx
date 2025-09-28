@@ -45,8 +45,8 @@ export function createQrScanner(options: createQrScannerOptions): qrScannerInsta
   }, 32);
 
   const shouldScanFrame = (currentFrame: qrFrame, now: number) => {
-    if (!lastScanFrame) return true;
     if (!isActive() || isScanning()) return false;
+    if (!lastScanFrame) return true;
     const dx = currentFrame.center.x - lastScanFrame.center.x;
     const dy = currentFrame.center.y - lastScanFrame.center.y;
     const distance = Math.hypot(dx, dy);
@@ -73,17 +73,20 @@ export function createQrScanner(options: createQrScannerOptions): qrScannerInsta
       const params = captureParams ?? getCaptureParams(frame());
 
       const result = await RegionCaptureApi.scanRegionQr(params);
-      if (!result) {
+
+      console.log(result);
+
+      if (!result.payload) {
         await options.onScanFailure?.();
         return;
       }
 
-      if (payloadCache.isRecent(result, now)) {
+      if (payloadCache.isRecent(result.payload, now)) {
         return;
       }
 
-      payloadCache.remember(result, now);
-      await options.onScanSuccess(result);
+      payloadCache.remember(result.payload, now);
+      await options.onScanSuccess(result.payload);
       return result;
     } finally {
       setIsScanning(false);
@@ -138,6 +141,8 @@ export function createQrScanner(options: createQrScannerOptions): qrScannerInsta
   return {
     frame,
     isScanning,
-    scan: (frame: RegionCaptureParams) => detectAndScan(true, frame),
+    scan: (frame: RegionCaptureParams) => {
+      return detectAndScan(true, frame);
+    },
   };
 }

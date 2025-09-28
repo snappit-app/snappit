@@ -1,4 +1,4 @@
-use std::str::Utf8Error;
+use std::{io, str::Utf8Error};
 
 use leptess::{leptonica::PixError, tesseract::TessInitError};
 use tauri::Error as TauriError;
@@ -26,6 +26,9 @@ pub enum TextSnapError {
     #[error("Utf8Error error: {0}")]
     Utf8Error(#[from] Utf8Error),
 
+    #[error("IO error: {0}")]
+    IoError(#[from] io::Error),
+
     #[error("Monitor not found under cursor")]
     MonitorNotFound,
 
@@ -50,6 +53,7 @@ impl From<TextSnapError> for TauriError {
             TextSnapError::PixError(e) => TauriError::Anyhow(e.into()),
             TextSnapError::TessInitError(e) => TauriError::Anyhow(e.into()),
             TextSnapError::Utf8Error(e) => TauriError::Anyhow(e.into()),
+            TextSnapError::IoError(e) => TauriError::Anyhow(e.into()),
             TextSnapError::MonitorNotFound => TauriError::Anyhow(
                 std::io::Error::new(std::io::ErrorKind::NotFound, "Monitor not found").into(),
             ),
@@ -79,6 +83,7 @@ impl From<TextSnapError> for XCapError {
             TextSnapError::PixError(e) => XCapError::Error(e.to_string()),
             TextSnapError::TessInitError(e) => XCapError::Error(e.to_string()),
             TextSnapError::Utf8Error(e) => XCapError::Error(e.to_string()),
+            TextSnapError::IoError(e) => XCapError::Error(e.to_string()),
             TextSnapError::MonitorNotFound => XCapError::new("Monitor not found under cursor"),
             TextSnapError::BadRgbaFrameSize => XCapError::new("Bad RGBA frame size"),
             TextSnapError::ModelDirNotFound => XCapError::new("Model DIR not found"),

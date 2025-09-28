@@ -1,5 +1,11 @@
 import { invoke } from "@tauri-apps/api/core";
 
+import {
+  TextSnapOcrResponse,
+  TextSnapQrResponse,
+  TextSnapResponse,
+} from "@/shared/tauri/text_snap_res";
+
 export interface RegionCaptureParams {
   x: number;
   y: number;
@@ -8,11 +14,15 @@ export interface RegionCaptureParams {
 }
 
 export abstract class RegionCaptureApi {
+  static async onSmartTool(params: RegionCaptureParams) {
+    return invoke<TextSnapResponse>("on_smart_tool", { params });
+  }
+
   static async recognizeRegionText(params: RegionCaptureParams) {
-    return invoke<string>("recognize_region_text", { params });
+    return invoke<TextSnapOcrResponse>("recognize_region_text", { params });
   }
 
   static async scanRegionQr(params: RegionCaptureParams) {
-    return invoke<string | null>("scan_region_qr", { params });
+    return invoke<TextSnapQrResponse>("scan_region_qr", { params });
   }
 }

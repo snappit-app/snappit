@@ -1,6 +1,7 @@
 import { Accessor } from "solid-js";
 
 import { RegionCaptureParams } from "@/shared/tauri/region_capture_api";
+import { TextSnapQrResponse } from "@/shared/tauri/text_snap_res";
 
 export type qrFrame = {
   size: number;
@@ -15,6 +16,6 @@ export type createQrScannerOptions = {
 
 export type qrScannerInstance = {
   frame: Accessor<qrFrame | undefined>;
-  scan: (frame: RegionCaptureParams) => Promise<string | undefined>;
+  scan: (frame: RegionCaptureParams) => Promise<TextSnapQrResponse | undefined>;
   isScanning: Accessor<boolean>;
 };

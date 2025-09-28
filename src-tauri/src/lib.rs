@@ -5,6 +5,7 @@ mod text_snap_errors;
 mod text_snap_ocr;
 mod text_snap_overlay;
 mod text_snap_qr;
+mod text_snap_res;
 mod text_snap_settings;
 mod text_snap_store;
 mod text_snap_tray;
@@ -12,45 +13,80 @@ mod traits;
 
 use region_capture::{RegionCapture, RegionCaptureParams};
 use serde_json::json;
-use std::io;
-use tauri::{async_runtime, AppHandle};
+use tauri::{async_runtime::spawn_blocking, AppHandle};
 use text_snap_overlay::TextSnapOverlay;
 use text_snap_tray::TextSnapTray;
 
 use crate::{
     text_snap_consts::TEXT_SNAP_CONSTS, text_snap_errors::TextSnapResult,
-    text_snap_ocr::TextSnapOcr, text_snap_qr::TextSnapQr, text_snap_settings::TextSnapSettings,
-    text_snap_store::TextSnapStore, text_snap_tray::TextSnapTrayItemId,
+    text_snap_ocr::TextSnapOcr, text_snap_qr::TextSnapQr, text_snap_res::TextSnapResponse,
+    text_snap_settings::TextSnapSettings, text_snap_store::TextSnapStore,
+    text_snap_tray::TextSnapTrayItemId,
 };
 
 #[tauri::command]
-fn recognize_region_text(app: AppHandle, params: RegionCaptureParams) -> tauri::Result<String> {
-    let image = RegionCapture::capture(&app, params)?;
-    let text = TextSnapOcr::recognize(&app, image)?;
+async fn on_smart_tool(
+    app: AppHandle,
+    params: RegionCaptureParams,
+) -> tauri::Result<TextSnapResponse> {
+    let app_handle = app.clone();
 
-    Ok(text)
+    let captured = spawn_blocking(move || -> TextSnapResult<_> {
+        RegionCapture::capture(&app_handle, params)
+    })
+    .await??;
+
+    let img_for_qr = captured.clone();
+    let img_for_ocr = captured;
+    let app_for_ocr = app.clone();
+
+    let qr_handle =
+        spawn_blocking(move || -> TextSnapResult<_> { Ok(TextSnapQr::scan(img_for_qr)?) });
+    let ocr_handle = spawn_blocking(move || -> TextSnapResult<_> {
+        TextSnapOcr::recognize(&app_for_ocr, img_for_ocr)
+    });
+
+    match qr_handle.await?? {
+        Some(qr) => Ok(TextSnapResponse::Qr(Some(qr))),
+        None => {
+            let text = ocr_handle.await??;
+            Ok(TextSnapResponse::Ocr(text))
+        }
+    }
+}
+
+#[tauri::command]
+async fn recognize_region_text(
+    app: AppHandle,
+    params: RegionCaptureParams,
+) -> tauri::Result<TextSnapResponse> {
+    let app_handle = app.clone();
+
+    let task = spawn_blocking(move || -> TextSnapResult<_> {
+        let image = RegionCapture::capture(&app_handle, params)?;
+        TextSnapOcr::recognize(&app, image)
+    });
+
+    let ocr_result = task.await??;
+
+    Ok(TextSnapResponse::Ocr(ocr_result))
 }
 
 #[tauri::command]
 async fn scan_region_qr(
     app: AppHandle,
     params: RegionCaptureParams,
-) -> tauri::Result<Option<String>> {
+) -> tauri::Result<TextSnapResponse> {
     let app_handle = app.clone();
 
-    let task = async_runtime::spawn_blocking(move || -> TextSnapResult<_> {
+    let task = spawn_blocking(move || -> TextSnapResult<_> {
         let image = RegionCapture::capture(&app_handle, params)?;
         TextSnapQr::scan(image)
     });
 
-    let qr_result = task.await.map_err(|err| {
-        tauri::Error::from(io::Error::new(
-            io::ErrorKind::Other,
-            format!("QR scan task failed: {err}"),
-        ))
-    })??;
+    let qr_result = task.await??;
 
-    Ok(qr_result)
+    Ok(TextSnapResponse::Qr(qr_result))
 }
 
 #[tauri::command]
@@ -131,6 +167,7 @@ pub fn run() {
             update_tray_shortcut,
             recognize_region_text,
             scan_region_qr,
+            on_smart_tool
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

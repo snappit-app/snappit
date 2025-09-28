@@ -1,7 +1,7 @@
 import type { Accessor } from "solid-js";
 import { createMemo, For } from "solid-js";
 
-import { qrFrame } from "@/apps/snap_overlay/qr-scan/create_qr_scanner";
+import { qrFrame } from "@/apps/snap_overlay/qr-scan/lib/models";
 import { clamp } from "@/shared/libs/clamp";
 import { OverlayPortal, portalPos } from "@/shared/ui/overlay";
 
