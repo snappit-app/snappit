@@ -90,7 +90,7 @@ export function createDnd(options: DndOptions = {}): DndInstance {
   createEventListener(dragTarget, "pointerup", onPointerUp);
 
   onMount(() => {
-    queueMicrotask(positionInitially);
+    positionInitially();
   });
 
   return { setEl, pos, onHandlePointerDown, reclamp };

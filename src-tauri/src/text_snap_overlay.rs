@@ -94,6 +94,11 @@ impl TextSnapOverlay {
             .resizable(false);
         let window = window_builder.build()?;
 
+        let monitor = Platform::monitor_from_cursor(&app)?;
+        let physical_size = monitor.size().clone();
+        window.set_size(physical_size)?;
+        window.set_position(monitor.position().clone())?;
+
         Ok(window)
     }
 

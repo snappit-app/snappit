@@ -26,6 +26,7 @@ function SnapOverlay() {
 
   const isQrTool = createMemo(() => activeTool() === "scan");
   const showBackdrop = createMemo(() => (!isSelecting() && !isQrTool()) || mouseOnTools());
+  const showQrScanner = createMemo(() => isQrTool() && !mouseOnTools() && qrScanner.frame());
 
   const qrScanner = createQrScanner({
     isActive: isQrTool,
@@ -64,9 +65,7 @@ function SnapOverlay() {
           <AreaSelection pos={selection} />
         </Show>
 
-        <Show when={isQrTool() && !mouseOnTools() && qrScanner.frame()}>
-          {(frame) => <QrScanner frame={frame} />}
-        </Show>
+        <Show when={showQrScanner()}>{(frame) => <QrScanner frame={frame} />}</Show>
       </div>
 
       <Tools
