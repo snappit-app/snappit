@@ -1,36 +1,14 @@
-import { UnlistenFn } from "@tauri-apps/api/event";
-import { createSignal, onCleanup, onMount, Show } from "solid-js";
+import { Show } from "solid-js";
 
-import { SnapOverlayApi } from "@/shared/tauri/snap_overlay_api";
+import { createOverlayVisible } from "@/shared/libs/overlay_visible";
 
 import SnapOverlay from "./snap_overlay";
 
 function App() {
-  let unlistenShown: UnlistenFn | undefined;
-  let unlistenHidden: UnlistenFn | undefined;
-  const [windowVisible, setWindowVisible] = createSignal<boolean>(false);
-
-  onMount(async () => {
-    unlistenShown = await SnapOverlayApi.onShown(async () => {
-      setWindowVisible(true);
-    });
-    unlistenHidden = await SnapOverlayApi.onHidden(async () => {
-      setWindowVisible(false);
-    });
-  });
-
-  onCleanup(async () => {
-    if (unlistenShown) {
-      unlistenShown();
-    }
-
-    if (unlistenHidden) {
-      unlistenHidden();
-    }
-  });
+  const visible = createOverlayVisible();
 
   return (
-    <Show when={windowVisible()}>
+    <Show when={visible()}>
       <SnapOverlay />
     </Show>
   );
