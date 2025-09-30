@@ -12,12 +12,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f10ecd03-ea8a-4841-ab37-6df17632449d" name="Changes" comment="initial commit">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/snap_overlay/area_selection/on_selected.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/snap_overlay/area_selection/on_selected.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/snap_overlay/qr-scan/create_qr_scanner.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/snap_overlay/qr-scan/create_qr_scanner.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/snap_overlay/qr-scan/lib/models.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/snap_overlay/qr-scan/lib/models.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/snap_overlay/qr-scan/qr_scanner.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/snap_overlay/qr-scan/qr_scanner.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/shared/tauri/region_capture_api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/shared/tauri/region_capture_api.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/snap_overlay/snap_overlay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/snap_overlay/snap_overlay.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src-tauri/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src-tauri/src/text_snap_errors.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/src/text_snap_errors.rs" afterDir="false" />
     </list>
@@ -173,6 +169,7 @@
       <workItem from="1759067803726" duration="3000" />
       <workItem from="1759080284945" duration="10000" />
       <workItem from="1759081495886" duration="2000" />
+      <workItem from="1759130107196" duration="258000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />

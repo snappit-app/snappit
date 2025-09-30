@@ -1,5 +1,7 @@
+mod img_protocol;
 mod platform;
 mod region_capture;
+mod text_snap_color_dropper;
 mod text_snap_consts;
 mod text_snap_errors;
 mod text_snap_ocr;
@@ -18,11 +20,65 @@ use text_snap_overlay::TextSnapOverlay;
 use text_snap_tray::TextSnapTray;
 
 use crate::{
-    text_snap_consts::TEXT_SNAP_CONSTS, text_snap_errors::TextSnapResult,
-    text_snap_ocr::TextSnapOcr, text_snap_qr::TextSnapQr, text_snap_res::TextSnapResponse,
-    text_snap_settings::TextSnapSettings, text_snap_store::TextSnapStore,
+    img_protocol::{handle_img_request, ImageSlot, IMAGE},
+    text_snap_color_dropper::{TextSnapColorDropper, TextSnapColorInfo},
+    text_snap_consts::TEXT_SNAP_CONSTS,
+    text_snap_errors::TextSnapResult,
+    text_snap_ocr::TextSnapOcr,
+    text_snap_qr::TextSnapQr,
+    text_snap_res::TextSnapResponse,
+    text_snap_settings::TextSnapSettings,
+    text_snap_store::TextSnapStore,
     text_snap_tray::TextSnapTrayItemId,
+    traits::into_dynamic::IntoPngByes,
 };
+
+#[tauri::command]
+async fn capture_color_at_cursor(
+    app: AppHandle,
+    x: u32,
+    y: u32,
+) -> tauri::Result<TextSnapColorInfo> {
+    let app_handle = app.clone();
+
+    let color_info = spawn_blocking(move || -> TextSnapResult<_> {
+        TextSnapColorDropper::capture_color_at_cursor(&app_handle, x, y)
+    })
+    .await??;
+
+    Ok(color_info)
+}
+
+#[tauri::command]
+async fn capture_magnified_view(app: AppHandle, x: u32, y: u32) -> tauri::Result<()> {
+    let app_handle = app.clone();
+
+    let image_data = spawn_blocking(move || -> TextSnapResult<_> {
+        TextSnapColorDropper::capture_magnified_view(&app_handle, x, y)
+    })
+    .await??;
+
+    let (width, height) = image_data.dimensions();
+    let bytes = image_data.into_png_bytes()?;
+
+    *IMAGE.lock().unwrap() = Some(ImageSlot {
+        bytes,
+        width,
+        height,
+    });
+    Ok(())
+}
+
+#[tauri::command]
+fn get_last_shot_dim() -> tauri::Result<Option<(u32, u32)>> {
+    let guard = IMAGE.lock().unwrap();
+
+    if let Some(img) = &*guard {
+        return Ok(Some((img.width, img.height)));
+    }
+
+    Ok(None)
+}
 
 #[tauri::command]
 async fn on_smart_tool(
@@ -133,6 +189,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_log::Builder::default().build())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .register_uri_scheme_protocol("img", move |_app, req| handle_img_request(&req))
         .setup(|app| {
             TextSnapOverlay::preload(app.handle())?;
             TextSnapSettings::preload(app.handle())?;
@@ -167,7 +224,10 @@ pub fn run() {
             update_tray_shortcut,
             recognize_region_text,
             scan_region_qr,
-            on_smart_tool
+            on_smart_tool,
+            capture_color_at_cursor,
+            capture_magnified_view,
+            get_last_shot_dim
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

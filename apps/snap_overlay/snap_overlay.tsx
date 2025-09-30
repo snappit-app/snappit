@@ -2,6 +2,7 @@ import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
 import { createEffect, createMemo, createSignal, onCleanup, onMount, Show } from "solid-js";
 
 import { AreaSelection, createSelection, onAreaSelected } from "@/apps/snap_overlay/area_selection";
+import { ColorDropper } from "@/apps/snap_overlay/color_dropper";
 import { createQrScanner, onScanSuccess, QrScanner } from "@/apps/snap_overlay/qr-scan";
 import { cn } from "@/shared/libs/cn";
 import { RegionCaptureParams } from "@/shared/tauri/region_capture_api";
@@ -13,19 +14,21 @@ import { Tools, ToolValue } from "./tools";
 function SnapOverlay() {
   Theme.create();
 
-  const [cursorStyle, setCursorStyle] = createSignal("cursor-crosshair");
+  const [cursorStyle, setCursorStyle] = createSignal("cursor-default");
   const [activeTool, setActiveTool] = createSignal<ToolValue>("smart");
   const [mouseOnTools, setMouseOnTools] = createSignal<boolean>(false);
   const [selection, isSelecting, onSelectionStart] = createSelection(
     async (selection: RegionCaptureParams) => {
       setCursorStyle("cursor-default");
       await onAreaSelected(selection, activeTool() === "smart");
-      setCursorStyle("cursor-crosshair");
     },
   );
 
   const isQrTool = createMemo(() => activeTool() === "scan");
-  const showBackdrop = createMemo(() => (!isSelecting() && !isQrTool()) || mouseOnTools());
+  const isColorDropperTool = createMemo(() => activeTool() === "dropper");
+  const showBackdrop = createMemo(
+    () => (!isSelecting() && !isQrTool() && !isColorDropperTool()) || mouseOnTools(),
+  );
   const showQrScanner = createMemo(() => isQrTool() && !mouseOnTools() && qrScanner.frame());
 
   const qrScanner = createQrScanner({
@@ -49,6 +52,14 @@ function SnapOverlay() {
   });
 
   createEffect(() => {
+    if (activeTool() === "copy" || activeTool() === "smart") {
+      setCursorStyle("cursor-crosshair");
+    } else {
+      setCursorStyle("cursor-default");
+    }
+  });
+
+  createEffect(() => {
     if (isSelecting()) {
       setMouseOnTools(false);
     }
@@ -66,6 +77,8 @@ function SnapOverlay() {
         </Show>
 
         <Show when={showQrScanner()}>{(frame) => <QrScanner frame={frame} />}</Show>
+
+        <ColorDropper isActive={isColorDropperTool() && !mouseOnTools()} />
       </div>
 
       <Tools

@@ -34,7 +34,7 @@ export function createQrScanner(options: createQrScannerOptions): qrScannerInsta
 
   const updateQrCenter = throttle((x: number, y: number, size: number) => {
     setQrCenter(clampCenterToViewport(x, y, size));
-  }, 16);
+  }, 12);
 
   const adjustQrSize = throttle((delta: number) => {
     setQrSize((prev) => {
@@ -42,7 +42,7 @@ export function createQrScanner(options: createQrScannerOptions): qrScannerInsta
       setQrCenter((pos) => clampCenterToViewport(pos.x, pos.y, next));
       return next;
     });
-  }, 32);
+  }, 16);
 
   const shouldScanFrame = (currentFrame: qrFrame, now: number) => {
     if (!isActive() || isScanning()) return false;

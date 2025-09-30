@@ -1,7 +1,6 @@
 use crate::text_snap_errors::TextSnapResult;
 use image::{ImageBuffer, Rgba};
 use serde::Deserialize;
-use std::time::Instant;
 use tauri::{AppHandle, Wry};
 use xcap::Monitor;
 
@@ -16,7 +15,6 @@ pub struct RegionCaptureParams {
     pub x: u32,
     pub y: u32,
     pub width: u32,
-
     pub height: u32,
 }
 
@@ -28,13 +26,29 @@ impl RegionCapture {
         params: RegionCaptureParams,
     ) -> TextSnapResult<ImageBuffer<Rgba<u8>, Vec<u8>>> {
         let monitor = Platform::xcap_monitor_from_cursor(app)?;
-        let _start = Instant::now();
         let image = monitor.capture_region(params.x, params.y, params.width, params.height)?;
 
         #[cfg(debug_assertions)]
         Self::save_image(&image);
 
         Ok(image)
+    }
+
+    pub fn capture_around_cursor(
+        app: &AppHandle<Wry>,
+        params: RegionCaptureParams,
+    ) -> TextSnapResult<ImageBuffer<Rgba<u8>, Vec<u8>>> {
+        let left_top_x = params.x - params.width / 2;
+        let left_top_y = params.y - params.height / 2;
+
+        let left_top_params = RegionCaptureParams {
+            x: left_top_x,
+            y: left_top_y,
+            width: params.width,
+            height: params.height,
+        };
+
+        Self::capture(app, left_top_params)
     }
 
     pub fn save_image(image: &ImageBuffer<Rgba<u8>, Vec<u8>>) {
