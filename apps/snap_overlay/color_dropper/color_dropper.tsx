@@ -17,6 +17,10 @@ export function ColorDropper(props: ColorDropperProps) {
 
   const animationFrameId: number | null = null;
 
+  const MAGNIFY_RATIO = 15;
+  const MAGNIFIED_GRID_SIZE = 13;
+  const MAGNIFIED_DIMENSION = MAGNIFY_RATIO * MAGNIFIED_GRID_SIZE;
+
   const setImageData = async () => {
     const blob = await RegionCaptureApi.getLastShotData();
 
@@ -25,6 +29,10 @@ export function ColorDropper(props: ColorDropperProps) {
   };
 
   const captureColorAndMagnifiedView = throttle(async (x: number, y: number) => {
+    if (!props.isActive) {
+      return;
+    }
+
     const [color] = await Promise.all([
       ColorDropperApi.captureColorAtCursor(x, y),
       ColorDropperApi.captureMagnifiedView(x, y),
@@ -69,14 +77,23 @@ export function ColorDropper(props: ColorDropperProps) {
       <div class="fixed bottom-4 right-4 z-50 pointer-events-none">
         <div class="bg-card/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border">
           <div class="mb-2 relative">
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[15px] h-[15px] border-1 border-white" />
+            <div
+              class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-2 border-black outline outline-2 outline-white"
+              data-cursor
+              style={{
+                width: `${MAGNIFY_RATIO}px`,
+                height: `${MAGNIFY_RATIO}px`,
+              }}
+            />
             <Show when={magnifiedImage()}>
               {(src) => (
                 <img
                   src={src()}
                   alt="Magnified view"
-                  class="w-[120px] h-[120px] border border-border rounded"
+                  class="border border-border rounded"
                   style={{
+                    width: `${MAGNIFIED_DIMENSION}px`,
+                    height: `${MAGNIFIED_DIMENSION}px`,
                     "image-rendering": "pixelated",
                   }}
                 />

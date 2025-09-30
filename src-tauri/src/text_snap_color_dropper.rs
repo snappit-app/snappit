@@ -1,3 +1,4 @@
+use crate::platform::Platform;
 use crate::region_capture::RegionCapture;
 use crate::region_capture::RegionCaptureParams;
 use crate::text_snap_errors::TextSnapResult;
@@ -33,33 +34,164 @@ impl TextSnapColorInfo {
 
 pub struct TextSnapColorDropper;
 
-static MAGNIFIED_SIZE: u32 = 6;
-static MAGNIFY_RATIO: u32 = 20;
+const MAGNIFIED_RADIUS: u32 = 6;
+const MAGNIFIED_SIZE: u32 = MAGNIFIED_RADIUS * 2 + 1;
+const MAGNIFY_RATIO: u32 = 15;
 
 impl TextSnapColorDropper {
-    pub fn capture_color_at_cursor(
-        app: &AppHandle,
-        x: u32,
-        y: u32,
-    ) -> TextSnapResult<TextSnapColorInfo> {
+    fn capture_logical_grid(app: &AppHandle, x: u32, y: u32) -> TextSnapResult<Vec<Rgba<u8>>> {
+        let tauri_monitor = Platform::monitor_from_cursor(app)?;
+        let mut scale = tauri_monitor.scale_factor();
+        if scale < 1.0 {
+            scale = 1.0;
+        }
+        let scale = scale as f64;
+
+        let xcap_monitor = Platform::xcap_monitor_from_cursor(app)?;
+        let monitor_width = f64::from(xcap_monitor.width()?);
+        let monitor_height = f64::from(xcap_monitor.height()?);
+
+        let mut center_x = (x as f64) * scale;
+        let mut center_y = (y as f64) * scale;
+
+        if monitor_width >= 1.0 {
+            center_x = center_x.clamp(0.0, monitor_width - 1.0);
+        } else {
+            center_x = 0.0;
+        }
+
+        if monitor_height >= 1.0 {
+            center_y = center_y.clamp(0.0, monitor_height - 1.0);
+        } else {
+            center_y = 0.0;
+        }
+
+        let cell_span = scale;
+        let half_cell = cell_span * 0.5;
+
+        let logical_start_x = center_x - (MAGNIFIED_RADIUS as f64 * cell_span) - half_cell;
+        let logical_start_y = center_y - (MAGNIFIED_RADIUS as f64 * cell_span) - half_cell;
+
+        let mut capture_left = logical_start_x.floor() as i64;
+        let mut capture_top = logical_start_y.floor() as i64;
+
+        let max_x = monitor_width.max(1.0).ceil() as i64;
+        let max_y = monitor_height.max(1.0).ceil() as i64;
+
+        capture_left = capture_left.clamp(0, max_x.saturating_sub(1));
+        capture_top = capture_top.clamp(0, max_y.saturating_sub(1));
+
         let image = RegionCapture::capture_around_cursor(
             app,
             RegionCaptureParams {
                 x: x,
                 y: y,
-                width: 1,
-                height: 1,
+                width: MAGNIFIED_SIZE,
+                height: MAGNIFIED_SIZE,
             },
         )?;
 
-        let center_x = (image.width() - 1) / 2;
-        let center_y = (image.height() - 1) / 2;
+        let image_width = image.width() as i32;
+        let image_height = image.height() as i32;
 
-        let pixel = image.get_pixel(center_x, center_y);
+        let capture_left_f = capture_left as f64;
+        let capture_top_f = capture_top as f64;
 
-        let color = TextSnapColorInfo::from_rgba(pixel[0], pixel[1], pixel[2], pixel[3]);
+        let mut grid = vec![Rgba([0, 0, 0, 0]); (MAGNIFIED_SIZE * MAGNIFIED_SIZE) as usize];
 
-        Ok(color)
+        for gy in 0..MAGNIFIED_SIZE {
+            let logical_pixel_start_y = logical_start_y + gy as f64 * cell_span;
+            let logical_pixel_end_y = logical_pixel_start_y + cell_span;
+
+            let py_start = ((logical_pixel_start_y - capture_top_f).floor().max(0.0)) as i32;
+            let py_end = ((logical_pixel_end_y - capture_top_f)
+                .ceil()
+                .min(image_height as f64)) as i32;
+
+            for gx in 0..MAGNIFIED_SIZE {
+                let logical_pixel_start_x = logical_start_x + gx as f64 * cell_span;
+                let logical_pixel_end_x = logical_pixel_start_x + cell_span;
+
+                let px_start = ((logical_pixel_start_x - capture_left_f).floor().max(0.0)) as i32;
+                let px_end = ((logical_pixel_end_x - capture_left_f)
+                    .ceil()
+                    .min(image_width as f64)) as i32;
+
+                let mut accum = [0.0f64; 4];
+                let mut weight_sum = 0.0f64;
+
+                for py in py_start..py_end {
+                    if py < 0 || py >= image_height {
+                        continue;
+                    }
+
+                    let pixel_top = capture_top_f + py as f64;
+                    let pixel_bottom = pixel_top + 1.0;
+                    let overlap_y = (logical_pixel_end_y.min(pixel_bottom)
+                        - logical_pixel_start_y.max(pixel_top))
+                    .max(0.0);
+
+                    if overlap_y == 0.0 {
+                        continue;
+                    }
+
+                    for px in px_start..px_end {
+                        if px < 0 || px >= image_width {
+                            continue;
+                        }
+
+                        let pixel_left = capture_left_f + px as f64;
+                        let pixel_right = pixel_left + 1.0;
+                        let overlap_x = (logical_pixel_end_x.min(pixel_right)
+                            - logical_pixel_start_x.max(pixel_left))
+                        .max(0.0);
+
+                        if overlap_x == 0.0 {
+                            continue;
+                        }
+
+                        let weight = overlap_x * overlap_y;
+                        let pixel = image.get_pixel(px as u32, py as u32);
+
+                        for channel in 0..4 {
+                            accum[channel] += pixel[channel] as f64 * weight;
+                        }
+
+                        weight_sum += weight;
+                    }
+                }
+
+                let idx = (gy * MAGNIFIED_SIZE + gx) as usize;
+
+                if weight_sum > 0.0 {
+                    let r = (accum[0] / weight_sum).round().clamp(0.0, 255.0) as u8;
+                    let g = (accum[1] / weight_sum).round().clamp(0.0, 255.0) as u8;
+                    let b = (accum[2] / weight_sum).round().clamp(0.0, 255.0) as u8;
+                    let a = (accum[3] / weight_sum).round().clamp(0.0, 255.0) as u8;
+                    grid[idx] = Rgba([r, g, b, a]);
+                } else {
+                    let fallback_px = px_start.clamp(0, image_width.saturating_sub(1));
+                    let fallback_py = py_start.clamp(0, image_height.saturating_sub(1));
+                    grid[idx] = *image.get_pixel(fallback_px as u32, fallback_py as u32);
+                }
+            }
+        }
+
+        Ok(grid)
+    }
+
+    pub fn capture_color_at_cursor(
+        app: &AppHandle,
+        x: u32,
+        y: u32,
+    ) -> TextSnapResult<TextSnapColorInfo> {
+        let grid = Self::capture_logical_grid(app, x, y)?;
+        let center_index = (MAGNIFIED_RADIUS * MAGNIFIED_SIZE + MAGNIFIED_RADIUS) as usize;
+        let pixel = grid[center_index];
+
+        Ok(TextSnapColorInfo::from_rgba(
+            pixel[0], pixel[1], pixel[2], pixel[3],
+        ))
     }
 
     pub fn capture_magnified_view(
@@ -67,30 +199,21 @@ impl TextSnapColorDropper {
         x: u32,
         y: u32,
     ) -> TextSnapResult<ImageBuffer<Rgba<u8>, Vec<u8>>> {
-        let image = RegionCapture::capture_around_cursor(
-            app,
-            RegionCaptureParams {
-                x,
-                y,
-                width: MAGNIFIED_SIZE,
-                height: MAGNIFIED_SIZE,
-            },
-        )?;
+        let grid = Self::capture_logical_grid(app, x, y)?;
 
-        let magnified_width = image.width() * MAGNIFY_RATIO;
-        let magnified_height = image.height() * MAGNIFY_RATIO;
-
+        let magnified_width = MAGNIFIED_SIZE * MAGNIFY_RATIO;
+        let magnified_height = MAGNIFIED_SIZE * MAGNIFY_RATIO;
         let mut magnified = ImageBuffer::new(magnified_width, magnified_height);
 
-        for py in 0..image.height() {
-            for px in 0..image.width() {
-                let pixel = image.get_pixel(px, py);
-                // Масштабируем каждый пиксель в квадрат MAGNIFY_RATIO × MAGNIFY_RATIO
-                let start_x = px * MAGNIFY_RATIO;
-                let start_y = py * MAGNIFY_RATIO;
+        for gy in 0..MAGNIFIED_SIZE {
+            for gx in 0..MAGNIFIED_SIZE {
+                let pixel = grid[(gy * MAGNIFIED_SIZE + gx) as usize];
+                let start_x = gx * MAGNIFY_RATIO;
+                let start_y = gy * MAGNIFY_RATIO;
+
                 for dy in 0..MAGNIFY_RATIO {
                     for dx in 0..MAGNIFY_RATIO {
-                        magnified.put_pixel(start_x + dx, start_y + dy, *pixel);
+                        magnified.put_pixel(start_x + dx, start_y + dy, pixel);
                     }
                 }
             }
