@@ -10,6 +10,7 @@ pub struct TextSnapConstants {
 pub struct TextSnapStoreType {
     pub file: String,
     pub keys: TextSpanStoreKeys,
+    pub color_dropper: TextSpanColorDropperKeys,
 }
 #[derive(Debug, Deserialize)]
 pub struct TextSpanStoreKeys {
@@ -17,6 +18,13 @@ pub struct TextSpanStoreKeys {
     pub hotkey_capture: String,
     pub settings_initialized: String,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct TextSpanColorDropperKeys {
+    pub magnify_ratio: u32,
+    pub magnify_radius: u32,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct TextSnapWindows {
     pub settings: String,

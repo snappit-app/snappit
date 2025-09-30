@@ -65,7 +65,7 @@ impl TextSnapOverlay {
 
         #[cfg(target_os = "macos")]
         {
-            // #[cfg(not(debug_assertions))]
+            #[cfg(not(debug_assertions))]
             Platform::set_window_level(overlay.as_ref().window(), NSScreenSaverWindowLevel);
 
             app.set_activation_policy(tauri::ActivationPolicy::Regular)?;

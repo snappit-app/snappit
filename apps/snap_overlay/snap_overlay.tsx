@@ -19,17 +19,31 @@ function SnapOverlay() {
   const [mouseOnTools, setMouseOnTools] = createSignal<boolean>(false);
   const [selection, isSelecting, onSelectionStart] = createSelection(
     async (selection: RegionCaptureParams) => {
-      setCursorStyle("cursor-default");
+      setCursorStyle("cursor-none");
       await onAreaSelected(selection, activeTool() === "smart");
+      setCursorStyle("cursor-default");
     },
   );
 
+  const isSmartTool = createMemo(() => activeTool() === "smart");
+  const isCopyTool = createMemo(() => activeTool() === "copy");
+  const isRulerTool = createMemo(() => activeTool() === "ruler");
   const isQrTool = createMemo(() => activeTool() === "scan");
   const isColorDropperTool = createMemo(() => activeTool() === "dropper");
-  const showBackdrop = createMemo(
-    () => (!isSelecting() && !isQrTool() && !isColorDropperTool()) || mouseOnTools(),
-  );
   const showQrScanner = createMemo(() => isQrTool() && !mouseOnTools() && qrScanner.frame());
+  const showColorDropper = createMemo(() => isColorDropperTool() && !mouseOnTools());
+
+  const showBackdrop = createMemo(() => {
+    if (isColorDropperTool() || isRulerTool()) {
+      return false;
+    }
+
+    if (isSmartTool() || isCopyTool()) {
+      return !isSelecting();
+    }
+
+    return mouseOnTools();
+  });
 
   const qrScanner = createQrScanner({
     isActive: isQrTool,
@@ -52,7 +66,7 @@ function SnapOverlay() {
   });
 
   createEffect(() => {
-    if (activeTool() === "copy" || activeTool() === "smart") {
+    if (isCopyTool() || isSmartTool()) {
       setCursorStyle("cursor-crosshair");
     } else {
       setCursorStyle("cursor-default");
@@ -78,7 +92,9 @@ function SnapOverlay() {
 
         <Show when={showQrScanner()}>{(frame) => <QrScanner frame={frame} />}</Show>
 
-        <ColorDropper isActive={isColorDropperTool() && !mouseOnTools()} />
+        <Show when={showColorDropper()}>
+          <ColorDropper />
+        </Show>
       </div>
 
       <Tools

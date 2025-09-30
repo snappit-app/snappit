@@ -1,6 +1,7 @@
 use crate::platform::Platform;
 use crate::region_capture::RegionCapture;
 use crate::region_capture::RegionCaptureParams;
+use crate::text_snap_consts::TEXT_SNAP_CONSTS;
 use crate::text_snap_errors::TextSnapResult;
 use image::ImageBuffer;
 use image::Rgba;
@@ -34,12 +35,18 @@ impl TextSnapColorInfo {
 
 pub struct TextSnapColorDropper;
 
-const MAGNIFIED_RADIUS: u32 = 6;
-const MAGNIFIED_SIZE: u32 = MAGNIFIED_RADIUS * 2 + 1;
-const MAGNIFY_RATIO: u32 = 15;
-
 impl TextSnapColorDropper {
+    fn get_params() -> (u32, u32, u32) {
+        let radius = TEXT_SNAP_CONSTS.store.color_dropper.magnify_radius;
+        let ratio = TEXT_SNAP_CONSTS.store.color_dropper.magnify_ratio;
+        let size = radius * 2 + 1;
+
+        return (radius, ratio, size);
+    }
+
     fn capture_logical_grid(app: &AppHandle, x: u32, y: u32) -> TextSnapResult<Vec<Rgba<u8>>> {
+        let (radius, _, size) = Self::get_params();
+
         let tauri_monitor = Platform::monitor_from_cursor(app)?;
         let mut scale = tauri_monitor.scale_factor();
         if scale < 1.0 {
@@ -69,8 +76,8 @@ impl TextSnapColorDropper {
         let cell_span = scale;
         let half_cell = cell_span * 0.5;
 
-        let logical_start_x = center_x - (MAGNIFIED_RADIUS as f64 * cell_span) - half_cell;
-        let logical_start_y = center_y - (MAGNIFIED_RADIUS as f64 * cell_span) - half_cell;
+        let logical_start_x = center_x - (radius as f64 * cell_span) - half_cell;
+        let logical_start_y = center_y - (radius as f64 * cell_span) - half_cell;
 
         let mut capture_left = logical_start_x.floor() as i64;
         let mut capture_top = logical_start_y.floor() as i64;
@@ -86,8 +93,8 @@ impl TextSnapColorDropper {
             RegionCaptureParams {
                 x: x,
                 y: y,
-                width: MAGNIFIED_SIZE,
-                height: MAGNIFIED_SIZE,
+                width: size,
+                height: size,
             },
         )?;
 
@@ -97,9 +104,9 @@ impl TextSnapColorDropper {
         let capture_left_f = capture_left as f64;
         let capture_top_f = capture_top as f64;
 
-        let mut grid = vec![Rgba([0, 0, 0, 0]); (MAGNIFIED_SIZE * MAGNIFIED_SIZE) as usize];
+        let mut grid = vec![Rgba([0, 0, 0, 0]); (size * size) as usize];
 
-        for gy in 0..MAGNIFIED_SIZE {
+        for gy in 0..size {
             let logical_pixel_start_y = logical_start_y + gy as f64 * cell_span;
             let logical_pixel_end_y = logical_pixel_start_y + cell_span;
 
@@ -108,7 +115,7 @@ impl TextSnapColorDropper {
                 .ceil()
                 .min(image_height as f64)) as i32;
 
-            for gx in 0..MAGNIFIED_SIZE {
+            for gx in 0..size {
                 let logical_pixel_start_x = logical_start_x + gx as f64 * cell_span;
                 let logical_pixel_end_x = logical_pixel_start_x + cell_span;
 
@@ -117,7 +124,7 @@ impl TextSnapColorDropper {
                     .ceil()
                     .min(image_width as f64)) as i32;
 
-                let mut accum = [0.0f64; 4];
+                let mut acc = [0.0f64; 4];
                 let mut weight_sum = 0.0f64;
 
                 for py in py_start..py_end {
@@ -154,20 +161,20 @@ impl TextSnapColorDropper {
                         let pixel = image.get_pixel(px as u32, py as u32);
 
                         for channel in 0..4 {
-                            accum[channel] += pixel[channel] as f64 * weight;
+                            acc[channel] += pixel[channel] as f64 * weight;
                         }
 
                         weight_sum += weight;
                     }
                 }
 
-                let idx = (gy * MAGNIFIED_SIZE + gx) as usize;
+                let idx = (gy * size + gx) as usize;
 
                 if weight_sum > 0.0 {
-                    let r = (accum[0] / weight_sum).round().clamp(0.0, 255.0) as u8;
-                    let g = (accum[1] / weight_sum).round().clamp(0.0, 255.0) as u8;
-                    let b = (accum[2] / weight_sum).round().clamp(0.0, 255.0) as u8;
-                    let a = (accum[3] / weight_sum).round().clamp(0.0, 255.0) as u8;
+                    let r = (acc[0] / weight_sum).round().clamp(0.0, 255.0) as u8;
+                    let g = (acc[1] / weight_sum).round().clamp(0.0, 255.0) as u8;
+                    let b = (acc[2] / weight_sum).round().clamp(0.0, 255.0) as u8;
+                    let a = (acc[3] / weight_sum).round().clamp(0.0, 255.0) as u8;
                     grid[idx] = Rgba([r, g, b, a]);
                 } else {
                     let fallback_px = px_start.clamp(0, image_width.saturating_sub(1));
@@ -185,8 +192,10 @@ impl TextSnapColorDropper {
         x: u32,
         y: u32,
     ) -> TextSnapResult<TextSnapColorInfo> {
+        let (radius, _, size) = Self::get_params();
+
         let grid = Self::capture_logical_grid(app, x, y)?;
-        let center_index = (MAGNIFIED_RADIUS * MAGNIFIED_SIZE + MAGNIFIED_RADIUS) as usize;
+        let center_index = (radius * size + radius) as usize;
         let pixel = grid[center_index];
 
         Ok(TextSnapColorInfo::from_rgba(
@@ -199,20 +208,21 @@ impl TextSnapColorDropper {
         x: u32,
         y: u32,
     ) -> TextSnapResult<ImageBuffer<Rgba<u8>, Vec<u8>>> {
+        let (_, ratio, size) = Self::get_params();
         let grid = Self::capture_logical_grid(app, x, y)?;
 
-        let magnified_width = MAGNIFIED_SIZE * MAGNIFY_RATIO;
-        let magnified_height = MAGNIFIED_SIZE * MAGNIFY_RATIO;
+        let magnified_width = size * ratio;
+        let magnified_height = size * ratio;
         let mut magnified = ImageBuffer::new(magnified_width, magnified_height);
 
-        for gy in 0..MAGNIFIED_SIZE {
-            for gx in 0..MAGNIFIED_SIZE {
-                let pixel = grid[(gy * MAGNIFIED_SIZE + gx) as usize];
-                let start_x = gx * MAGNIFY_RATIO;
-                let start_y = gy * MAGNIFY_RATIO;
+        for gy in 0..size {
+            for gx in 0..size {
+                let pixel = grid[(gy * size + gx) as usize];
+                let start_x = gx * ratio;
+                let start_y = gy * ratio;
 
-                for dy in 0..MAGNIFY_RATIO {
-                    for dx in 0..MAGNIFY_RATIO {
+                for dy in 0..ratio {
+                    for dx in 0..ratio {
                         magnified.put_pixel(start_x + dx, start_y + dy, pixel);
                     }
                 }

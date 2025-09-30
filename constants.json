@@ -5,8 +5,13 @@
       "theme": "theme",
       "hotkey_capture": "hotkey.capture",
       "settings_initialized": "settings.initialized"
+    },
+    "color_dropper": {
+      "magnify_ratio": 15,
+      "magnify_radius": 6
     }
   },
+
   "windows": {
     "settings": "settings",
     "overlay": "snap_overlay"
