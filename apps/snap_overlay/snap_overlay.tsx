@@ -4,6 +4,7 @@ import { createEffect, createMemo, createSignal, onCleanup, onMount, Show } from
 import { AreaSelection, createSelection, onAreaSelected } from "@/apps/snap_overlay/area_selection";
 import { ColorDropper } from "@/apps/snap_overlay/color_dropper";
 import { createQrScanner, onScanSuccess, QrScanner } from "@/apps/snap_overlay/qr-scan";
+import { Ruler } from "@/apps/snap_overlay/ruler";
 import { cn } from "@/shared/libs/cn";
 import { RegionCaptureParams } from "@/shared/tauri/region_capture_api";
 import { Theme } from "@/shared/theme";
@@ -32,6 +33,7 @@ function SnapOverlay() {
   const isColorDropperTool = createMemo(() => activeTool() === "dropper");
   const showQrScanner = createMemo(() => isQrTool() && !mouseOnTools() && qrScanner.frame());
   const showColorDropper = createMemo(() => isColorDropperTool() && !mouseOnTools());
+  const showRuler = createMemo(() => isRulerTool() && !mouseOnTools());
 
   const showBackdrop = createMemo(() => {
     if (isColorDropperTool() || isRulerTool()) {
@@ -94,6 +96,10 @@ function SnapOverlay() {
 
         <Show when={showColorDropper()}>
           <ColorDropper />
+        </Show>
+
+        <Show when={showRuler()}>
+          <Ruler />
         </Show>
       </div>
 

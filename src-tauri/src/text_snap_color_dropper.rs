@@ -187,6 +187,12 @@ impl TextSnapScreenCapture {
         Ok(grid)
     }
 
+    // pub fn capture_color_at_img(
+    //     app: &AppHandle,
+    //     img: ImageBuffer<Rgba<u8>, Vec<u8>>,
+    // ) -> TextSnapResult<TextSnapColorInfo> {
+    // }
+
     pub fn capture_color_at_cursor(
         app: &AppHandle,
         x: u32,

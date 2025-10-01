@@ -111,13 +111,18 @@ async fn on_smart_tool(
     .await??;
 
     let img_for_qr = captured.clone();
+    let img_for_dropper = captured.clone();
     let img_for_ocr = captured;
     let app_for_ocr = app.clone();
+    let app_for_dropper = app.clone();
 
     let qr_handle =
         spawn_blocking(move || -> TextSnapResult<_> { Ok(TextSnapQr::scan(img_for_qr)?) });
     let ocr_handle = spawn_blocking(move || -> TextSnapResult<_> {
         TextSnapOcr::recognize(&app_for_ocr, img_for_ocr)
+    });
+    let dropper_handle = spawn_blocking(move || -> TextSnapResult<_> {
+        TextSnapOcr::recognize(&app_for_dropper, img_for_dropper)
     });
 
     match qr_handle.await?? {
