@@ -9,8 +9,10 @@ use tauri::{
 
 use crate::text_snap_overlay::TextSnapOverlay;
 use crate::{
-    text_snap_consts::TEXT_SNAP_CONSTS, text_snap_errors::TextSnapResult,
-    text_snap_settings::TextSnapSettings, text_snap_store::TextSnapStore,
+    text_snap_consts::TEXT_SNAP_CONSTS,
+    text_snap_errors::{TextSnapError, TextSnapResult},
+    text_snap_settings::TextSnapSettings,
+    text_snap_store::TextSnapStore,
 };
 
 #[derive(EnumString, AsRefStr, Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -97,8 +99,11 @@ pub const TRAY_ITEMS: &[TextSnapTrayItem] = &[
         true,
         hotkey_capture_key,
         |app| {
-            TextSnapOverlay::show(app)?;
-            Ok(())
+            match TextSnapOverlay::show(app) {
+                Ok(_) => Ok(()),
+                Err(TextSnapError::MissingPermissions(_)) => Ok(()),
+                Err(err) => Err(err),
+            }
         },
     ),
     TextSnapTrayItem::item(TextSnapTrayItemId::Settings, "Settings", true, |app| {

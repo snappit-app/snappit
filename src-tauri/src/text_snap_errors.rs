@@ -44,6 +44,9 @@ pub enum TextSnapError {
 
     #[error("Missing models: need det, cls, rec .onnx files")]
     PaddleModelNotFound,
+
+    #[error("Missing permissions: {0}")]
+    MissingPermissions(&'static str),
 }
 
 pub type TextSnapResult<T> = Result<T, TextSnapError>;
@@ -75,6 +78,9 @@ impl From<TextSnapError> for TauriError {
                 )
                 .into(),
             ),
+            TextSnapError::MissingPermissions(msg) => TauriError::Anyhow(
+                std::io::Error::new(std::io::ErrorKind::PermissionDenied, msg).into(),
+            ),
         }
     }
 }
@@ -96,6 +102,7 @@ impl From<TextSnapError> for XCapError {
             TextSnapError::PaddleModelNotFound => {
                 XCapError::new("Missing models: need det, cls, rec .onnx files")
             }
+            TextSnapError::MissingPermissions(msg) => XCapError::Error(msg.to_string()),
         }
     }
 }

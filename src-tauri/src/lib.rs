@@ -6,6 +6,7 @@ mod text_snap_consts;
 mod text_snap_errors;
 mod text_snap_ocr;
 mod text_snap_overlay;
+mod text_snap_permissions;
 mod text_snap_qr;
 mod text_snap_res;
 mod text_snap_settings;
@@ -23,8 +24,9 @@ use crate::{
     img_protocol::{handle_img_request, ImageSlot, IMAGE},
     text_snap_color_dropper::{TextSnapColorDropper, TextSnapColorInfo},
     text_snap_consts::TEXT_SNAP_CONSTS,
-    text_snap_errors::TextSnapResult,
+    text_snap_errors::{TextSnapError, TextSnapResult},
     text_snap_ocr::TextSnapOcr,
+    text_snap_permissions::{TextSnapPermissions, TextSnapPermissionsState},
     text_snap_qr::TextSnapQr,
     text_snap_res::TextSnapResponse,
     text_snap_settings::TextSnapSettings,
@@ -78,6 +80,24 @@ fn get_last_shot_dim() -> tauri::Result<Option<(u32, u32)>> {
     }
 
     Ok(None)
+}
+
+#[tauri::command]
+fn get_permissions_state(app: AppHandle) -> tauri::Result<TextSnapPermissionsState> {
+    Ok(TextSnapPermissions::refresh_and_emit(&app)?)
+}
+
+#[tauri::command]
+fn request_screen_recording_permission(
+    app: AppHandle,
+) -> tauri::Result<TextSnapPermissionsState> {
+    Ok(TextSnapPermissions::request_screen_recording(&app)?)
+}
+
+#[tauri::command]
+fn open_screen_recording_settings(app: AppHandle) -> tauri::Result<()> {
+    TextSnapPermissions::open_screen_recording_settings(&app)?;
+    Ok(())
 }
 
 #[tauri::command]
@@ -147,8 +167,11 @@ async fn scan_region_qr(
 
 #[tauri::command]
 fn show_snap_overlay(app: AppHandle) -> tauri::Result<()> {
-    TextSnapOverlay::show(&app)?;
-    Ok(())
+    match TextSnapOverlay::show(&app) {
+        Ok(_) => Ok(()),
+        Err(TextSnapError::MissingPermissions(_)) => Ok(()),
+        Err(err) => Err(err.into()),
+    }
 }
 
 #[tauri::command]
@@ -194,6 +217,7 @@ pub fn run() {
             TextSnapOverlay::preload(app.handle())?;
             TextSnapSettings::preload(app.handle())?;
             TextSnapSettings::show(app.handle())?;
+            TextSnapPermissions::refresh_and_emit(app.handle())?;
 
             let initialized = TextSnapStore::get_value(
                 app.handle(),
@@ -227,7 +251,10 @@ pub fn run() {
             on_smart_tool,
             capture_color_at_cursor,
             capture_magnified_view,
-            get_last_shot_dim
+            get_last_shot_dim,
+            get_permissions_state,
+            request_screen_recording_permission,
+            open_screen_recording_settings
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -4,7 +4,11 @@ use std::thread;
 use std::time::Duration;
 
 use crate::text_snap_errors::TextSnapResult;
-use crate::{platform::Platform, text_snap_consts::TEXT_SNAP_CONSTS};
+use crate::{
+    platform::Platform,
+    text_snap_consts::TEXT_SNAP_CONSTS,
+    text_snap_permissions::TextSnapPermissions,
+};
 #[cfg(target_os = "macos")]
 use objc2_app_kit::NSScreenSaverWindowLevel;
 use once_cell::sync::Lazy;
@@ -48,6 +52,8 @@ impl TextSnapOverlay {
     }
 
     pub fn show(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
+        TextSnapPermissions::ensure_for_overlay(app)?;
+
         let monitor = Platform::monitor_from_cursor(&app)?;
         {
             let mut last = OVERLAY_LAST_MONITOR.lock().unwrap();

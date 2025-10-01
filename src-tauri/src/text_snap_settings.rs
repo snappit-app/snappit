@@ -47,7 +47,7 @@ impl TextSnapSettings {
             .transparent(false)
             .resizable(false)
             .shadow(true)
-            .inner_size(430.0, 455.0)
+            .inner_size(430.0, 460.0)
             .build()?;
 
         let app_clone = app.clone();
