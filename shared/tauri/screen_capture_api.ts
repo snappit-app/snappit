@@ -17,8 +17,4 @@ export class ColorDropperApi {
       y,
     });
   }
-
-  static async copyColorToClipboard(color: ColorInfo): Promise<void> {
-    await navigator.clipboard.writeText(color.hex);
-  }
 }

@@ -33,9 +33,9 @@ impl TextSnapColorInfo {
     }
 }
 
-pub struct TextSnapColorDropper;
+pub struct TextSnapScreenCapture;
 
-impl TextSnapColorDropper {
+impl TextSnapScreenCapture {
     fn get_params() -> (u32, u32, u32) {
         let radius = TEXT_SNAP_CONSTS.store.color_dropper.magnify_radius;
         let ratio = TEXT_SNAP_CONSTS.store.color_dropper.magnify_ratio;

@@ -22,7 +22,7 @@ use text_snap_tray::TextSnapTray;
 
 use crate::{
     img_protocol::{handle_img_request, ImageSlot, IMAGE},
-    text_snap_color_dropper::{TextSnapColorDropper, TextSnapColorInfo},
+    text_snap_color_dropper::{TextSnapColorInfo, TextSnapScreenCapture},
     text_snap_consts::TEXT_SNAP_CONSTS,
     text_snap_errors::{TextSnapError, TextSnapResult},
     text_snap_ocr::TextSnapOcr,
@@ -44,7 +44,7 @@ async fn capture_color_at_cursor(
     let app_handle = app.clone();
 
     let color_info = spawn_blocking(move || -> TextSnapResult<_> {
-        TextSnapColorDropper::capture_color_at_cursor(&app_handle, x, y)
+        TextSnapScreenCapture::capture_color_at_cursor(&app_handle, x, y)
     })
     .await??;
 
@@ -56,7 +56,7 @@ async fn capture_magnified_view(app: AppHandle, x: u32, y: u32) -> tauri::Result
     let app_handle = app.clone();
 
     let image_data = spawn_blocking(move || -> TextSnapResult<_> {
-        TextSnapColorDropper::capture_magnified_view(&app_handle, x, y)
+        TextSnapScreenCapture::capture_magnified_view(&app_handle, x, y)
     })
     .await??;
 
@@ -88,9 +88,7 @@ fn get_permissions_state(app: AppHandle) -> tauri::Result<TextSnapPermissionsSta
 }
 
 #[tauri::command]
-fn request_screen_recording_permission(
-    app: AppHandle,
-) -> tauri::Result<TextSnapPermissionsState> {
+fn request_screen_recording_permission(app: AppHandle) -> tauri::Result<TextSnapPermissionsState> {
     Ok(TextSnapPermissions::request_screen_recording(&app)?)
 }
 
