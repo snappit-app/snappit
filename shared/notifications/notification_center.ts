@@ -18,4 +18,13 @@ export abstract class NotificationCenter {
       });
     }
   }
+
+  static async notifyDropper(body: string) {
+    if (await isPermissionGranted()) {
+      sendNotification({
+        title: "TextSnap - Color recognized",
+        body: `Copied: ${body}`,
+      });
+    }
+  }
 }

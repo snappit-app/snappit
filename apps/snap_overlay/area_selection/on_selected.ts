@@ -1,5 +1,6 @@
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 
+import { onColorRecognized } from "@/apps/snap_overlay/color_dropper/on_recognized";
 import { onScanSuccess } from "@/apps/snap_overlay/qr-scan";
 import { NotificationCenter } from "@/shared/notifications/notification_center";
 import { RegionCaptureApi, RegionCaptureParams } from "@/shared/tauri/region_capture_api";
@@ -23,8 +24,11 @@ export async function onAreaSelected(selection: RegionCaptureParams, smartMode =
       case "qr":
         return onScanSuccess(res.payload);
       case "ocr":
-      default:
         return onTextRecognized(res.payload);
+      case "dropper":
+        return onColorRecognized(res.payload);
+      default:
+        return;
     }
   }
   const text = await RegionCaptureApi.recognizeRegionText(selection);

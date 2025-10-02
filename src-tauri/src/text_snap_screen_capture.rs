@@ -2,7 +2,7 @@ use crate::platform::Platform;
 use crate::region_capture::RegionCapture;
 use crate::region_capture::RegionCaptureParams;
 use crate::text_snap_consts::TEXT_SNAP_CONSTS;
-use crate::text_snap_errors::TextSnapResult;
+use crate::text_snap_errors::{TextSnapError, TextSnapResult};
 use image::ImageBuffer;
 use image::Rgba;
 use serde::{Deserialize, Serialize};
@@ -187,11 +187,27 @@ impl TextSnapScreenCapture {
         Ok(grid)
     }
 
-    // pub fn capture_color_at_img(
-    //     app: &AppHandle,
-    //     img: ImageBuffer<Rgba<u8>, Vec<u8>>,
-    // ) -> TextSnapResult<TextSnapColorInfo> {
-    // }
+    pub fn capture_color_at_img(
+        app: &AppHandle,
+        img: ImageBuffer<Rgba<u8>, Vec<u8>>,
+    ) -> TextSnapResult<TextSnapColorInfo> {
+        let _ = app;
+
+        let width = img.width();
+        let height = img.height();
+
+        if width == 0 || height == 0 {
+            return Err(TextSnapError::BadRgbaFrameSize);
+        }
+
+        let center_x = (width - 1) / 2;
+        let center_y = (height - 1) / 2;
+        let pixel = *img.get_pixel(center_x, center_y);
+
+        Ok(TextSnapColorInfo::from_rgba(
+            pixel[0], pixel[1], pixel[2], pixel[3],
+        ))
+    }
 
     pub fn capture_color_at_cursor(
         app: &AppHandle,

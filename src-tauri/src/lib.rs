@@ -1,7 +1,6 @@
 mod img_protocol;
 mod platform;
 mod region_capture;
-mod text_snap_color_dropper;
 mod text_snap_consts;
 mod text_snap_errors;
 mod text_snap_ocr;
@@ -9,6 +8,7 @@ mod text_snap_overlay;
 mod text_snap_permissions;
 mod text_snap_qr;
 mod text_snap_res;
+mod text_snap_screen_capture;
 mod text_snap_settings;
 mod text_snap_store;
 mod text_snap_tray;
@@ -22,13 +22,13 @@ use text_snap_tray::TextSnapTray;
 
 use crate::{
     img_protocol::{handle_img_request, ImageSlot, IMAGE},
-    text_snap_color_dropper::{TextSnapColorInfo, TextSnapScreenCapture},
     text_snap_consts::TEXT_SNAP_CONSTS,
     text_snap_errors::{TextSnapError, TextSnapResult},
     text_snap_ocr::TextSnapOcr,
     text_snap_permissions::{TextSnapPermissions, TextSnapPermissionsState},
     text_snap_qr::TextSnapQr,
     text_snap_res::TextSnapResponse,
+    text_snap_screen_capture::{TextSnapColorInfo, TextSnapScreenCapture},
     text_snap_settings::TextSnapSettings,
     text_snap_store::TextSnapStore,
     text_snap_tray::TextSnapTrayItemId,
@@ -122,16 +122,20 @@ async fn on_smart_tool(
         TextSnapOcr::recognize(&app_for_ocr, img_for_ocr)
     });
     let dropper_handle = spawn_blocking(move || -> TextSnapResult<_> {
-        TextSnapOcr::recognize(&app_for_dropper, img_for_dropper)
+        TextSnapScreenCapture::capture_color_at_img(&app_for_dropper, img_for_dropper)
     });
 
-    match qr_handle.await?? {
-        Some(qr) => Ok(TextSnapResponse::Qr(Some(qr))),
-        None => {
-            let text = ocr_handle.await??;
-            Ok(TextSnapResponse::Ocr(text))
-        }
+    if let Some(qr) = qr_handle.await?? {
+        return Ok(TextSnapResponse::Qr(Some(qr)));
     }
+
+    let text = ocr_handle.await??;
+    if !text.is_empty() {
+        return Ok(TextSnapResponse::Ocr(text));
+    }
+
+    let color = dropper_handle.await??;
+    Ok(TextSnapResponse::Dropper(color))
 }
 
 #[tauri::command]

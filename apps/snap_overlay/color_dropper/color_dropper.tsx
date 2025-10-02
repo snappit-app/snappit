@@ -1,8 +1,8 @@
 import { createEventListener } from "@solid-primitives/event-listener";
 import { throttle } from "@solid-primitives/scheduled";
-import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { createSignal, Show } from "solid-js";
 
+import { onColorRecognized } from "@/apps/snap_overlay/color_dropper/on_recognized";
 import { ScreenMagnifier } from "@/apps/snap_overlay/screen_magnifier";
 import { TEXT_SNAP_CONSTS } from "@/shared/constants";
 import { ColorDropperApi, ColorInfo } from "@/shared/tauri/screen_capture_api";
@@ -24,7 +24,7 @@ export function ColorDropper() {
     event.stopPropagation();
 
     if (colorInfo()) {
-      await writeText(colorInfo()!.hex);
+      onColorRecognized(colorInfo()!);
       await SnapOverlayApi.close();
     }
   };
