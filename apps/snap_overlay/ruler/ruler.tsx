@@ -94,7 +94,7 @@ function MeasurementOverlay(props: {
   midpoint: Point;
 }) {
   const labelPosition = createMemo<Point>(() => {
-    const offset = 14;
+    const offset = 28;
 
     if (props.length === 0) {
       return { x: props.midpoint.x + offset, y: props.midpoint.y - offset };
@@ -112,6 +112,7 @@ function MeasurementOverlay(props: {
     <div class="pointer-events-none fixed inset-0">
       <div
         class="absolute"
+        data-line
         style={{
           left: `${props.start.x}px`,
           top: `${props.start.y}px`,
@@ -121,30 +122,32 @@ function MeasurementOverlay(props: {
           class="origin-left bg-primary"
           style={{
             width: `${props.length}px`,
-            height: "2px",
-            transform: `rotate(${props.angle}rad)`,
+            height: "1px",
+            transform: `translateY(-0.5px) rotate(${props.angle}rad)`,
           }}
         />
       </div>
 
       <div
-        class="absolute"
+        data-start
+        class="absolute -translate-x-1/2 -translate-y-1/2"
         style={{
-          left: `${props.end.x - 4}px`,
-          top: `${props.end.y - 4}px`,
+          left: `${props.start.x}px`,
+          top: `${props.start.y}px`,
         }}
       >
-        <div class="w-2 h-2 rounded-full bg-primary" />
+        <div class="w-1 h-1 rounded-full bg-primary" />
       </div>
 
       <div
-        class="absolute"
+        data-end
+        class="absolute -translate-x-1/2 -translate-y-1/2"
         style={{
-          left: `${props.start.x - 4}px`,
-          top: `${props.start.y - 4}px`,
+          left: `${props.end.x}px`,
+          top: `${props.end.y}px`,
         }}
       >
-        <div class="w-2 h-2 rounded-full bg-primary" />
+        <div class="w-1 h-1 rounded-full bg-primary" />
       </div>
 
       <div
