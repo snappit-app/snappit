@@ -7,8 +7,10 @@ import { KeyboardButton } from "@shared/ui/keyboard_button";
 import { BsRecordFill } from "solid-icons/bs";
 import { BsArrowCounterclockwise } from "solid-icons/bs";
 import { createEffect, createMemo, For, Show } from "solid-js";
+
+import { SMART_SHORTCUT_KEY } from "@/apps/settings/shortcuts/consts";
 export function General() {
-  const [storeShortcut, setStoreShortcut] = SnapOverlayApi.createShortcut();
+  const [storeShortcut, setStoreShortcut] = SnapOverlayApi.createStoredShortcut(SMART_SHORTCUT_KEY);
 
   const { candidate, savedShortcut, isRecording, startRecording } = createShortcutRecorder({
     minModKeys: 1,

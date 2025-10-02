@@ -4,6 +4,10 @@
     "keys": {
       "theme": "theme",
       "hotkey_capture": "hotkey.capture",
+      "hotkey_text_capture": "hotkey.text_capture",
+      "hotkey_digital_ruler": "hotkey.digital_ruler",
+      "hotkey_color_dropper": "hotkey.color_dropper",
+      "hotkey_qr_scanner": "hotkey.qr_scanner",
       "settings_initialized": "settings.initialized"
     },
     "color_dropper": {
@@ -11,7 +15,6 @@
       "magnify_radius": 6
     }
   },
-
   "windows": {
     "settings": "settings",
     "overlay": "snap_overlay"

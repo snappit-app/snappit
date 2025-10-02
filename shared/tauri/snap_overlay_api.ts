@@ -3,10 +3,12 @@ import { invoke } from "@tauri-apps/api/core";
 import { EventCallback } from "@tauri-apps/api/event";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { isRegistered, register, unregister } from "@tauri-apps/plugin-global-shortcut";
-import { createMemo } from "solid-js";
+import { createEffect, createMemo, onCleanup } from "solid-js";
 
+import { DEFAULT_SHORTCUTS } from "@/apps/settings/shortcuts/consts";
 import { TEXT_SNAP_CONSTS } from "@/shared/constants";
 import { TextSnapOverlayTarget } from "@/shared/tauri/snap_overlay_target";
+import { TextSnapTrayApi } from "@/shared/tauri/snap_tray_api";
 
 export const SHOW_SNAP_OVERLAY_DEFAULT_SHORTCUT = "CommandOrControl+Shift+2";
 const HIDE_SNAP_OVERLAY_SHORTCUT = "Escape";
@@ -20,8 +22,8 @@ export abstract class SnapOverlayApi {
     return invoke("hide_snap_overlay");
   }
 
-  static async show() {
-    return invoke("show_snap_overlay");
+  static async show(target: TextSnapOverlayTarget) {
+    return invoke("show_snap_overlay", { target });
   }
 
   static async unregisterHideShortcut() {
@@ -41,19 +43,40 @@ export abstract class SnapOverlayApi {
     }
   }
 
-  static async registerShowShortcut(shortcut: string) {
+  static async registerShowShortcut(shortcut: string, target: TextSnapOverlayTarget) {
     return register(shortcut, (e) => {
       if (e.state === "Pressed") {
-        SnapOverlayApi.show();
+        SnapOverlayApi.show(target);
       }
     });
   }
 
-  static createShortcut() {
-    const [storeShortcut, setStoreShortcut] = TextSnapStore.createValue<string>(
-      TEXT_SNAP_CONSTS.store.keys.hotkey_capture,
-    );
-    const shortcut = createMemo(() => storeShortcut() ?? SHOW_SNAP_OVERLAY_DEFAULT_SHORTCUT);
+  static createShortcut(key: string, target: TextSnapOverlayTarget) {
+    const [storeShortcut] = this.createStoredShortcut(key);
+
+    createEffect<string | undefined>((prev) => {
+      const curr = storeShortcut();
+
+      if (prev && prev !== curr) {
+        SnapOverlayApi.unregisterShowShortcut(prev);
+      }
+
+      this.registerShowShortcut(curr, target);
+      TextSnapTrayApi.updateShortcuts();
+      return curr;
+    });
+
+    onCleanup(() => {
+      const curr = storeShortcut();
+      if (curr) {
+        SnapOverlayApi.unregisterShowShortcut(curr);
+      }
+    });
+  }
+
+  static createStoredShortcut(key: string) {
+    const [storeShortcut, setStoreShortcut] = TextSnapStore.createValue<string>(key);
+    const shortcut = createMemo(() => storeShortcut() ?? DEFAULT_SHORTCUTS[key]);
     return [shortcut, setStoreShortcut] as const;
   }
 

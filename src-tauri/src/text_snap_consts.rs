@@ -16,6 +16,10 @@ pub struct TextSnapStoreType {
 pub struct TextSpanStoreKeys {
     pub theme: String,
     pub hotkey_capture: String,
+    pub hotkey_text_capture: String,
+    pub hotkey_digital_ruler: String,
+    pub hotkey_color_dropper: String,
+    pub hotkey_qr_scanner: String,
     pub settings_initialized: String,
 }
 

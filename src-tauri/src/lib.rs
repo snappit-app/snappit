@@ -174,8 +174,8 @@ async fn scan_region_qr(
 }
 
 #[tauri::command]
-fn show_snap_overlay(app: AppHandle) -> tauri::Result<()> {
-    match TextSnapOverlay::show(&app, TextSnapOverlayTarget::SmartTool) {
+fn show_snap_overlay(app: AppHandle, target: TextSnapOverlayTarget) -> tauri::Result<()> {
+    match TextSnapOverlay::show(&app, target) {
         Ok(_) => Ok(()),
         Err(TextSnapError::MissingPermissions(_)) => Ok(()),
         Err(err) => Err(err.into()),
@@ -201,12 +201,47 @@ fn hide_settings(app: AppHandle) -> tauri::Result<()> {
 }
 
 #[tauri::command]
-fn update_tray_shortcut(app: AppHandle) -> tauri::Result<()> {
-    let shortcut =
+fn update_tray_shortcuts(app: AppHandle) -> tauri::Result<()> {
+    let capture =
         TextSnapStore::get_value(&app, TEXT_SNAP_CONSTS.store.keys.hotkey_capture.as_str())?
             .and_then(|v| v.as_str().map(|s| s.to_string()));
+    let text_capture = TextSnapStore::get_value(
+        &app,
+        TEXT_SNAP_CONSTS.store.keys.hotkey_text_capture.as_str(),
+    )?
+    .and_then(|v| v.as_str().map(|s| s.to_string()));
+    let digital_ruler = TextSnapStore::get_value(
+        &app,
+        TEXT_SNAP_CONSTS.store.keys.hotkey_digital_ruler.as_str(),
+    )?
+    .and_then(|v| v.as_str().map(|s| s.to_string()));
+    let color_dropper = TextSnapStore::get_value(
+        &app,
+        TEXT_SNAP_CONSTS.store.keys.hotkey_color_dropper.as_str(),
+    )?
+    .and_then(|v| v.as_str().map(|s| s.to_string()));
+    let qr_scanner =
+        TextSnapStore::get_value(&app, TEXT_SNAP_CONSTS.store.keys.hotkey_qr_scanner.as_str())?
+            .and_then(|v| v.as_str().map(|s| s.to_string()));
 
-    TextSnapTray::update_shortcut(&app, TextSnapTrayItemId::Capture, shortcut.as_deref())?;
+    TextSnapTray::update_shortcut(&app, TextSnapTrayItemId::Capture, capture.as_deref())?;
+    TextSnapTray::update_shortcut(
+        &app,
+        TextSnapTrayItemId::CaptureText,
+        text_capture.as_deref(),
+    )?;
+    TextSnapTray::update_shortcut(
+        &app,
+        TextSnapTrayItemId::DigitalRuler,
+        digital_ruler.as_deref(),
+    )?;
+    TextSnapTray::update_shortcut(
+        &app,
+        TextSnapTrayItemId::ColorDropper,
+        color_dropper.as_deref(),
+    )?;
+    TextSnapTray::update_shortcut(&app, TextSnapTrayItemId::Qr, qr_scanner.as_deref())?;
+
     Ok(())
 }
 
@@ -253,7 +288,7 @@ pub fn run() {
             hide_snap_overlay,
             show_settings,
             hide_settings,
-            update_tray_shortcut,
+            update_tray_shortcuts,
             recognize_region_text,
             scan_region_qr,
             on_smart_tool,

@@ -1,9 +1,15 @@
 import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
-import { createEffect, createMemo, onCleanup, Show } from "solid-js";
+import { createMemo, Show } from "solid-js";
 
+import {
+  COLOR_DROPPER_SHORTCUT_KEY,
+  DIGITAL_RULER_SHORTCUT_KEY,
+  QR_SHORTCUT_KEY,
+  SMART_SHORTCUT_KEY,
+  TEXT_CAPTURE_SHORTCUT_KEY,
+} from "@/apps/settings/shortcuts/consts";
 import { createPermissions } from "@/shared/libs/permissions";
-import { TextSnapTrayApi } from "@/shared/tauri/snap_tray_api";
 import { Theme } from "@/shared/theme";
 
 import { General } from "./general";
@@ -14,26 +20,11 @@ function Settings() {
   Theme.create();
   const permissions = createPermissions();
   const permissionsGranted = createMemo(() => permissions.state()?.screenRecording ?? false);
-  const [storeShortcut] = SnapOverlayApi.createShortcut();
-
-  createEffect<string | undefined>((prev) => {
-    const curr = storeShortcut();
-
-    if (prev && prev !== curr) {
-      SnapOverlayApi.unregisterShowShortcut(prev);
-    }
-
-    SnapOverlayApi.registerShowShortcut(curr);
-    TextSnapTrayApi.updateCaptureShortcut();
-    return curr;
-  });
-
-  onCleanup(() => {
-    const curr = storeShortcut();
-    if (curr) {
-      SnapOverlayApi.unregisterShowShortcut(curr);
-    }
-  });
+  SnapOverlayApi.createShortcut(SMART_SHORTCUT_KEY, "smart_tool");
+  SnapOverlayApi.createShortcut(TEXT_CAPTURE_SHORTCUT_KEY, "text_capture");
+  SnapOverlayApi.createShortcut(DIGITAL_RULER_SHORTCUT_KEY, "digital_ruler");
+  SnapOverlayApi.createShortcut(COLOR_DROPPER_SHORTCUT_KEY, "color_dropper");
+  SnapOverlayApi.createShortcut(QR_SHORTCUT_KEY, "qr_scanner");
 
   return (
     <main class="">

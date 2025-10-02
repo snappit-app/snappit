@@ -100,6 +100,22 @@ fn hotkey_capture_key() -> String {
     TEXT_SNAP_CONSTS.store.keys.hotkey_capture.clone()
 }
 
+fn hotkey_text_capture_key() -> String {
+    TEXT_SNAP_CONSTS.store.keys.hotkey_text_capture.clone()
+}
+
+fn hotkey_digital_ruler_key() -> String {
+    TEXT_SNAP_CONSTS.store.keys.hotkey_digital_ruler.clone()
+}
+
+fn hotkey_color_dropper_key() -> String {
+    TEXT_SNAP_CONSTS.store.keys.hotkey_color_dropper.clone()
+}
+
+fn hotkey_qr_scanner_key() -> String {
+    TEXT_SNAP_CONSTS.store.keys.hotkey_qr_scanner.clone()
+}
+
 pub const TRAY_ITEMS: &[TextSnapTrayItem] = &[
     TextSnapTrayItem::item_with_accelerator(
         TextSnapTrayItemId::Capture,
@@ -117,7 +133,7 @@ pub const TRAY_ITEMS: &[TextSnapTrayItem] = &[
         TextSnapTrayItemId::CaptureText,
         "Capture Text",
         true,
-        hotkey_capture_key,
+        hotkey_text_capture_key,
         |app| match TextSnapOverlay::show(app, TextSnapOverlayTarget::TextCapture) {
             Ok(_) => Ok(()),
             Err(TextSnapError::MissingPermissions(_)) => Ok(()),
@@ -128,7 +144,7 @@ pub const TRAY_ITEMS: &[TextSnapTrayItem] = &[
         TextSnapTrayItemId::DigitalRuler,
         "Digital Ruler",
         true,
-        hotkey_capture_key,
+        hotkey_digital_ruler_key,
         |app| match TextSnapOverlay::show(app, TextSnapOverlayTarget::DigitalRuler) {
             Ok(_) => Ok(()),
             Err(TextSnapError::MissingPermissions(_)) => Ok(()),
@@ -139,7 +155,7 @@ pub const TRAY_ITEMS: &[TextSnapTrayItem] = &[
         TextSnapTrayItemId::ColorDropper,
         "Color Dropper",
         true,
-        hotkey_capture_key,
+        hotkey_color_dropper_key,
         |app| match TextSnapOverlay::show(app, TextSnapOverlayTarget::ColorDropper) {
             Ok(_) => Ok(()),
             Err(TextSnapError::MissingPermissions(_)) => Ok(()),
@@ -150,7 +166,7 @@ pub const TRAY_ITEMS: &[TextSnapTrayItem] = &[
         TextSnapTrayItemId::Qr,
         "Qr Scanner",
         true,
-        hotkey_capture_key,
+        hotkey_qr_scanner_key,
         |app| match TextSnapOverlay::show(app, TextSnapOverlayTarget::QrScanner) {
             Ok(_) => Ok(()),
             Err(TextSnapError::MissingPermissions(_)) => Ok(()),
