@@ -1,6 +1,7 @@
+import { UnlistenFn } from "@tauri-apps/api/event";
 import { BiRegularCopy, BiRegularQrScan, BiSolidEyedropper, BiSolidRuler } from "solid-icons/bi";
 import { BsGripVertical, BsMagic } from "solid-icons/bs";
-import { JSX, splitProps } from "solid-js";
+import { JSX, onCleanup, splitProps } from "solid-js";
 
 import { cn } from "@/shared/libs/cn";
 import { createDnd } from "@/shared/libs/dnd";
@@ -18,8 +19,18 @@ export type toolsProps = JSX.HTMLAttributes<HTMLDivElement> & {
 };
 
 export function Tools(props: toolsProps) {
+  let unlistenShown: UnlistenFn | undefined;
+
   const [local, rest] = splitProps(props as toolsProps, ["class", "value", "onValueChange"]);
-  const { setEl, pos, onHandlePointerDown } = createDnd({ initialPosition: "bottomCenter" });
+  const { setEl, pos, onHandlePointerDown } = createDnd({
+    initialPosition: "bottomCenter",
+  });
+
+  onCleanup(async () => {
+    if (unlistenShown) {
+      unlistenShown();
+    }
+  });
 
   return (
     <div

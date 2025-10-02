@@ -5,8 +5,7 @@ use std::time::Duration;
 
 use crate::text_snap_errors::TextSnapResult;
 use crate::{
-    platform::Platform,
-    text_snap_consts::TEXT_SNAP_CONSTS,
+    platform::Platform, text_snap_consts::TEXT_SNAP_CONSTS,
     text_snap_permissions::TextSnapPermissions,
 };
 #[cfg(target_os = "macos")]
@@ -52,6 +51,11 @@ impl TextSnapOverlay {
     }
 
     pub fn show(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
+        Self::subscribe_monitor_changes(app);
+        Self::actual_show(app)
+    }
+
+    fn actual_show(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
         TextSnapPermissions::ensure_for_overlay(app)?;
 
         let monitor = Platform::monitor_from_cursor(&app)?;
@@ -60,7 +64,6 @@ impl TextSnapOverlay {
             *last = Some(monitor.clone());
         }
 
-        Self::subscribe_monitor_changes(app);
         let physical_size = monitor.size().clone();
         let overlay = app
             .get_webview_window(TEXT_SNAP_CONSTS.windows.overlay.as_str())
@@ -143,7 +146,7 @@ impl TextSnapOverlay {
 
         if let Some(last) = last_monitor {
             if monitor.position() != last.position() {
-                Self::show(app)?;
+                Self::actual_show(app)?;
             }
         }
 

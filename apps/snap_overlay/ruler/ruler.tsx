@@ -2,7 +2,7 @@ import { createEventListener } from "@solid-primitives/event-listener";
 import { createMemo, createSignal, Show } from "solid-js";
 
 import { onRulerSuccess } from "@/apps/snap_overlay/ruler/on_success";
-import { ScreenMagnifier } from "@/apps/snap_overlay/screen_magnifier";
+import { createScreenMagnifier, ScreenMagnifier } from "@/apps/snap_overlay/screen_magnifier";
 import { TEXT_SNAP_CONSTS } from "@/shared/constants";
 import { SnapOverlayApi } from "@/shared/tauri/snap_overlay_api";
 import { KeyboardButton } from "@/shared/ui/keyboard_button";
@@ -24,6 +24,7 @@ function resolveAxisLock(start: Point, target: Point): AxisLock {
 const ratio = TEXT_SNAP_CONSTS.store.color_dropper.magnify_ratio;
 
 export function Ruler() {
+  const magnifierSrc = createScreenMagnifier();
   const [startPoint, setStartPoint] = createSignal<Point | null>(null);
   const [endPoint, setEndPoint] = createSignal<Point | null>(null);
   const [cursorPoint, setCursorPoint] = createSignal<Point | null>(null);
@@ -138,49 +139,53 @@ export function Ruler() {
 
   return (
     <>
-      <div class="absolute bottom-4 right-4 z-50 transition-[opacity] duration-200 ease-in-out hover:opacity-35">
-        <div class="bg-card/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border pointer-events-none ">
-          <div class="mb-2 relative">
-            <div
-              class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-2 border-black outline outline-2 outline-white"
-              style={{
-                width: `${ratio}px`,
-                height: `${ratio}px`,
-              }}
-            />
-            <ScreenMagnifier />
-          </div>
+      <Show when={magnifierSrc()}>
+        {(src) => (
+          <div class="absolute bottom-4 right-4 z-50 transition-[opacity] duration-200 ease-in-out hover:opacity-35">
+            <div class="bg-card/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border pointer-events-none ">
+              <div class="mb-2 relative">
+                <div
+                  class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-2 border-black outline outline-2 outline-white"
+                  style={{
+                    width: `${ratio}px`,
+                    height: `${ratio}px`,
+                  }}
+                />
+                <ScreenMagnifier src={src} />
+              </div>
 
-          <div class="space-y-1">
-            <div>
-              <div class="text-muted-foreground text-xs flex items-center justify-between mb-1">
-                Measure
-                <svg
-                  class="w-6 h-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  height="1em"
-                  width="1em"
-                  style={{ overflow: "visible" }}
-                >
-                  <path d="M5 8v2h6V2C7.691 2 5 4.691 5 8z" fill="white" />
-                  <path
-                    d="M13 2v8h6V8c0-3.309-2.691-6-6-6zM5 16c0 3.309 2.691 6 6 6h2c3.309 0 6-2.691 6-6v-4H5v4z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </div>
-              <div class="text-muted-foreground text-xs flex items-center justify-between mb-1">
-                Copy
-                <KeyboardButton key="Enter" type={"default"} size={"xs"} />
-              </div>
-              <div class="text-muted-foreground text-xs flex items-center justify-between">
-                Lock axis <KeyboardButton key="Shift" type={"default"} size={"xs"} />
+              <div class="space-y-1">
+                <div>
+                  <div class="text-muted-foreground text-xs flex items-center justify-between mb-1">
+                    Measure
+                    <svg
+                      class="w-6 h-6"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      height="1em"
+                      width="1em"
+                      style={{ overflow: "visible" }}
+                    >
+                      <path d="M5 8v2h6V2C7.691 2 5 4.691 5 8z" fill="white" />
+                      <path
+                        d="M13 2v8h6V8c0-3.309-2.691-6-6-6zM5 16c0 3.309 2.691 6 6 6h2c3.309 0 6-2.691 6-6v-4H5v4z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </div>
+                  <div class="text-muted-foreground text-xs flex items-center justify-between mb-1">
+                    Copy
+                    <KeyboardButton key="Enter" type={"default"} size={"xs"} />
+                  </div>
+                  <div class="text-muted-foreground text-xs flex items-center justify-between">
+                    Lock axis <KeyboardButton key="Shift" type={"default"} size={"xs"} />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        )}
+      </Show>
 
       <Show when={startPoint() && activeEndPoint()}>
         <MeasurementOverlay

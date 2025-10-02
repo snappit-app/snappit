@@ -12,7 +12,6 @@ export type DndInstance = {
   setEl: (el: HTMLElement | undefined) => void;
   pos: Accessor<Point>;
   onHandlePointerDown: (e: PointerEvent) => void;
-  reclamp: () => void;
 };
 
 export function createDnd(options: DndOptions = {}): DndInstance {
@@ -65,6 +64,7 @@ export function createDnd(options: DndOptions = {}): DndInstance {
 
   const positionInitially = () => {
     if (!el) return;
+
     const rect = el.getBoundingClientRect();
     let startX = 0;
     let startY = 0;
@@ -83,7 +83,7 @@ export function createDnd(options: DndOptions = {}): DndInstance {
     setPos(clampPoint(p.x, p.y));
   };
 
-  createEventListener(window, "resize", reclamp);
+  createEventListener(window, "resize", positionInitially);
 
   const dragTarget = () => (dragging() ? window : undefined);
   createEventListener(dragTarget, "pointermove", onPointerMove, { passive: true });
@@ -93,5 +93,5 @@ export function createDnd(options: DndOptions = {}): DndInstance {
     positionInitially();
   });
 
-  return { setEl, pos, onHandlePointerDown, reclamp };
+  return { setEl, pos, onHandlePointerDown };
 }
