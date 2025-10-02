@@ -27,4 +27,13 @@ export abstract class NotificationCenter {
       });
     }
   }
+
+  static async notifyRuler(body: string) {
+    if (await isPermissionGranted()) {
+      sendNotification({
+        title: "TextSnap - Ruler",
+        body: `Copied: ${body}`,
+      });
+    }
+  }
 }
