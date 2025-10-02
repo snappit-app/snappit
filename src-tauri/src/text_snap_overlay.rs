@@ -8,13 +8,27 @@ use crate::{
     platform::Platform, text_snap_consts::TEXT_SNAP_CONSTS,
     text_snap_permissions::TextSnapPermissions,
 };
+use ::serde::{Deserialize, Serialize};
 #[cfg(target_os = "macos")]
 use objc2_app_kit::NSScreenSaverWindowLevel;
 use once_cell::sync::Lazy;
+use tauri::webview::cookie::time::serde;
 use tauri::{
     AppHandle, Emitter, Error as TauriError, Manager, Monitor, WebviewUrl, WebviewWindow,
     WebviewWindowBuilder, Wry,
 };
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TextSnapOverlayTarget {
+    SmartTool,
+    TextCapture,
+    DigitalRuler,
+    ColorDropper,
+    QrScanner,
+    None,
+}
+
 pub struct TextSnapOverlay;
 
 static OVERLAY_LAST_MONITOR: Lazy<Mutex<Option<Monitor>>> = Lazy::new(|| Mutex::new(None));
@@ -50,12 +64,18 @@ impl TextSnapOverlay {
         Ok(overlay)
     }
 
-    pub fn show(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
+    pub fn show(
+        app: &AppHandle<Wry>,
+        target: TextSnapOverlayTarget,
+    ) -> TextSnapResult<WebviewWindow> {
         Self::subscribe_monitor_changes(app);
-        Self::actual_show(app)
+        Self::actual_show(app, target)
     }
 
-    fn actual_show(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
+    fn actual_show(
+        app: &AppHandle<Wry>,
+        target: TextSnapOverlayTarget,
+    ) -> TextSnapResult<WebviewWindow> {
         TextSnapPermissions::ensure_for_overlay(app)?;
 
         let monitor = Platform::monitor_from_cursor(&app)?;
@@ -81,7 +101,7 @@ impl TextSnapOverlay {
         }
 
         overlay.show()?;
-        overlay.emit("snap_overlay:shown", true)?;
+        overlay.emit("snap_overlay:shown", target)?;
         overlay.set_focus()?;
 
         Ok(overlay)
@@ -146,7 +166,7 @@ impl TextSnapOverlay {
 
         if let Some(last) = last_monitor {
             if monitor.position() != last.position() {
-                Self::actual_show(app)?;
+                Self::actual_show(app, TextSnapOverlayTarget::None)?;
             }
         }
 

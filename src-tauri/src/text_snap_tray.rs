@@ -7,7 +7,7 @@ use tauri::{
     AppHandle, Wry,
 };
 
-use crate::text_snap_overlay::TextSnapOverlay;
+use crate::text_snap_overlay::{TextSnapOverlay, TextSnapOverlayTarget};
 use crate::{
     text_snap_consts::TEXT_SNAP_CONSTS,
     text_snap_errors::{TextSnapError, TextSnapResult},
@@ -19,6 +19,14 @@ use crate::{
 pub enum TextSnapTrayItemId {
     #[strum(serialize = "capture")]
     Capture,
+    #[strum(serialize = "capture_text")]
+    CaptureText,
+    #[strum(serialize = "digital_ruler")]
+    DigitalRuler,
+    #[strum(serialize = "color_dropper")]
+    ColorDropper,
+    #[strum(serialize = "qr")]
+    Qr,
     #[strum(serialize = "settings")]
     Settings,
     #[strum(serialize = "quit")]
@@ -98,14 +106,58 @@ pub const TRAY_ITEMS: &[TextSnapTrayItem] = &[
         "Capture",
         true,
         hotkey_capture_key,
-        |app| {
-            match TextSnapOverlay::show(app) {
-                Ok(_) => Ok(()),
-                Err(TextSnapError::MissingPermissions(_)) => Ok(()),
-                Err(err) => Err(err),
-            }
+        |app| match TextSnapOverlay::show(app, TextSnapOverlayTarget::SmartTool) {
+            Ok(_) => Ok(()),
+            Err(TextSnapError::MissingPermissions(_)) => Ok(()),
+            Err(err) => Err(err),
         },
     ),
+    TextSnapTrayItem::separator(),
+    TextSnapTrayItem::item_with_accelerator(
+        TextSnapTrayItemId::CaptureText,
+        "Capture Text",
+        true,
+        hotkey_capture_key,
+        |app| match TextSnapOverlay::show(app, TextSnapOverlayTarget::TextCapture) {
+            Ok(_) => Ok(()),
+            Err(TextSnapError::MissingPermissions(_)) => Ok(()),
+            Err(err) => Err(err),
+        },
+    ),
+    TextSnapTrayItem::item_with_accelerator(
+        TextSnapTrayItemId::DigitalRuler,
+        "Digital Ruler",
+        true,
+        hotkey_capture_key,
+        |app| match TextSnapOverlay::show(app, TextSnapOverlayTarget::DigitalRuler) {
+            Ok(_) => Ok(()),
+            Err(TextSnapError::MissingPermissions(_)) => Ok(()),
+            Err(err) => Err(err),
+        },
+    ),
+    TextSnapTrayItem::item_with_accelerator(
+        TextSnapTrayItemId::ColorDropper,
+        "Color Dropper",
+        true,
+        hotkey_capture_key,
+        |app| match TextSnapOverlay::show(app, TextSnapOverlayTarget::ColorDropper) {
+            Ok(_) => Ok(()),
+            Err(TextSnapError::MissingPermissions(_)) => Ok(()),
+            Err(err) => Err(err),
+        },
+    ),
+    TextSnapTrayItem::item_with_accelerator(
+        TextSnapTrayItemId::Qr,
+        "Qr Scanner",
+        true,
+        hotkey_capture_key,
+        |app| match TextSnapOverlay::show(app, TextSnapOverlayTarget::QrScanner) {
+            Ok(_) => Ok(()),
+            Err(TextSnapError::MissingPermissions(_)) => Ok(()),
+            Err(err) => Err(err),
+        },
+    ),
+    TextSnapTrayItem::separator(),
     TextSnapTrayItem::item(TextSnapTrayItemId::Settings, "Settings", true, |app| {
         TextSnapSettings::show(app)?;
         Ok(())

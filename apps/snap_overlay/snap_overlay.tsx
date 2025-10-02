@@ -1,5 +1,13 @@
 import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
-import { createEffect, createMemo, createSignal, onCleanup, onMount, Show } from "solid-js";
+import {
+  Accessor,
+  createEffect,
+  createMemo,
+  createSignal,
+  onCleanup,
+  onMount,
+  Show,
+} from "solid-js";
 
 import { AreaSelection, createSelection, onAreaSelected } from "@/apps/snap_overlay/area_selection";
 import { ColorDropper } from "@/apps/snap_overlay/color_dropper";
@@ -7,33 +15,39 @@ import { createQrScanner, onScanSuccess, QrScanner } from "@/apps/snap_overlay/q
 import { Ruler } from "@/apps/snap_overlay/ruler";
 import { cn } from "@/shared/libs/cn";
 import { RegionCaptureParams } from "@/shared/tauri/region_capture_api";
+import { TextSnapOverlayTarget } from "@/shared/tauri/snap_overlay_target";
 import { Theme } from "@/shared/theme";
 import { Overlay, StaticBackdrop } from "@/shared/ui/overlay/overlay";
 
-import { Tools, ToolValue } from "./tools";
+import { Tools } from "./tools";
 
-function SnapOverlay() {
+interface snapOverlayProps {
+  target?: Accessor<TextSnapOverlayTarget>;
+}
+
+function SnapOverlay(props: snapOverlayProps) {
   Theme.create();
 
   const [cursorStyle, setCursorStyle] = createSignal("cursor-default");
-  const [activeTool, setActiveTool] = createSignal<ToolValue>("smart");
+  const [activeTool, setActiveTool] = createSignal<TextSnapOverlayTarget>("smart_tool");
   const [mouseOnTools, setMouseOnTools] = createSignal<boolean>(false);
-  const [selection, isSelecting, onSelectionStart] = createSelection(
-    async (selection: RegionCaptureParams) => {
-      setCursorStyle("cursor-none");
-      await onAreaSelected(selection, activeTool() === "smart");
-      setCursorStyle("cursor-default");
-    },
-  );
 
-  const isSmartTool = createMemo(() => activeTool() === "smart");
-  const isCopyTool = createMemo(() => activeTool() === "copy");
-  const isRulerTool = createMemo(() => activeTool() === "ruler");
-  const isQrTool = createMemo(() => activeTool() === "scan");
-  const isColorDropperTool = createMemo(() => activeTool() === "dropper");
+  const isSmartTool = createMemo(() => activeTool() === "smart_tool");
+  const isCopyTool = createMemo(() => activeTool() === "text_capture");
+  const isRulerTool = createMemo(() => activeTool() === "digital_ruler");
+  const isQrTool = createMemo(() => activeTool() === "qr_scanner");
+  const isColorDropperTool = createMemo(() => activeTool() === "color_dropper");
   const showQrScanner = createMemo(() => isQrTool() && !mouseOnTools() && qrScanner.frame());
   const showColorDropper = createMemo(() => isColorDropperTool() && !mouseOnTools());
   const showRuler = createMemo(() => isRulerTool() && !mouseOnTools());
+
+  const [selection, isSelecting, onSelectionStart] = createSelection(
+    async (selection: RegionCaptureParams) => {
+      setCursorStyle("cursor-none");
+      await onAreaSelected(selection, activeTool() === "smart_tool");
+      setCursorStyle("cursor-default");
+    },
+  );
 
   const showBackdrop = createMemo(() => {
     if (isColorDropperTool() || isRulerTool()) {
@@ -53,7 +67,7 @@ function SnapOverlay() {
   });
 
   const onOverlayMouseDown = (event: MouseEvent) => {
-    if (activeTool() === "smart" || activeTool() === "copy") {
+    if (activeTool() === "smart_tool" || activeTool() === "text_capture") {
       onSelectionStart(event);
     }
   };
@@ -65,6 +79,12 @@ function SnapOverlay() {
 
   onCleanup(async () => {
     await SnapOverlayApi.unregisterHideShortcut();
+  });
+
+  createEffect(() => {
+    if (props?.target && props.target() !== "none") {
+      setActiveTool(props.target());
+    }
   });
 
   createEffect(() => {

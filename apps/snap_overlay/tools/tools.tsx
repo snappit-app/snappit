@@ -5,17 +5,16 @@ import { JSX, onCleanup, splitProps } from "solid-js";
 
 import { cn } from "@/shared/libs/cn";
 import { createDnd } from "@/shared/libs/dnd";
+import { TextSnapOverlayTarget } from "@/shared/tauri/snap_overlay_target";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle_group";
 import { tooltip } from "@/shared/ui/tooltip";
 
 void tooltip;
 
-export type ToolValue = "smart" | "copy" | "ruler" | "dropper" | "scan";
-
 export type toolsProps = JSX.HTMLAttributes<HTMLDivElement> & {
   class?: string;
-  value: ToolValue;
-  onValueChange: (value: ToolValue) => void;
+  value: TextSnapOverlayTarget;
+  onValueChange: (value: TextSnapOverlayTarget) => void;
 };
 
 export function Tools(props: toolsProps) {
@@ -56,27 +55,33 @@ export function Tools(props: toolsProps) {
 
       <ToggleGroup value={local.value} variant={"ghost"}>
         <div use:tooltip={"Smart Tool"}>
-          <ToggleGroupItem value="smart" onClick={() => local.onValueChange("smart")}>
+          <ToggleGroupItem value="smart_tool" onClick={() => local.onValueChange("smart_tool")}>
             <BsMagic />
           </ToggleGroupItem>
         </div>
         <div use:tooltip={"Text Capture"}>
-          <ToggleGroupItem value="copy" onClick={() => local.onValueChange("copy")}>
+          <ToggleGroupItem value="text_capture" onClick={() => local.onValueChange("text_capture")}>
             <BiRegularCopy />
           </ToggleGroupItem>
         </div>
         <div use:tooltip={"Ruler Tool"}>
-          <ToggleGroupItem value="ruler" onClick={() => local.onValueChange("ruler")}>
+          <ToggleGroupItem
+            value="digital_ruler"
+            onClick={() => local.onValueChange("digital_ruler")}
+          >
             <BiSolidRuler />
           </ToggleGroupItem>
         </div>
         <div use:tooltip={"Color Picker"}>
-          <ToggleGroupItem value="dropper" onClick={() => local.onValueChange("dropper")}>
+          <ToggleGroupItem
+            value="color_dropper"
+            onClick={() => local.onValueChange("color_dropper")}
+          >
             <BiSolidEyedropper />
           </ToggleGroupItem>
         </div>
         <div use:tooltip={"QR Scanner"}>
-          <ToggleGroupItem value="scan" onClick={() => local.onValueChange("scan")}>
+          <ToggleGroupItem value="qr_scanner" onClick={() => local.onValueChange("qr_scanner")}>
             <BiRegularQrScan />
           </ToggleGroupItem>
         </div>

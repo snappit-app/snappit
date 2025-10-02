@@ -5,11 +5,11 @@ import { createOverlayVisible } from "@/shared/libs/overlay_visible";
 import SnapOverlay from "./snap_overlay";
 
 function App() {
-  const visible = createOverlayVisible();
+  const [visible, target] = createOverlayVisible();
 
   return (
     <Show when={visible()}>
-      <SnapOverlay />
+      <SnapOverlay target={target} />
     </Show>
   );
 }

@@ -25,6 +25,7 @@ use crate::{
     text_snap_consts::TEXT_SNAP_CONSTS,
     text_snap_errors::{TextSnapError, TextSnapResult},
     text_snap_ocr::TextSnapOcr,
+    text_snap_overlay::TextSnapOverlayTarget,
     text_snap_permissions::{TextSnapPermissions, TextSnapPermissionsState},
     text_snap_qr::TextSnapQr,
     text_snap_res::TextSnapResponse,
@@ -174,7 +175,7 @@ async fn scan_region_qr(
 
 #[tauri::command]
 fn show_snap_overlay(app: AppHandle) -> tauri::Result<()> {
-    match TextSnapOverlay::show(&app) {
+    match TextSnapOverlay::show(&app, TextSnapOverlayTarget::SmartTool) {
         Ok(_) => Ok(()),
         Err(TextSnapError::MissingPermissions(_)) => Ok(()),
         Err(err) => Err(err.into()),

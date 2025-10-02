@@ -6,6 +6,7 @@ import { isRegistered, register, unregister } from "@tauri-apps/plugin-global-sh
 import { createMemo } from "solid-js";
 
 import { TEXT_SNAP_CONSTS } from "@/shared/constants";
+import { TextSnapOverlayTarget } from "@/shared/tauri/snap_overlay_target";
 
 export const SHOW_SNAP_OVERLAY_DEFAULT_SHORTCUT = "CommandOrControl+Shift+2";
 const HIDE_SNAP_OVERLAY_SHORTCUT = "Escape";
@@ -56,12 +57,12 @@ export abstract class SnapOverlayApi {
     return [shortcut, setStoreShortcut] as const;
   }
 
-  static async onShown<T>(handler: EventCallback<T>) {
+  static async onShown(handler: EventCallback<TextSnapOverlayTarget>) {
     const overlay = await this.get();
     return overlay?.listen("snap_overlay:shown", handler);
   }
 
-  static async onHidden<T>(handler: EventCallback<T>) {
+  static async onHidden(handler: EventCallback<boolean>) {
     const overlay = await this.get();
     return overlay?.listen("snap_overlay:hidden", handler);
   }
