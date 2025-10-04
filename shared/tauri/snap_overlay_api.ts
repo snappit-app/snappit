@@ -10,7 +10,6 @@ import { TEXT_SNAP_CONSTS } from "@/shared/constants";
 import { TextSnapOverlayTarget } from "@/shared/tauri/snap_overlay_target";
 import { TextSnapTrayApi } from "@/shared/tauri/snap_tray_api";
 
-export const SHOW_SNAP_OVERLAY_DEFAULT_SHORTCUT = "CommandOrControl+Shift+2";
 const HIDE_SNAP_OVERLAY_SHORTCUT = "Escape";
 
 export abstract class SnapOverlayApi {
@@ -52,17 +51,25 @@ export abstract class SnapOverlayApi {
   }
 
   static createShortcut(key: string, target: TextSnapOverlayTarget) {
-    const [storeShortcut] = this.createStoredShortcut(key);
+    const [storeShortcut] = this.createStoredShortcut(key, target);
 
     createEffect<string | undefined>((prev) => {
       const curr = storeShortcut();
+
+      if (!curr.length) {
+        if (prev) {
+          SnapOverlayApi.unregisterShowShortcut(prev);
+        }
+
+        return;
+      }
 
       if (prev && prev !== curr) {
         SnapOverlayApi.unregisterShowShortcut(prev);
       }
 
       this.registerShowShortcut(curr, target);
-      TextSnapTrayApi.updateShortcuts();
+      TextSnapTrayApi.updateShortcut(target);
       return curr;
     });
 
@@ -74,10 +81,23 @@ export abstract class SnapOverlayApi {
     });
   }
 
-  static createStoredShortcut(key: string) {
-    const [storeShortcut, setStoreShortcut] = TextSnapStore.createValue<string>(key);
+  static createStoredShortcut(key: string, target: TextSnapOverlayTarget) {
+    const [storeShortcut, setStoreShortcut, remove] = TextSnapStore.createValue<string>(key);
     const shortcut = createMemo(() => storeShortcut() ?? DEFAULT_SHORTCUTS[key]);
-    return [shortcut, setStoreShortcut] as const;
+
+    createEffect(() => {
+      if (!storeShortcut() && DEFAULT_SHORTCUTS[key]) {
+        setStoreShortcut(DEFAULT_SHORTCUTS[key]);
+      }
+    });
+
+    async function removeShortcut() {
+      await remove();
+      console.log(storeShortcut());
+      await TextSnapTrayApi.updateShortcut(target);
+    }
+
+    return [shortcut, setStoreShortcut, removeShortcut] as const;
   }
 
   static async onShown(handler: EventCallback<TextSnapOverlayTarget>) {

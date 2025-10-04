@@ -8,8 +8,8 @@ export const QR_SHORTCUT_KEY = TEXT_SNAP_CONSTS.store.keys.hotkey_qr_scanner;
 
 export const DEFAULT_SHORTCUTS = {
   [SMART_SHORTCUT_KEY]: "CommandOrControl+Shift+2",
-  [TEXT_CAPTURE_SHORTCUT_KEY]: "CommandOrControl+Shift+7",
-  [DIGITAL_RULER_SHORTCUT_KEY]: "CommandOrControl+Shift+8",
-  [COLOR_DROPPER_SHORTCUT_KEY]: "CommandOrControl+Shift+9",
-  [QR_SHORTCUT_KEY]: "CommandOrControl+Shift+0",
+  [TEXT_CAPTURE_SHORTCUT_KEY]: "",
+  [DIGITAL_RULER_SHORTCUT_KEY]: "",
+  [COLOR_DROPPER_SHORTCUT_KEY]: "",
+  [QR_SHORTCUT_KEY]: "",
 };

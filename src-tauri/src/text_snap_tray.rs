@@ -203,7 +203,7 @@ static MENU: OnceLock<Menu<Wry>> = OnceLock::new();
 impl TextSnapTray {
     const TRAY_ID: &str = "main";
 
-    pub fn update_shortcut(
+    fn update_shortcut(
         app: &AppHandle<Wry>,
         id: TextSnapTrayItemId,
         accelerator: Option<&str>,
@@ -215,6 +215,7 @@ impl TextSnapTray {
                 match kind {
                     MenuItemKind::MenuItem(item) => {
                         if item.id().as_ref() == id.as_ref() {
+                            log::info!("{:?} {:?}", item.id(), accelerator);
                             item.set_accelerator(accelerator)?;
                         }
                     }
@@ -228,12 +229,63 @@ impl TextSnapTray {
                             item.set_accelerator(accelerator)?;
                         }
                     }
-                    // Other kinds don't have accelerators we can set
                     MenuItemKind::Submenu(_) | MenuItemKind::Predefined(_) => {}
                 }
             }
 
             tray.set_menu(Some(menu.clone()))?;
+        }
+
+        Ok(())
+    }
+
+    fn resolve_shortcut_target(
+        target: TextSnapOverlayTarget,
+    ) -> Option<(TextSnapTrayItemId, fn() -> String)> {
+        match target {
+            TextSnapOverlayTarget::SmartTool => {
+                Some((TextSnapTrayItemId::Capture, hotkey_capture_key))
+            }
+            TextSnapOverlayTarget::TextCapture => {
+                Some((TextSnapTrayItemId::CaptureText, hotkey_text_capture_key))
+            }
+            TextSnapOverlayTarget::DigitalRuler => {
+                Some((TextSnapTrayItemId::DigitalRuler, hotkey_digital_ruler_key))
+            }
+            TextSnapOverlayTarget::ColorDropper => {
+                Some((TextSnapTrayItemId::ColorDropper, hotkey_color_dropper_key))
+            }
+            TextSnapOverlayTarget::QrScanner => {
+                Some((TextSnapTrayItemId::Qr, hotkey_qr_scanner_key))
+            }
+            TextSnapOverlayTarget::None => None,
+        }
+    }
+
+    pub fn update_overlay_shortcut(
+        app: &AppHandle<Wry>,
+        target: TextSnapOverlayTarget,
+    ) -> TextSnapResult<()> {
+        if let Some((tray_item_id, store_key_fn)) = Self::resolve_shortcut_target(target) {
+            let store_key = store_key_fn();
+            let accelerator = TextSnapStore::get_value(app, store_key.as_str())?
+                .and_then(|value| value.as_str().map(|s| s.to_string()));
+
+            Self::update_shortcut(app, tray_item_id, accelerator.as_deref())?;
+        }
+
+        Ok(())
+    }
+
+    pub fn update_overlay_shortcuts(app: &AppHandle<Wry>) -> TextSnapResult<()> {
+        for target in [
+            TextSnapOverlayTarget::SmartTool,
+            TextSnapOverlayTarget::TextCapture,
+            TextSnapOverlayTarget::DigitalRuler,
+            TextSnapOverlayTarget::ColorDropper,
+            TextSnapOverlayTarget::QrScanner,
+        ] {
+            Self::update_overlay_shortcut(app, target)?;
         }
 
         Ok(())

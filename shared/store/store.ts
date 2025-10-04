@@ -14,6 +14,7 @@ export abstract class TextSnapStore {
     {
       value: Resource<unknown | null>;
       setValue: (v: unknown) => Promise<void>;
+      remove: () => Promise<void>;
     }
   > = new Map();
 
@@ -39,7 +40,11 @@ export abstract class TextSnapStore {
   static createValue<T, R = unknown>(key: string) {
     const hit = this._valueSingletons.get(key);
     if (hit) {
-      return [hit.value as Resource<T | null>, hit.setValue as (v: T) => Promise<void>] as const;
+      return [
+        hit.value as Resource<T | null>,
+        hit.setValue as (v: T) => Promise<void>,
+        hit.remove,
+      ] as const;
     }
 
     const inst = createRoot((dispose) => {
@@ -56,14 +61,27 @@ export abstract class TextSnapStore {
         refetch();
       }
 
-      return { value, setValue, dispose } as const;
+      async function remove() {
+        const s = store();
+        if (!s) return;
+        await s.delete(key);
+        await s.save();
+        refetch();
+      }
+
+      return { value, setValue, dispose, remove } as const;
     });
 
     this._valueSingletons.set(key, {
       value: inst.value as Resource<unknown | null>,
       setValue: inst.setValue as (v: unknown) => Promise<void>,
+      remove: inst.remove as () => Promise<void>,
     });
 
-    return [inst.value as Resource<T | null>, inst.setValue as (v: T) => Promise<void>] as const;
+    return [
+      inst.value as Resource<T | null>,
+      inst.setValue as (v: T) => Promise<void>,
+      inst.remove as () => Promise<void>,
+    ] as const;
   }
 }

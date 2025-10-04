@@ -1,16 +1,20 @@
-import { RecordTooltip } from "@settings/general/record_tooltip";
 import { fromGlobalShortcut, toGlobalShortcut } from "@shared/libs/shortcut_recorder";
 import createShortcutRecorder from "@shared/libs/shortcut_recorder/shortcut_recorder";
-import { SHOW_SNAP_OVERLAY_DEFAULT_SHORTCUT, SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
+import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
 import { Button } from "@shared/ui/button";
 import { KeyboardButton } from "@shared/ui/keyboard_button";
 import { BsRecordFill } from "solid-icons/bs";
 import { BsArrowCounterclockwise } from "solid-icons/bs";
 import { createEffect, createMemo, For, Show } from "solid-js";
 
-import { SMART_SHORTCUT_KEY } from "@/apps/settings/shortcuts/consts";
+import { DEFAULT_SHORTCUTS, SMART_SHORTCUT_KEY } from "@/apps/settings/shortcuts/consts";
+import { RecordTooltip } from "@/shared/libs/shortcut_recorder";
+import { TextSnapTrayApi } from "@/shared/tauri/snap_tray_api";
 export function General() {
-  const [storeShortcut, setStoreShortcut] = SnapOverlayApi.createStoredShortcut(SMART_SHORTCUT_KEY);
+  const [storeShortcut, setStoreShortcut] = SnapOverlayApi.createStoredShortcut(
+    SMART_SHORTCUT_KEY,
+    "smart_tool",
+  );
 
   const { candidate, savedShortcut, isRecording, startRecording } = createShortcutRecorder({
     minModKeys: 1,
@@ -21,10 +25,14 @@ export function General() {
   );
 
   createEffect(() => {
-    if (savedShortcut().length) {
-      const global = toGlobalShortcut(savedShortcut());
-      setStoreShortcut(global);
-    }
+    const latest = savedShortcut();
+    if (!latest.length) return;
+
+    void (async () => {
+      const globalShortcut = toGlobalShortcut(latest);
+      await setStoreShortcut(globalShortcut);
+      await TextSnapTrayApi.updateShortcut("smart_tool");
+    })();
   });
 
   return (
@@ -62,7 +70,7 @@ export function General() {
           <Button
             class="relative flex items-center gap-2"
             variant="ghost"
-            onClick={() => setStoreShortcut(SHOW_SNAP_OVERLAY_DEFAULT_SHORTCUT)}
+            onClick={() => setStoreShortcut(DEFAULT_SHORTCUTS[SMART_SHORTCUT_KEY])}
           >
             <BsArrowCounterclockwise size={"25"} />
             Reset to default

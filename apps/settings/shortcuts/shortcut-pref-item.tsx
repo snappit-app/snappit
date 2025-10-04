@@ -1,7 +1,6 @@
-import { BsRecordFill } from "solid-icons/bs";
+import { BsRecordFill, BsTrash } from "solid-icons/bs";
 import { createEffect, createMemo, For, Show, splitProps } from "solid-js";
 
-import { RecordTooltip } from "@/apps/settings/general/record_tooltip";
 import {
   COLOR_DROPPER_SHORTCUT_KEY,
   DIGITAL_RULER_SHORTCUT_KEY,
@@ -9,8 +8,10 @@ import {
   TEXT_CAPTURE_SHORTCUT_KEY,
 } from "@/apps/settings/shortcuts";
 import { fromGlobalShortcut, toGlobalShortcut } from "@/shared/libs/shortcut_recorder";
+import { RecordTooltip } from "@/shared/libs/shortcut_recorder";
 import createShortcutRecorder from "@/shared/libs/shortcut_recorder/shortcut_recorder";
 import { SnapOverlayApi } from "@/shared/tauri/snap_overlay_api";
+import { TextSnapOverlayTarget } from "@/shared/tauri/snap_overlay_target";
 import { TextSnapTrayApi } from "@/shared/tauri/snap_tray_api";
 import { Button } from "@/shared/ui/button";
 import { KeyboardButton } from "@/shared/ui/keyboard_button";
@@ -19,30 +20,38 @@ export const TOOL_SHORTCUTS: ShortcutPreferenceItemProps[] = [
   {
     label: "Text Capture",
     storeKey: TEXT_CAPTURE_SHORTCUT_KEY,
+    target: "text_capture",
   },
   {
     label: "Digital Ruler",
     storeKey: DIGITAL_RULER_SHORTCUT_KEY,
+    target: "digital_ruler",
   },
   {
     label: "Color Dropper",
     storeKey: COLOR_DROPPER_SHORTCUT_KEY,
+    target: "color_dropper",
   },
   {
     label: "QR Scanner",
     storeKey: QR_SHORTCUT_KEY,
+    target: "qr_scanner",
   },
 ];
 
 type ShortcutPreferenceItemProps = {
   label: string;
   storeKey: string;
+  target: TextSnapOverlayTarget;
 };
 
 export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
   const [local] = splitProps(props, ["label", "storeKey"]);
 
-  const [storeShortcut, setStoreShortcut] = SnapOverlayApi.createStoredShortcut(local.storeKey);
+  const [storeShortcut, setStoreShortcut, removeShortcut] = SnapOverlayApi.createStoredShortcut(
+    local.storeKey,
+    props.target,
+  );
 
   const { candidate, savedShortcut, isRecording, startRecording } = createShortcutRecorder({
     minModKeys: 1,
@@ -60,7 +69,7 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
     void (async () => {
       const globalShortcut = toGlobalShortcut(latest);
       await setStoreShortcut(globalShortcut);
-      await TextSnapTrayApi.updateShortcuts();
+      await TextSnapTrayApi.updateShortcut(props.target);
     })();
   });
 
@@ -78,17 +87,23 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
         </Show>
       </div>
 
-      <Button
-        class="relative flex items-center gap-2"
-        variant="ghost"
-        onClick={() => startRecording()}
-      >
-        <BsRecordFill size={"20"} />
-        Record
-        <Show when={isRecording()}>
-          <RecordTooltip candidate={candidate} />
-        </Show>
-      </Button>
+      <div class="flex items-center gap-1">
+        <Button
+          class="relative flex items-center gap-2"
+          variant="ghost"
+          onClick={() => startRecording()}
+        >
+          <BsRecordFill size={"20"} />
+          Record
+          <Show when={isRecording()}>
+            <RecordTooltip candidate={candidate} />
+          </Show>
+        </Button>
+
+        <Button variant={"ghost"} size="icon" onClick={() => removeShortcut()}>
+          <BsTrash />
+        </Button>
+      </div>
     </div>
   );
 }
