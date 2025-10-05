@@ -7,12 +7,14 @@ export const RECOGNITION_LANGUAGE_OPTIONS = [
   { label: "Auto", value: "auto" },
   { label: "English", value: "eng" },
   { label: "Russian", value: "rus" },
-  { label: "Mandarin Chinese", value: "chi_sim" },
-  { label: "Hindi", value: "hin" },
+  { label: "Chinese (Simplified)", value: "chi_sim" },
+  { label: "Chinese (Traditional)", value: "chi_tra" },
+  { label: "Japanese", value: "jpn" },
+  { label: "Korean", value: "kor" },
   { label: "Spanish", value: "spa" },
   { label: "French", value: "fra" },
-  { label: "Arabic", value: "ara" },
-  { label: "Bengali", value: "ben" },
+  { label: "German", value: "deu" },
+  { label: "Thai", value: "tha" },
 ] as const;
 
 export type RecognitionLanguageValue = (typeof RECOGNITION_LANGUAGE_OPTIONS)[number]["value"];

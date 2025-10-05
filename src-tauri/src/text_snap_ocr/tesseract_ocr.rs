@@ -11,9 +11,8 @@ use crate::{
 };
 
 const DEFAULT_RECOGNITION_LANGUAGE: &str = "eng+rus";
-const VALID_RECOGNITION_LANGUAGE_CODES: &[&str] = &[
-    "eng", "rus", "chi_sim", "hin", "spa", "fra", "ara", "ben",
-];
+const VALID_RECOGNITION_LANGUAGE_CODES: &[&str] =
+    &["eng", "rus", "chi_sim", "hin", "spa", "fra", "ara", "ben"];
 
 fn sanitize_recognition_language(raw: &str) -> Option<String> {
     let requested: Vec<&str> = raw
@@ -30,7 +29,10 @@ fn sanitize_recognition_language(raw: &str) -> Option<String> {
     // receives consistent combinations regardless of input order.
     let mut unique = Vec::new();
     for &code in VALID_RECOGNITION_LANGUAGE_CODES {
-        if requested.iter().any(|candidate| candidate.eq_ignore_ascii_case(code)) {
+        if requested
+            .iter()
+            .any(|candidate| candidate.eq_ignore_ascii_case(code))
+        {
             unique.push(code);
         }
     }
@@ -54,9 +56,10 @@ impl TextSnapTesseractOcr {
         log::info!(
             "{} = {}",
             "tess_recognition_language".green(),
-            recognition_language.as_ref()
+            recognition_language
         );
 
+        log::info!("{} = {}", "tess_data_path".green(), recognition_language);
         let mut lt = LepTess::new(data_path.to_str(), recognition_language.as_ref())?;
         lt.set_image_from_mem(&buf)?;
         lt.set_source_resolution(300);

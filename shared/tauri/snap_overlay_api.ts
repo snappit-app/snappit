@@ -43,6 +43,7 @@ export abstract class SnapOverlayApi {
   }
 
   static async registerShowShortcut(shortcut: string, target: TextSnapOverlayTarget) {
+    console.log(target, "registered");
     return register(shortcut, (e) => {
       if (e.state === "Pressed") {
         SnapOverlayApi.show(target);
@@ -93,7 +94,6 @@ export abstract class SnapOverlayApi {
 
     async function removeShortcut() {
       await remove();
-      console.log(storeShortcut());
       await TextSnapTrayApi.updateShortcut(target);
     }
 
