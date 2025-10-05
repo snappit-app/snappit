@@ -1,6 +1,6 @@
 import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
-import { createEffect, createMemo, Show } from "solid-js";
+import { createMemo, Show } from "solid-js";
 
 import {
   COLOR_DROPPER_SHORTCUT_KEY,
@@ -28,7 +28,7 @@ function Settings() {
   SnapOverlayApi.createShortcut(QR_SHORTCUT_KEY, "qr_scanner");
 
   return (
-    <main class="">
+    <main class="h-full">
       <Show when={permissions.loading()}>
         <p class="text-sm text-muted-foreground">Checking permissions…</p>
       </Show>
@@ -42,7 +42,7 @@ function Settings() {
             </TabsList>
           </header>
 
-          <div class="grow-1">
+          <div class="grow-1 overflow-auto">
             <TabsContent class="h-full" value="general">
               <General />
             </TabsContent>

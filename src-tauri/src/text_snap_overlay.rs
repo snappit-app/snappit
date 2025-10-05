@@ -85,12 +85,20 @@ impl TextSnapOverlay {
         }
 
         let physical_size = monitor.size().clone();
+
+        let settings = app
+            .get_webview_window(TEXT_SNAP_CONSTS.windows.settings.as_str())
+            .ok_or_else(|| TauriError::WebviewNotFound)?;
         let overlay = app
             .get_webview_window(TEXT_SNAP_CONSTS.windows.overlay.as_str())
             .ok_or_else(|| TauriError::WebviewNotFound)?;
 
         overlay.set_size(physical_size)?;
         overlay.set_position(monitor.position().clone())?;
+
+        if settings.is_visible()? {
+            settings.hide()?;
+        }
 
         #[cfg(target_os = "macos")]
         {
