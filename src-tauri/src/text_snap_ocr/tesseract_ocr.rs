@@ -1,11 +1,16 @@
-use std::{io::Cursor, path::PathBuf};
+use std::{borrow::Cow, io::Cursor, path::PathBuf};
 
 use colored::Colorize;
 use image::{DynamicImage, ImageFormat};
 use leptess::LepTess;
 use tauri::Manager;
 
-use crate::text_snap_errors::TextSnapResult;
+use crate::{
+    text_snap_consts::TEXT_SNAP_CONSTS, text_snap_errors::TextSnapResult,
+    text_snap_store::TextSnapStore,
+};
+
+const DEFAULT_RECOGNITION_LANGUAGE: &str = "eng+rus";
 
 pub struct TextSnapTesseractOcr;
 
@@ -14,8 +19,15 @@ impl TextSnapTesseractOcr {
         let mut buf: Vec<u8> = Vec::new();
         let _ = img.write_to(&mut Cursor::new(&mut buf), ImageFormat::Png);
         let data_path = Self::get_data_path(app)?;
+        let recognition_language = Self::get_recognition_language(app)?;
 
-        let mut lt = LepTess::new(data_path.to_str(), "eng+rus")?;
+        log::info!(
+            "{} = {}",
+            "tess_recognition_language".green(),
+            recognition_language.as_ref()
+        );
+
+        let mut lt = LepTess::new(data_path.to_str(), recognition_language.as_ref())?;
         lt.set_image_from_mem(&buf)?;
         lt.set_source_resolution(300);
 
@@ -40,5 +52,25 @@ impl TextSnapTesseractOcr {
         );
 
         Ok(tess_data_path)
+    }
+
+    fn get_recognition_language(app: &tauri::AppHandle) -> TextSnapResult<Cow<'static, str>> {
+        let key = TEXT_SNAP_CONSTS.store.keys.recognition_lang.as_str();
+        let value = TextSnapStore::get_value(app, key)?
+            .and_then(|stored| stored.as_str().map(String::from));
+
+        let lang = match value {
+            Some(lang) => {
+                let trimmed = lang.trim();
+                if trimmed.eq_ignore_ascii_case("auto") || trimmed.is_empty() {
+                    Cow::Borrowed(DEFAULT_RECOGNITION_LANGUAGE)
+                } else {
+                    Cow::Owned(trimmed.to_string())
+                }
+            }
+            None => Cow::Borrowed(DEFAULT_RECOGNITION_LANGUAGE),
+        };
+
+        Ok(lang)
     }
 }

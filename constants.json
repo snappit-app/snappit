@@ -9,7 +9,8 @@
       "hotkey_color_dropper": "hotkey.color_dropper",
       "hotkey_qr_scanner": "hotkey.qr_scanner",
       "notifications": "settings.notifications",
-      "settings_initialized": "settings.initialized"
+      "settings_initialized": "settings.initialized",
+      "recognition_lang": "settings.recognition_lang"
     },
     "color_dropper": {
       "magnify_ratio": 15,
