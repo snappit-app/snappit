@@ -4,12 +4,14 @@ import {
   ShortcutPreferenceItem,
   TOOL_SHORTCUTS,
 } from "@/apps/settings/shortcuts/shortcut-pref-item";
+import { NotificationSettings } from "@/shared/notifications/settings";
 import { Theme } from "@/shared/theme";
 import { Switch, SwitchControl, SwitchLabel, SwitchThumb } from "@/shared/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle_group";
 
 export function Preferences() {
   const [theme, setTheme] = Theme.create();
+  const [notificationsEnabled, setNotificationsEnabled] = NotificationSettings.create();
 
   return (
     <div class="p-6 flex flex-col gap-6">
@@ -36,7 +38,11 @@ export function Preferences() {
         </SwitchControl>
       </Switch>
 
-      <Switch class="flex justify-between">
+      <Switch
+        class="flex justify-between"
+        checked={notificationsEnabled()}
+        onChange={setNotificationsEnabled}
+      >
         <SwitchLabel>Notifications</SwitchLabel>
         <SwitchControl>
           <SwitchThumb />

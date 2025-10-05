@@ -8,6 +8,7 @@
       "hotkey_digital_ruler": "hotkey.digital_ruler",
       "hotkey_color_dropper": "hotkey.color_dropper",
       "hotkey_qr_scanner": "hotkey.qr_scanner",
+      "notifications": "settings.notifications",
       "settings_initialized": "settings.initialized"
     },
     "color_dropper": {
