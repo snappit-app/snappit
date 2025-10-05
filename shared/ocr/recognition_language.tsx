@@ -22,8 +22,8 @@ type RecognitionLanguagePreference = readonly [
   (next: RecognitionLanguageValue) => void,
 ];
 
+export const DEFAULT_VALUE: RecognitionLanguageValue = "auto";
 const STORE_KEY = TEXT_SNAP_CONSTS.store.keys.recognition_lang;
-const DEFAULT_VALUE: RecognitionLanguageValue = "auto";
 const VALID_CODES = new Set<RecognitionLanguageValue>(
   RECOGNITION_LANGUAGE_OPTIONS.filter((option) => option.value !== DEFAULT_VALUE).map(
     (option) => option.value,

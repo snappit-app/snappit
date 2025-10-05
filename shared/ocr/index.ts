@@ -1,1 +1,2 @@
-export * from "./recognition-language";
+export * from "./recognition_language";
+export * from "./selector";
