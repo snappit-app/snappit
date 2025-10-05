@@ -5563,6 +5563,7 @@ dependencies = [
  "serde_json",
  "strum",
  "strum_macros",
+ "sys-locale",
  "tauri",
  "tauri-build",
  "tauri-plugin-clipboard-manager",

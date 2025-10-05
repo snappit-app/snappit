@@ -1,3 +1,4 @@
+import { BiSolidHelpCircle } from "solid-icons/bi";
 import { createMemo, createSignal, For, Show } from "solid-js";
 
 import { cn } from "@/shared/libs/cn";
@@ -90,7 +91,15 @@ export function RecognitionLanguageSelector() {
       <AccordionItem value="recognition-language" class="border-none">
         <AccordionTrigger class="px-4 py-3 text-left">
           <span class="flex flex-1 justify-between gap-4">
-            <span class="whitespace-nowrap">Recognition Language</span>
+            <span class="whitespace-nowrap relative">
+              Recognition Language
+              <div
+                class="absolute -right-4 top-0"
+                use:tooltip={"Selecting multiple languages may slow down recognition."}
+              >
+                <BiSolidHelpCircle class="w-3 h-3" />
+              </div>
+            </span>
             <span
               use:tooltip={{ content: selectedRecognitionLanguageLabel() }}
               class="text-sm text-muted-foreground whitespace-nowrap truncate max-w-30"
@@ -114,7 +123,7 @@ export function RecognitionLanguageSelector() {
                       aria-pressed={isAutoLanguageSelected()}
                       onClick={() => setRecognitionLanguage(DEFAULT_VALUE)}
                     >
-                      <span>{option.label}</span>
+                      <span>Auto (system languages)</span>
                     </button>
                     <div class="border-t border-gray-300 my-1" />
                   </Show>
