@@ -211,22 +211,45 @@ impl TextSnapTray {
         let tray = app.tray_by_id(Self::TRAY_ID).expect("tray not found");
 
         if let Some(menu) = MENU.get() {
-            for kind in menu.items()? {
+            let items = menu.items()?;
+            for (position, kind) in items.into_iter().enumerate() {
                 match kind {
                     MenuItemKind::MenuItem(item) => {
                         if item.id().as_ref() == id.as_ref() {
-                            log::info!("{:?} {:?}", item.id(), accelerator);
-                            item.set_accelerator(accelerator)?;
+                            if cfg!(target_os = "macos") && accelerator.is_none() {
+                                // macOS backend ignores `None` accelerators, so rebuild the menu item without a shortcut
+                                let item_id = item.id().clone();
+                                let item_text = item.text()?;
+                                let item_enabled = item.is_enabled()?;
+
+                                menu.remove(&item)?;
+
+                                let new_item = MenuItem::with_id(
+                                    app,
+                                    item_id,
+                                    item_text,
+                                    item_enabled,
+                                    Option::<&str>::None,
+                                )?;
+
+                                menu.insert(&new_item, position)?;
+                            } else {
+                                item.set_accelerator(accelerator)?;
+                            }
+
+                            break;
                         }
                     }
                     MenuItemKind::Check(item) => {
                         if item.id().as_ref() == id.as_ref() {
                             item.set_accelerator(accelerator)?;
+                            break;
                         }
                     }
                     MenuItemKind::Icon(item) => {
                         if item.id().as_ref() == id.as_ref() {
                             item.set_accelerator(accelerator)?;
+                            break;
                         }
                     }
                     MenuItemKind::Submenu(_) | MenuItemKind::Predefined(_) => {}
