@@ -4,11 +4,21 @@ import {
   ShortcutPreferenceItem,
   TOOL_SHORTCUTS,
 } from "@/apps/settings/shortcuts/shortcut-pref-item";
+import { cn } from "@/shared/libs/cn";
 import { NotificationSettings } from "@/shared/notifications/settings";
-import type { RecognitionLanguageValue } from "@/shared/ocr";
-import { RECOGNITION_LANGUAGE_OPTIONS, RecognitionLanguage } from "@/shared/ocr";
+import {
+  RECOGNITION_LANGUAGE_OPTIONS,
+  RecognitionLanguage,
+  RecognitionLanguageValue,
+} from "@/shared/ocr";
 import { Theme } from "@/shared/theme";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/shared/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/shared/ui/accordion";
+import { Checkbox, CheckboxControl, CheckboxLabel } from "@/shared/ui/checkbox";
 import { Switch, SwitchControl, SwitchLabel, SwitchThumb } from "@/shared/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle_group";
 
@@ -17,20 +27,63 @@ export function Preferences() {
   const [notificationsEnabled, setNotificationsEnabled] = NotificationSettings.create();
   const [recognitionLanguage, setRecognitionLanguage] = RecognitionLanguage.create();
   const [isRecognitionLanguageOpen, setRecognitionLanguageOpen] = createSignal(false);
-  type RecognitionLanguageOption = (typeof RECOGNITION_LANGUAGE_OPTIONS)[number];
-  const recognitionLanguageOptions =
-    RECOGNITION_LANGUAGE_OPTIONS as unknown as RecognitionLanguageOption[];
 
-  const selectedRecognitionLanguage = createMemo<RecognitionLanguageOption>(() => {
-    const current = recognitionLanguageOptions.find(
-      (option) => option.value === recognitionLanguage(),
-    );
-    return current ?? recognitionLanguageOptions[0];
+  const autoOption = RECOGNITION_LANGUAGE_OPTIONS.find((option) => option.value === "auto");
+  const manualRecognitionOptions = RECOGNITION_LANGUAGE_OPTIONS.filter(
+    (option) => option.value !== "auto",
+  );
+  const manualRecognitionOptionValues = manualRecognitionOptions.map((option) => option.value);
+
+  const selectedManualLanguageCodes = createMemo<RecognitionLanguageValue[]>(() => {
+    const current = recognitionLanguage();
+    if (!current || current === "auto") return [];
+
+    const parts = current
+      .split("+")
+      .map((code) => code.trim())
+      .filter(Boolean);
+    return manualRecognitionOptionValues.filter((code) => parts.includes(code));
   });
 
-  const handleRecognitionLanguageChange = (option: RecognitionLanguageOption | null) => {
-    const next = option?.value ?? recognitionLanguageOptions[0]?.value ?? "auto";
-    setRecognitionLanguage(next as RecognitionLanguageValue);
+  const selectedManualLanguageSet = createMemo(() => new Set(selectedManualLanguageCodes()));
+
+  const isAutoLanguageSelected = createMemo(() => {
+    const current = recognitionLanguage();
+    return !current || current === "auto" || selectedManualLanguageCodes().length === 0;
+  });
+
+  const selectedRecognitionLanguageLabel = createMemo(() => {
+    if (isAutoLanguageSelected()) {
+      return autoOption?.label ?? "Auto";
+    }
+
+    const labels = manualRecognitionOptions
+      .filter((option) => selectedManualLanguageSet().has(option.value))
+      .map((option) => option.label);
+
+    if (labels.length === 0) {
+      return autoOption?.label ?? "Auto";
+    }
+
+    return labels.join(", ");
+  });
+
+  const toggleRecognitionLanguage = (value: RecognitionLanguageValue) => {
+    const current = new Set(selectedManualLanguageCodes());
+
+    if (current.has(value)) {
+      current.delete(value);
+    } else {
+      current.add(value);
+    }
+
+    if (current.size === 0) {
+      setRecognitionLanguage("auto");
+      return;
+    }
+
+    const ordered = manualRecognitionOptionValues.filter((code) => current.has(code));
+    setRecognitionLanguage(ordered.join("+") as RecognitionLanguageValue);
   };
 
   return (
@@ -52,7 +105,7 @@ export function Preferences() {
       </div>
 
       <Switch class="flex justify-between">
-        <SwitchLabel>Sound</SwitchLabel>
+        <SwitchLabel>Startup</SwitchLabel>
         <SwitchControl>
           <SwitchThumb />
         </SwitchControl>
@@ -77,35 +130,58 @@ export function Preferences() {
       >
         <AccordionItem value="recognition-language" class="border-none">
           <AccordionTrigger class="px-4 py-3 text-left">
-            <span class="flex flex-1 items-center justify-between gap-4">
-              <span>Recognition Language</span>
+            <span class="flex flex-1 justify-between gap-4">
+              <span class="whitespace-nowrap">Capture Language</span>
               <span class="text-sm text-muted-foreground">
-                {selectedRecognitionLanguage().label}
+                {selectedRecognitionLanguageLabel()}
               </span>
             </span>
           </AccordionTrigger>
           <AccordionContent class="px-4">
             <div class="flex flex-col gap-2">
-              <For each={recognitionLanguageOptions}>
-                {(option) => (
-                  <button
-                    type="button"
-                    class="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm hover:bg-muted"
-                    classList={{
-                      "bg-muted": option.value === recognitionLanguage(),
-                      "font-medium": option.value === recognitionLanguage(),
-                    }}
-                    onClick={() => {
-                      handleRecognitionLanguageChange(option);
-                      setRecognitionLanguageOpen(false);
-                    }}
-                  >
-                    <span>{option.label}</span>
-                    <Show when={option.value === recognitionLanguage()}>
-                      <span class="text-xs text-muted-foreground">Selected</span>
-                    </Show>
-                  </button>
-                )}
+              <For each={RECOGNITION_LANGUAGE_OPTIONS}>
+                {(option) => {
+                  const handleCheck = () => {
+                    toggleRecognitionLanguage(option.value);
+                  };
+
+                  return (
+                    <>
+                      <Show when={option.value === "auto"}>
+                        <button
+                          type="button"
+                          class={cn(
+                            "flex w-full cursor-pointer items-center justify-between rounded-md p-2 text-left text-sm hover:bg-muted",
+                            isAutoLanguageSelected() ? "bg-muted" : "",
+                          )}
+                          aria-pressed={isAutoLanguageSelected()}
+                          onClick={() => setRecognitionLanguage("auto")}
+                        >
+                          <span>{option.label}</span>
+                        </button>
+                        <div class="border-t border-gray-300 my-1" />
+                      </Show>
+
+                      <Show when={option.value !== "auto"}>
+                        <Checkbox
+                          class="flex items-center w-full relative"
+                          checked={selectedManualLanguageSet().has(option.value)}
+                          onChange={handleCheck}
+                        >
+                          <CheckboxLabel
+                            class={cn(
+                              "text-sm grow-1 cursor-pointer rounded-md font-medium leading-none p-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 hover:bg-muted",
+                              selectedManualLanguageSet().has(option.value) ? "bg-muted" : "",
+                            )}
+                          >
+                            {option.label}
+                          </CheckboxLabel>
+                          <CheckboxControl class="absolute right-2" />
+                        </Checkbox>
+                      </Show>
+                    </>
+                  );
+                }}
               </For>
             </div>
           </AccordionContent>

@@ -11,6 +11,36 @@ use crate::{
 };
 
 const DEFAULT_RECOGNITION_LANGUAGE: &str = "eng+rus";
+const VALID_RECOGNITION_LANGUAGE_CODES: &[&str] = &[
+    "eng", "rus", "chi_sim", "hin", "spa", "fra", "ara", "ben",
+];
+
+fn sanitize_recognition_language(raw: &str) -> Option<String> {
+    let requested: Vec<&str> = raw
+        .split('+')
+        .map(|code| code.trim())
+        .filter(|code| !code.is_empty())
+        .collect();
+
+    if requested.is_empty() {
+        return None;
+    }
+
+    // Preserve the order defined in VALID_RECOGNITION_LANGUAGE_CODES so Tesseract
+    // receives consistent combinations regardless of input order.
+    let mut unique = Vec::new();
+    for &code in VALID_RECOGNITION_LANGUAGE_CODES {
+        if requested.iter().any(|candidate| candidate.eq_ignore_ascii_case(code)) {
+            unique.push(code);
+        }
+    }
+
+    if unique.is_empty() {
+        None
+    } else {
+        Some(unique.join("+"))
+    }
+}
 
 pub struct TextSnapTesseractOcr;
 
@@ -65,7 +95,9 @@ impl TextSnapTesseractOcr {
                 if trimmed.eq_ignore_ascii_case("auto") || trimmed.is_empty() {
                     Cow::Borrowed(DEFAULT_RECOGNITION_LANGUAGE)
                 } else {
-                    Cow::Owned(trimmed.to_string())
+                    sanitize_recognition_language(trimmed)
+                        .map(Cow::Owned)
+                        .unwrap_or_else(|| Cow::Borrowed(DEFAULT_RECOGNITION_LANGUAGE))
                 }
             }
             None => Cow::Borrowed(DEFAULT_RECOGNITION_LANGUAGE),

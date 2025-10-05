@@ -24,7 +24,43 @@ type RecognitionLanguagePreference = readonly [
 
 const STORE_KEY = TEXT_SNAP_CONSTS.store.keys.recognition_lang;
 const DEFAULT_VALUE: RecognitionLanguageValue = "auto";
-const VALID_VALUES = new Set(RECOGNITION_LANGUAGE_OPTIONS.map((option) => option.value));
+const VALID_CODES = new Set<RecognitionLanguageValue>(
+  RECOGNITION_LANGUAGE_OPTIONS.filter((option) => option.value !== DEFAULT_VALUE).map(
+    (option) => option.value,
+  ),
+);
+
+const ORDERED_CODES = RECOGNITION_LANGUAGE_OPTIONS.map((option) => option.value);
+
+const sanitizeRecognitionLanguage = (stored: unknown): RecognitionLanguageValue => {
+  if (typeof stored !== "string") {
+    return DEFAULT_VALUE;
+  }
+
+  const trimmed = stored.trim() as RecognitionLanguageValue;
+  if (!trimmed || trimmed.toLowerCase() === DEFAULT_VALUE) {
+    return DEFAULT_VALUE;
+  }
+
+  const requested = new Set(
+    trimmed
+      .split("+")
+      .map((code) => code.trim() as RecognitionLanguageValue)
+      .filter((code) => code && VALID_CODES.has(code)),
+  );
+
+  if (requested.size === 0) {
+    return DEFAULT_VALUE;
+  }
+
+  const ordered = ORDERED_CODES.filter((code) => code !== DEFAULT_VALUE && requested.has(code));
+
+  if (ordered.length === 0) {
+    return DEFAULT_VALUE;
+  }
+
+  return ordered.join("+") as RecognitionLanguageValue;
+};
 
 export abstract class RecognitionLanguage {
   private static _singleton: RecognitionLanguagePreference | null = null;
@@ -40,19 +76,18 @@ export abstract class RecognitionLanguage {
       const stored = storeValue();
       if (stored === undefined) return;
 
-      if (stored && VALID_VALUES.has(stored)) {
-        setPreference(stored);
-      } else {
-        setPreference(DEFAULT_VALUE);
-        if (stored !== DEFAULT_VALUE) {
-          setStoreValue(DEFAULT_VALUE).catch(() => {});
-        }
+      const sanitized = sanitizeRecognitionLanguage(stored);
+      setPreference(sanitized);
+
+      if (stored !== sanitized) {
+        setStoreValue(sanitized).catch(() => {});
       }
     });
 
     function update(next: RecognitionLanguageValue) {
-      setPreference(next);
-      setStoreValue(next).catch(() => {});
+      const sanitized = sanitizeRecognitionLanguage(next);
+      setPreference(sanitized);
+      setStoreValue(sanitized).catch(() => {});
     }
 
     this._singleton = [preference, update] as const;
