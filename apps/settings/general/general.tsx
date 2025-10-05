@@ -61,7 +61,7 @@ export function General() {
             onClick={() => startRecording()}
           >
             <BsRecordFill size={"25"} />
-            Record new
+            Record
             <Show when={isRecording()}>
               <RecordTooltip candidate={candidate} />
             </Show>

@@ -1,5 +1,4 @@
-import type { SelectRootItemComponentProps } from "@kobalte/core/select";
-import { createMemo, For } from "solid-js";
+import { createMemo, createSignal, For, Show } from "solid-js";
 
 import {
   ShortcutPreferenceItem,
@@ -9,7 +8,7 @@ import { NotificationSettings } from "@/shared/notifications/settings";
 import type { RecognitionLanguageValue } from "@/shared/ocr";
 import { RECOGNITION_LANGUAGE_OPTIONS, RecognitionLanguage } from "@/shared/ocr";
 import { Theme } from "@/shared/theme";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/shared/ui/accordion";
 import { Switch, SwitchControl, SwitchLabel, SwitchThumb } from "@/shared/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle_group";
 
@@ -17,6 +16,7 @@ export function Preferences() {
   const [theme, setTheme] = Theme.create();
   const [notificationsEnabled, setNotificationsEnabled] = NotificationSettings.create();
   const [recognitionLanguage, setRecognitionLanguage] = RecognitionLanguage.create();
+  const [isRecognitionLanguageOpen, setRecognitionLanguageOpen] = createSignal(false);
   type RecognitionLanguageOption = (typeof RECOGNITION_LANGUAGE_OPTIONS)[number];
   const recognitionLanguageOptions =
     RECOGNITION_LANGUAGE_OPTIONS as unknown as RecognitionLanguageOption[];
@@ -31,11 +31,6 @@ export function Preferences() {
   const handleRecognitionLanguageChange = (option: RecognitionLanguageOption | null) => {
     const next = option?.value ?? recognitionLanguageOptions[0]?.value ?? "auto";
     setRecognitionLanguage(next as RecognitionLanguageValue);
-  };
-
-  const renderLanguageOption = (props: SelectRootItemComponentProps<RecognitionLanguageOption>) => {
-    const option = props.item.rawValue;
-    return <SelectItem item={props.item}>{option.label}</SelectItem>;
   };
 
   return (
@@ -74,25 +69,48 @@ export function Preferences() {
         </SwitchControl>
       </Switch>
 
-      <div class="flex justify-between items-center gap-4">
-        <div>Recognition Language</div>
-        <Select
-          value={selectedRecognitionLanguage()}
-          onChange={handleRecognitionLanguageChange}
-          options={recognitionLanguageOptions}
-          optionValue="value"
-          optionTextValue="label"
-          placeholder={<span>Auto</span>}
-          itemComponent={renderLanguageOption}
-        >
-          <SelectTrigger class="w-52">
-            <SelectValue<RecognitionLanguageOption>>
-              {(state) => state.selectedOption()?.label ?? "Auto"}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent />
-        </Select>
-      </div>
+      <Accordion
+        class="border rounded-lg"
+        collapsible
+        value={isRecognitionLanguageOpen() ? ["recognition-language"] : []}
+        onChange={(value) => setRecognitionLanguageOpen(value.includes("recognition-language"))}
+      >
+        <AccordionItem value="recognition-language" class="border-none">
+          <AccordionTrigger class="px-4 py-3 text-left">
+            <span class="flex flex-1 items-center justify-between gap-4">
+              <span>Recognition Language</span>
+              <span class="text-sm text-muted-foreground">
+                {selectedRecognitionLanguage().label}
+              </span>
+            </span>
+          </AccordionTrigger>
+          <AccordionContent class="px-4">
+            <div class="flex flex-col gap-2">
+              <For each={recognitionLanguageOptions}>
+                {(option) => (
+                  <button
+                    type="button"
+                    class="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm hover:bg-muted"
+                    classList={{
+                      "bg-muted": option.value === recognitionLanguage(),
+                      "font-medium": option.value === recognitionLanguage(),
+                    }}
+                    onClick={() => {
+                      handleRecognitionLanguageChange(option);
+                      setRecognitionLanguageOpen(false);
+                    }}
+                  >
+                    <span>{option.label}</span>
+                    <Show when={option.value === recognitionLanguage()}>
+                      <span class="text-xs text-muted-foreground">Selected</span>
+                    </Show>
+                  </button>
+                )}
+              </For>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       <div class="border rounded-lg p-5">
         <div class="mb-4">
