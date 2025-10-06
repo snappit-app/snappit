@@ -8,23 +8,26 @@ use crate::{text_snap_consts::TEXT_SNAP_CONSTS, text_snap_errors::TextSnapResult
 pub struct TextSnapSettings;
 
 impl TextSnapSettings {
-    pub fn hide(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
+    pub fn get_window(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
         let window = app
             .get_webview_window(TEXT_SNAP_CONSTS.windows.settings.as_str())
             .ok_or_else(|| TauriError::WebviewNotFound)?;
+        return Ok(window);
+    }
+
+    pub fn hide(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
+        let window = Self::get_window(app)?;
 
         #[cfg(target_os = "macos")]
         app.set_activation_policy(tauri::ActivationPolicy::Accessory)?;
 
-        window.hide()?;
         window.emit("settings:hidden", true)?;
+        window.hide()?;
         Ok(window)
     }
 
     pub fn show(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
-        let window = app
-            .get_webview_window(TEXT_SNAP_CONSTS.windows.settings.as_str())
-            .ok_or_else(|| TauriError::WebviewNotFound)?;
+        let window = Self::get_window(app)?;
 
         #[cfg(target_os = "macos")]
         app.set_activation_policy(tauri::ActivationPolicy::Regular)?;

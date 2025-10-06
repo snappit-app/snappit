@@ -4,6 +4,7 @@ use std::thread;
 use std::time::Duration;
 
 use crate::text_snap_errors::TextSnapResult;
+use crate::text_snap_settings::TextSnapSettings;
 use crate::{
     platform::Platform, text_snap_consts::TEXT_SNAP_CONSTS,
     text_snap_permissions::TextSnapPermissions,
@@ -86,9 +87,6 @@ impl TextSnapOverlay {
 
         let physical_size = monitor.size().clone();
 
-        let settings = app
-            .get_webview_window(TEXT_SNAP_CONSTS.windows.settings.as_str())
-            .ok_or_else(|| TauriError::WebviewNotFound)?;
         let overlay = app
             .get_webview_window(TEXT_SNAP_CONSTS.windows.overlay.as_str())
             .ok_or_else(|| TauriError::WebviewNotFound)?;
@@ -96,8 +94,8 @@ impl TextSnapOverlay {
         overlay.set_size(physical_size)?;
         overlay.set_position(monitor.position().clone())?;
 
-        if settings.is_visible()? {
-            settings.hide()?;
+        if TextSnapSettings::get_window(app)?.is_visible()? {
+            TextSnapSettings::hide(app)?;
         }
 
         #[cfg(target_os = "macos")]

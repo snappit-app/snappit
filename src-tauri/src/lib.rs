@@ -221,6 +221,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_log::Builder::default().build())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_autostart::Builder::new().build())
         .register_uri_scheme_protocol("img", move |_app, req| handle_img_request(&req))
         .setup(|app| {
             TextSnapOverlay::preload(app.handle())?;

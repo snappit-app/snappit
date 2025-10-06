@@ -2,6 +2,6 @@ import "./index.css";
 
 import { render } from "solid-js/web";
 
-import Settings from "./settings";
+import SettingsApp from "@/apps/settings/settings_app";
 
-render(() => <Settings />, document.getElementById("root") as HTMLElement);
+render(() => <SettingsApp />, document.getElementById("root") as HTMLElement);

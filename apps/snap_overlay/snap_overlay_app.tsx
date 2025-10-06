@@ -4,7 +4,7 @@ import { createOverlayVisible } from "@/shared/libs/overlay_visible";
 
 import SnapOverlay from "./snap_overlay";
 
-function App() {
+function SnapOverlayApp() {
   const [visible, target] = createOverlayVisible();
 
   return (
@@ -14,4 +14,4 @@ function App() {
   );
 }
 
-export default App;
+export default SnapOverlayApp;

@@ -10,11 +10,6 @@ import {
   ShortcutRecorderReturn,
 } from "./types";
 
-/**
- * A React hook that transforms any input into a shortcut recorder
- * @param options Configuration options
- * @returns Methods and properties for the shortcut recorder
- */
 const createShortcutRecorder = ({
   excludedShortcuts = [[]],
   excludedModKeys = [],
@@ -36,7 +31,6 @@ const createShortcutRecorder = ({
   const [activeModKeys, setActiveModKeys] = createSignal<Set<string>>(new Set());
   const [activeNonModKey, setActiveNonModKey] = createSignal<string>("");
 
-  // Snapshot of the combo at the moment the non-mod key was pressed
   const [candidateCombo, setCandidateCombo] = createSignal<{
     modKeys: Set<string>;
     nonModKey: string;

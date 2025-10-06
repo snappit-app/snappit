@@ -4,6 +4,7 @@ import {
   ShortcutPreferenceItem,
   TOOL_SHORTCUTS,
 } from "@/apps/settings/shortcuts/shortcut-pref-item";
+import { AutostartSettings } from "@/shared/autostart";
 import { NotificationSettings } from "@/shared/notifications/settings";
 import { RecognitionLanguageSelector } from "@/shared/ocr";
 import { Theme } from "@/shared/theme";
@@ -13,6 +14,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle_group";
 export function Preferences() {
   const [theme, setTheme] = Theme.create();
   const [notificationsEnabled, setNotificationsEnabled] = NotificationSettings.create();
+  const [autostartEnabled, setAutostartEnabled, autostartReady] = AutostartSettings.create();
 
   return (
     <div class="p-6 flex flex-col gap-6">
@@ -32,7 +34,12 @@ export function Preferences() {
         </ToggleGroup>
       </div>
 
-      <Switch class="flex justify-between">
+      <Switch
+        class="flex justify-between"
+        checked={autostartEnabled()}
+        onChange={setAutostartEnabled}
+        disabled={!autostartReady()}
+      >
         <SwitchLabel>Startup</SwitchLabel>
         <SwitchControl>
           <SwitchThumb />

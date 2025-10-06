@@ -20,6 +20,8 @@ pub struct TextSpanStoreKeys {
     pub hotkey_digital_ruler: String,
     pub hotkey_color_dropper: String,
     pub hotkey_qr_scanner: String,
+    pub notifications: String,
+    pub autostart: String,
     pub recognition_lang: String,
     pub settings_initialized: String,
 }

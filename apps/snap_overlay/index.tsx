@@ -2,6 +2,6 @@ import "./index.css";
 
 import { render } from "solid-js/web";
 
-import App from "./app";
+import SnapOverlayApp from "./snap_overlay_app";
 
-render(() => <App />, document.getElementById("root") as HTMLElement);
+render(() => <SnapOverlayApp />, document.getElementById("root") as HTMLElement);
