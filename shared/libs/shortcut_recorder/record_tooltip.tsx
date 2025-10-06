@@ -13,7 +13,7 @@ export function RecordTooltip(props: recordTooltipProps) {
             before:w-3 before:h-3 before:bg-popover before:rotate-45 before:-z-1
             before:shadow"
     >
-      <div class="h-full w-full bg-popover text-popover-foreground z-1 p-3 rounded-lg">
+      <div class="h-full w-full bg-card text-popover-foreground z-1 p-3 rounded-lg">
         <div class="text-sm mb-2 flex gap-1">
           <For each={props.candidate()}>{(b) => <KeyboardButton key={b} size={"sm"} />}</For>
           {!props.candidate().length && (

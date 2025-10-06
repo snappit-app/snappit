@@ -21,6 +21,7 @@ export function createScreenMagnifier() {
     const blob = await RegionCaptureApi.getLastShotData();
 
     const url = URL.createObjectURL(blob);
+    URL.revokeObjectURL(magnifiedImage()!);
     setMagnifiedImage(url);
   };
 

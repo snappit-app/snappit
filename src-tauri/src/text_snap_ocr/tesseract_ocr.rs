@@ -116,20 +116,11 @@ impl TextSnapTesseractOcr {
         let data_path = Self::get_data_path(app)?;
         let recognition_language = Self::get_recognition_language(app)?;
 
-        log::info!(
-            "{} = {}",
-            "tess_recognition_language".green(),
-            recognition_language
-        );
-
-        log::info!("{} = {}", "tess_data_path".green(), recognition_language);
         let mut lt = LepTess::new(data_path.to_str(), recognition_language.as_str())?;
         lt.set_image_from_mem(&buf)?;
         lt.set_source_resolution(300);
 
         let text = lt.get_utf8_text()?;
-
-        log::info!("{} = {}", "TESSERACT_RESULT".green(), text);
 
         Ok(text)
     }
@@ -140,12 +131,6 @@ impl TextSnapTesseractOcr {
             .resource_dir()?
             .join("resources")
             .join("tessdata");
-
-        log::info!(
-            "{} = {}",
-            "tess_data_path".green(),
-            tess_data_path.display()
-        );
 
         Ok(tess_data_path)
     }

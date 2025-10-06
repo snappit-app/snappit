@@ -34,10 +34,10 @@ function SettingsApp() {
       <Show when={permissions.loading()}>
         <p class="text-sm text-muted-foreground">Checking permissions…</p>
       </Show>
-      <Show
-        when={!permissions.loading() && permissionsGranted() && visible()}
-        fallback={<PermissionsGate />}
-      >
+      <Show when={!permissions.loading() && !permissionsGranted()}>
+        <PermissionsGate />
+      </Show>
+      <Show when={!permissions.loading() && permissionsGranted() && visible()}>
         <Tabs defaultValue="account" class="h-full flex flex-col">
           <header class="p-3 border-b-1">
             <TabsList>
