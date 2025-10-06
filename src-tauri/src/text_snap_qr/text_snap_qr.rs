@@ -1,4 +1,3 @@
-use colored::Colorize;
 use image::{GrayImage, ImageBuffer, Rgba};
 use rqrr::PreparedImage;
 
@@ -17,15 +16,11 @@ impl TextSnapQr {
         let mut prepared = Self::prepare(image)?;
         let grids = prepared.detect_grids();
 
-        log::info!("{} {:?}", "grid empty".red(), grids.is_empty());
-        log::info!("{} {:?}", "grid empty".red(), grids.len());
-
         if grids.is_empty() {
             return Ok(None);
         }
 
         for grid in grids {
-            log::info!("{} {:?}", "grid empty".red(), grid.decode());
             if let Ok((_meta, content)) = grid.decode() {
                 if !content.is_empty() {
                     return Ok(Some(content));

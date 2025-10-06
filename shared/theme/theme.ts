@@ -55,7 +55,6 @@ export abstract class Theme {
     });
 
     function setTheme(t: themeOptions) {
-      console.log(t);
       setPreference(t);
       setStoreTheme(t).catch(() => {});
     }

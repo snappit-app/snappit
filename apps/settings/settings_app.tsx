@@ -1,7 +1,9 @@
 import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
-import { createEffect, createMemo, Show } from "solid-js";
+import { createMemo, Show } from "solid-js";
 
+import { Languages } from "@/apps/settings/languages";
+import { Shortcuts } from "@/apps/settings/shortcuts";
 import {
   COLOR_DROPPER_SHORTCUT_KEY,
   DIGITAL_RULER_SHORTCUT_KEY,
@@ -41,20 +43,22 @@ function SettingsApp() {
         <Tabs defaultValue="account" class="h-full flex flex-col">
           <header class="p-3 border-b-1">
             <TabsList>
-              <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="preferences">Preferences</TabsTrigger>
-              <TabsTrigger value="about">About</TabsTrigger>
+              <TabsTrigger value="shortcuts">Shortcuts</TabsTrigger>
+              <TabsTrigger value="languages">Languages</TabsTrigger>
             </TabsList>
           </header>
 
           <div class="grow-1 overflow-auto">
-            <TabsContent class="h-full" value="general">
-              <General />
-            </TabsContent>
             <TabsContent value="preferences">
               <Preferences />
             </TabsContent>
-            <TabsContent value="about">Change your password here.</TabsContent>
+            <TabsContent value="shortcuts">
+              <Shortcuts />
+            </TabsContent>
+            <TabsContent value="languages">
+              <Languages />
+            </TabsContent>
           </div>
         </Tabs>
       </Show>

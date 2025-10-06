@@ -1,10 +1,12 @@
-import { BsRecordFill, BsTrash } from "solid-icons/bs";
-import { createEffect, createMemo, For, Show, splitProps } from "solid-js";
+import { BsArrowCounterclockwise, BsRecordFill, BsTrash } from "solid-icons/bs";
+import { createEffect, createMemo, For, Show } from "solid-js";
 
 import {
   COLOR_DROPPER_SHORTCUT_KEY,
+  DEFAULT_SHORTCUTS,
   DIGITAL_RULER_SHORTCUT_KEY,
   QR_SHORTCUT_KEY,
+  SMART_SHORTCUT_KEY,
   TEXT_CAPTURE_SHORTCUT_KEY,
 } from "@/apps/settings/shortcuts";
 import { fromGlobalShortcut, toGlobalShortcut } from "@/shared/libs/shortcut_recorder";
@@ -16,7 +18,19 @@ import { TextSnapTrayApi } from "@/shared/tauri/snap_tray_api";
 import { Button } from "@/shared/ui/button";
 import { KeyboardButton } from "@/shared/ui/keyboard_button";
 
-export const TOOL_SHORTCUTS: ShortcutPreferenceItemProps[] = [
+type ShortcutPreferenceItem = {
+  label: string;
+  storeKey: string;
+  target: TextSnapOverlayTarget;
+};
+
+export const SMART_SHORTCUT: ShortcutPreferenceItem = {
+  label: "Smart tool",
+  storeKey: SMART_SHORTCUT_KEY,
+  target: "smart_tool",
+};
+
+export const TOOL_SHORTCUTS: ShortcutPreferenceItem[] = [
   {
     label: "Text Capture",
     storeKey: TEXT_CAPTURE_SHORTCUT_KEY,
@@ -40,17 +54,14 @@ export const TOOL_SHORTCUTS: ShortcutPreferenceItemProps[] = [
 ];
 
 type ShortcutPreferenceItemProps = {
-  label: string;
-  storeKey: string;
-  target: TextSnapOverlayTarget;
+  item: ShortcutPreferenceItem;
 };
 
 export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
-  const [local] = splitProps(props, ["label", "storeKey"]);
-
+  const defaultCut = DEFAULT_SHORTCUTS[props.item.storeKey];
   const [storeShortcut, setStoreShortcut, removeShortcut] = SnapOverlayApi.createStoredShortcut(
-    local.storeKey,
-    props.target,
+    props.item.storeKey,
+    props.item.target,
   );
 
   const { candidate, savedShortcut, isRecording, startRecording } = createShortcutRecorder({
@@ -69,14 +80,14 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
     void (async () => {
       const globalShortcut = toGlobalShortcut(latest);
       await setStoreShortcut(globalShortcut);
-      await TextSnapTrayApi.updateShortcut(props.target);
+      await TextSnapTrayApi.updateShortcut(props.item.target);
     })();
   });
 
   return (
     <div class="flex items-center justify-between gap-4 py-3">
       <div class="flex flex-col">
-        <span class="text-sm font-medium text-foreground">{local.label}</span>
+        <span class="text-sm font-medium text-foreground">{props.item.label}</span>
         <Show
           when={buttons().length > 0}
           fallback={<span class="text-xs text-muted-foreground mt-2">Not set</span>}
@@ -100,9 +111,16 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
           </Show>
         </Button>
 
-        <Button variant={"ghost"} size="icon" onClick={() => removeShortcut()}>
-          <BsTrash />
-        </Button>
+        <Show when={!defaultCut}>
+          <Button variant={"ghost"} size="icon" onClick={() => removeShortcut()}>
+            <BsTrash />
+          </Button>
+        </Show>
+        <Show when={defaultCut}>
+          <Button variant={"ghost"} size="icon" onClick={() => setStoreShortcut(defaultCut)}>
+            <BsArrowCounterclockwise />
+          </Button>
+        </Show>
       </div>
     </div>
   );
