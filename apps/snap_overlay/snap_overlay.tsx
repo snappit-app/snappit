@@ -1,4 +1,5 @@
 import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
+import { createEventListener } from "@solid-primitives/event-listener";
 import {
   Accessor,
   createEffect,
@@ -79,6 +80,10 @@ function SnapOverlay(props: snapOverlayProps) {
 
   onCleanup(async () => {
     await SnapOverlayApi.unregisterHideShortcut();
+  });
+
+  createEventListener(window, "blur", () => {
+    SnapOverlayApi.hide();
   });
 
   createEffect(() => {

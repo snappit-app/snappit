@@ -74,8 +74,6 @@ export function createQrScanner(options: createQrScannerOptions): qrScannerInsta
 
       const result = await RegionCaptureApi.scanRegionQr(params);
 
-      console.log(result);
-
       if (!result.payload) {
         await options.onScanFailure?.();
         return;

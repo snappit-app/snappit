@@ -12,7 +12,6 @@ export function createOverlayVisible() {
 
   onMount(async () => {
     unlistenShown = await SnapOverlayApi.onShown(async (tool) => {
-      console.log(tool);
       setWindowVisible(true);
       setTarget(tool.payload);
     });

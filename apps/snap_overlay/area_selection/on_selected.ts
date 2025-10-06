@@ -18,7 +18,6 @@ export async function onAreaSelected(selection: RegionCaptureParams, smartMode =
 
   if (smartMode) {
     const res = await RegionCaptureApi.onSmartTool(selection);
-    console.log(res);
 
     switch (res.kind) {
       case "qr":

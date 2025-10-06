@@ -29,10 +29,6 @@ function SettingsApp() {
   SnapOverlayApi.createShortcut(COLOR_DROPPER_SHORTCUT_KEY, "color_dropper");
   SnapOverlayApi.createShortcut(QR_SHORTCUT_KEY, "qr_scanner");
 
-  createEffect(() => {
-    console.log(visible());
-  });
-
   return (
     <main class="h-full">
       <Show when={permissions.loading()}>
