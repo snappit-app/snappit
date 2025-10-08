@@ -11,9 +11,7 @@ use crate::{
 };
 use ::serde::{Deserialize, Serialize};
 #[cfg(target_os = "macos")]
-use objc2_app_kit::NSScreenSaverWindowLevel;
 use once_cell::sync::Lazy;
-use tauri::webview::cookie::time::serde;
 use tauri::{
     AppHandle, Emitter, Error as TauriError, Manager, Monitor, WebviewUrl, WebviewWindow,
     WebviewWindowBuilder, Wry,
@@ -101,7 +99,12 @@ impl TextSnapOverlay {
         #[cfg(target_os = "macos")]
         {
             #[cfg(not(debug_assertions))]
-            Platform::set_window_level(overlay.as_ref().window(), NSScreenSaverWindowLevel);
+            {
+                Platform::set_window_level(
+                    overlay.as_ref().window(),
+                    objc2_app_kit::NSPopUpMenuWindowLevel,
+                );
+            }
 
             app.set_activation_policy(tauri::ActivationPolicy::Regular)?;
         }
@@ -120,7 +123,7 @@ impl TextSnapOverlay {
             .always_on_top(cfg!(not(debug_assertions)))
             .content_protected(true)
             .skip_taskbar(true)
-            .closable(true)
+            .closable(false)
             .decorations(false)
             .transparent(true)
             .visible(false)
