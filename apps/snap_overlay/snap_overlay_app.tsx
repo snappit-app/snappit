@@ -8,8 +8,8 @@ function SnapOverlayApp() {
   const [visible, target] = createOverlayVisible();
 
   return (
-    <Show when={true}>
-      <SnapOverlay target={() => "smart_tool"} />
+    <Show when={visible()}>
+      <SnapOverlay target={target} />
     </Show>
   );
 }

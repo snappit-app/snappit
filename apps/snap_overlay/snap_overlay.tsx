@@ -81,6 +81,16 @@ function SnapOverlay(props: snapOverlayProps) {
     await SnapOverlayApi.unregisterHideShortcut();
   });
 
+  onMount(async () => {
+    const overlay = await SnapOverlayApi.get();
+    overlay?.onFocusChanged((e) => {
+      if (e.event === "tauri://blur") {
+        console.log("blur");
+        SnapOverlayApi.close();
+      }
+    });
+  });
+
   createEffect(() => {
     if (props?.target && props.target() !== "none") {
       setActiveTool(props.target());
