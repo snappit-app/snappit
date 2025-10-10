@@ -216,7 +216,15 @@ impl TextSnapOverlay {
 
         if let Some(last) = last_monitor {
             if monitor.position() != last.position() {
-                Self::actual_show(app, TextSnapOverlayTarget::None)?;
+                let app_clone = app.clone();
+                app.run_on_main_thread(move || {
+                    if let Err(err) = Self::actual_show(&app_clone, TextSnapOverlayTarget::None) {
+                        log::error!(
+                            "Failed to reposition overlay after monitor change: {:?}",
+                            err
+                        );
+                    }
+                })?;
             }
         }
 

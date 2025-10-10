@@ -14,7 +14,6 @@ import {
 import { createPermissions } from "@/shared/libs/permissions";
 import { createSettingsVisible } from "@/shared/libs/settings_visible";
 import { Theme } from "@/shared/theme";
-import { Button } from "@/shared/ui/button";
 
 import { PermissionsGate } from "./permissions";
 import { Preferences } from "./preferences";
@@ -62,9 +61,6 @@ function SettingsApp() {
           </div>
         </Tabs>
       </Show>
-
-      <Button onClick={() => SnapOverlayApi.show("smart_tool")}>Show overlay</Button>
-      <Button onClick={() => SnapOverlayApi.close()}>Hide overlay</Button>
     </main>
   );
 }
