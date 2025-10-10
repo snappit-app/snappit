@@ -83,7 +83,7 @@ function SnapOverlay(props: snapOverlayProps) {
   });
 
   createEventListener(window, "blur", () => {
-    SnapOverlayApi.hide();
+    // SnapOverlayApi.close();
   });
 
   createEffect(() => {

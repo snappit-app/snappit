@@ -25,10 +25,6 @@ export abstract class SnapOverlayApi {
     return invoke("show_snap_overlay", { target });
   }
 
-  static async hide() {
-    return invoke("hide_snap_overlay");
-  }
-
   static async unregisterHideShortcut() {
     await unregister(HIDE_SNAP_OVERLAY_SHORTCUT);
   }

@@ -1,6 +1,6 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
-use std::thread;
+use std::thread::{self};
 use std::time::Duration;
 
 use crate::text_snap_errors::TextSnapResult;
@@ -13,9 +13,9 @@ use ::serde::{Deserialize, Serialize};
 #[cfg(target_os = "macos")]
 use once_cell::sync::Lazy;
 use tauri::{
-    AppHandle, Emitter, Error as TauriError, Manager, Monitor, WebviewUrl, WebviewWindow,
-    WebviewWindowBuilder, Wry,
+    AppHandle, Emitter, Error as TauriError, Manager, Monitor, WebviewUrl, WebviewWindow, Wry,
 };
+use tauri_nspanel::{tauri_panel, ManagerExt, PanelBuilder, PanelHandle, PanelLevel, StyleMask};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -26,6 +26,15 @@ pub enum TextSnapOverlayTarget {
     ColorDropper,
     QrScanner,
     None,
+}
+
+tauri_panel! {
+    panel!(SnapOverlayPanel {
+        config: {
+            can_become_key_window: true,
+            is_floating_panel: true
+        }
+    })
 }
 
 pub struct TextSnapOverlay;
@@ -43,11 +52,11 @@ impl TextSnapOverlay {
 
         Self::unsubscribe_monitor_changes();
 
-        let overlay = app
-            .get_webview_window(TEXT_SNAP_CONSTS.windows.overlay.as_str())
-            .ok_or_else(|| TauriError::WebviewNotFound)?;
+        let (panel, overlay) = Self::get_overlay_handles(app)?;
 
+        log::info!("hidden");
         overlay.emit("snap_overlay:hidden", true)?;
+        panel.hide();
         overlay.hide()?;
 
         let has_opened = app
@@ -85,9 +94,7 @@ impl TextSnapOverlay {
 
         let physical_size = monitor.size().clone();
 
-        let overlay = app
-            .get_webview_window(TEXT_SNAP_CONSTS.windows.overlay.as_str())
-            .ok_or_else(|| TauriError::WebviewNotFound)?;
+        let (panel, overlay) = Self::ensure_overlay_handles(app)?;
 
         overlay.set_size(physical_size)?;
         overlay.set_position(monitor.position().clone())?;
@@ -98,7 +105,7 @@ impl TextSnapOverlay {
 
         #[cfg(target_os = "macos")]
         {
-            #[cfg(not(debug_assertions))]
+            // #[cfg(not(debug_assertions))]
             {
                 Platform::set_window_level(
                     overlay.as_ref().window(),
@@ -110,6 +117,8 @@ impl TextSnapOverlay {
         }
 
         overlay.show()?;
+        panel.show_and_make_key();
+        log::info!("shown");
         overlay.emit("snap_overlay:shown", target)?;
         overlay.set_focus()?;
 
@@ -117,18 +126,7 @@ impl TextSnapOverlay {
     }
 
     pub fn preload(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
-        let window_builder = Self::builder(app)
-            .fullscreen(false)
-            .shadow(false)
-            .always_on_top(cfg!(not(debug_assertions)))
-            .content_protected(true)
-            .skip_taskbar(true)
-            .closable(false)
-            .decorations(false)
-            .transparent(true)
-            .visible(false)
-            .resizable(false);
-        let window = window_builder.build()?;
+        let (_, window) = Self::ensure_overlay_handles(app)?;
 
         let monitor = Platform::monitor_from_cursor(&app)?;
         let physical_size = monitor.size().clone();
@@ -138,17 +136,60 @@ impl TextSnapOverlay {
         Ok(window)
     }
 
-    fn builder<'a>(app: &'a AppHandle<Wry>) -> WebviewWindowBuilder<'a, Wry, AppHandle<Wry>> {
-        let builder = WebviewWindow::builder(
-            app,
-            TEXT_SNAP_CONSTS.windows.overlay.as_str(),
-            WebviewUrl::App("apps/snap_overlay/index.html".into()),
-        )
-        .title(TEXT_SNAP_CONSTS.windows.overlay.as_str())
-        .visible(false)
-        .accept_first_mouse(true);
+    fn builder<'a>(app: &'a AppHandle<Wry>) -> PanelBuilder<'a, Wry, SnapOverlayPanel> {
+        PanelBuilder::<_, SnapOverlayPanel>::new(app, TEXT_SNAP_CONSTS.windows.overlay.as_str())
+            .url(WebviewUrl::App("apps/snap_overlay/index.html".into()))
+            .title(TEXT_SNAP_CONSTS.windows.overlay.as_str())
+            .level(PanelLevel::PopUpMenu)
+            .floating(true)
+            .transparent(true)
+            .opaque(false)
+            .has_shadow(false)
+            .style_mask(StyleMask::empty().borderless())
+            .with_window(|window| {
+                window
+                    .visible(false)
+                    .accept_first_mouse(true)
+                    .fullscreen(false)
+                    .shadow(false)
+                    .always_on_top(true)
+                    .content_protected(true)
+                    .skip_taskbar(true)
+                    .closable(false)
+                    .decorations(false)
+                    .transparent(true)
+                    .resizable(false)
+            })
+    }
 
-        builder
+    fn get_overlay_handles(
+        app: &AppHandle<Wry>,
+    ) -> TextSnapResult<(PanelHandle<Wry>, WebviewWindow)> {
+        let label = TEXT_SNAP_CONSTS.windows.overlay.as_str();
+        let panel = app
+            .get_webview_panel(label)
+            .map_err(|_| TauriError::WebviewNotFound)?;
+        let window = app
+            .get_webview_window(label)
+            .ok_or_else(|| TauriError::WebviewNotFound)?;
+
+        Ok((panel, window))
+    }
+
+    fn ensure_overlay_handles(
+        app: &AppHandle<Wry>,
+    ) -> TextSnapResult<(PanelHandle<Wry>, WebviewWindow)> {
+        let label = TEXT_SNAP_CONSTS.windows.overlay.as_str();
+        let panel = match app.get_webview_panel(label) {
+            Ok(panel) => panel,
+            Err(_) => Self::builder(app).build()?,
+        };
+
+        let window = app
+            .get_webview_window(label)
+            .ok_or_else(|| TauriError::WebviewNotFound)?;
+
+        Ok((panel, window))
     }
 
     fn subscribe_monitor_changes(app: &AppHandle<Wry>) {
