@@ -10,12 +10,13 @@ use crate::{
     text_snap_permissions::TextSnapPermissions,
 };
 use ::serde::{Deserialize, Serialize};
-#[cfg(target_os = "macos")]
 use once_cell::sync::Lazy;
 use tauri::{
     AppHandle, Emitter, Error as TauriError, Manager, Monitor, WebviewUrl, WebviewWindow, Wry,
 };
-use tauri_nspanel::{tauri_panel, ManagerExt, PanelBuilder, PanelHandle, PanelLevel, StyleMask};
+use tauri_nspanel::{
+    tauri_panel, CollectionBehavior, ManagerExt, PanelBuilder, PanelHandle, PanelLevel, StyleMask,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -103,19 +104,6 @@ impl TextSnapOverlay {
             TextSnapSettings::hide(app)?;
         }
 
-        #[cfg(target_os = "macos")]
-        {
-            // #[cfg(not(debug_assertions))]
-            {
-                Platform::set_window_level(
-                    overlay.as_ref().window(),
-                    objc2_app_kit::NSPopUpMenuWindowLevel,
-                );
-            }
-
-            app.set_activation_policy(tauri::ActivationPolicy::Regular)?;
-        }
-
         overlay.show()?;
         panel.show_and_make_key();
         log::info!("shown");
@@ -145,7 +133,13 @@ impl TextSnapOverlay {
             .transparent(true)
             .opaque(false)
             .has_shadow(false)
-            .style_mask(StyleMask::empty().borderless())
+            .collection_behavior(
+                CollectionBehavior::new()
+                    .move_to_active_space()
+                    .full_screen_auxiliary()
+                    .ignores_cycle(),
+            )
+            .style_mask(StyleMask::empty().borderless().nonactivating_panel())
             .with_window(|window| {
                 window
                     .visible(false)
