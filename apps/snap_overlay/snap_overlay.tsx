@@ -26,8 +26,6 @@ interface snapOverlayProps {
 }
 
 function SnapOverlay(props: snapOverlayProps) {
-  Theme.create();
-
   const [cursorStyle, setCursorStyle] = createSignal("cursor-default");
   const [activeTool, setActiveTool] = createSignal<TextSnapOverlayTarget>("smart_tool");
   const [mouseOnTools, setMouseOnTools] = createSignal<boolean>(false);
@@ -85,7 +83,6 @@ function SnapOverlay(props: snapOverlayProps) {
     const overlay = await SnapOverlayApi.get();
     overlay?.onFocusChanged((e) => {
       if (e.event === "tauri://blur") {
-        console.log("blur");
         SnapOverlayApi.close();
       }
     });

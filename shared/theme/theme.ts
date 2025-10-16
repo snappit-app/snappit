@@ -1,5 +1,5 @@
 import { load } from "@tauri-apps/plugin-store";
-import { createEffect, createSignal, onCleanup } from "solid-js";
+import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
 import { TEXT_SNAP_CONSTS } from "@/shared/constants";
 import { TextSnapStore } from "@/shared/store";
@@ -17,7 +17,14 @@ export abstract class Theme {
     const THEME_KEY = TEXT_SNAP_CONSTS.store.keys.theme;
     const [storeTheme, setStoreTheme] = TextSnapStore.createValue<themeOptions>(THEME_KEY);
 
-    const [preference, setPreference] = createSignal<themeOptions>("system");
+    const preference = createMemo<themeOptions>(() => {
+      const stored = storeTheme();
+      if (stored === "light" || stored === "dark" || stored === "system") {
+        return stored;
+      } else {
+        return "system";
+      }
+    });
 
     const initialSystemDark =
       typeof window !== "undefined" && window.matchMedia
@@ -35,16 +42,8 @@ export abstract class Theme {
     }
 
     createEffect(() => {
-      const stored = storeTheme();
-      if (stored === "light" || stored === "dark" || stored === "system") {
-        setPreference(stored);
-      } else {
-        setPreference("system");
-      }
-    });
-
-    createEffect(() => {
       const pref = preference();
+      console.log(pref);
       const effectiveDark = pref === "system" ? systemDark() : pref === "dark";
 
       if (typeof document !== "undefined") {
@@ -55,8 +54,7 @@ export abstract class Theme {
     });
 
     function setTheme(t: themeOptions) {
-      setPreference(t);
-      setStoreTheme(t).catch(() => {});
+      setStoreTheme(t);
     }
 
     this._themeSingleton = [preference, setTheme] as const;
@@ -73,6 +71,7 @@ export abstract class Theme {
       const store = await load(TEXT_SNAP_CONSTS.store.file);
       const key = TEXT_SNAP_CONSTS.store.keys.theme;
       const stored = (await store.get(key)) as themeOptions | null;
+
       const next =
         stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
 
