@@ -13,7 +13,9 @@ import { AreaSelection, createSelection, onAreaSelected } from "@/apps/snap_over
 import { ColorDropper } from "@/apps/snap_overlay/color_dropper";
 import { createQrScanner, onScanSuccess, QrScanner } from "@/apps/snap_overlay/qr-scan";
 import { Ruler } from "@/apps/snap_overlay/ruler";
+import { TEXT_SNAP_CONSTS } from "@/shared/constants";
 import { cn } from "@/shared/libs/cn";
+import { TextSnapStore } from "@/shared/store";
 import { RegionCaptureParams } from "@/shared/tauri/region_capture_api";
 import { TextSnapOverlayTarget } from "@/shared/tauri/snap_overlay_target";
 import { Theme } from "@/shared/theme";
@@ -29,7 +31,9 @@ function SnapOverlay(props: snapOverlayProps) {
   const [cursorStyle, setCursorStyle] = createSignal("cursor-default");
   const [activeTool, setActiveTool] = createSignal<TextSnapOverlayTarget>("smart_tool");
   const [mouseOnTools, setMouseOnTools] = createSignal<boolean>(false);
-
+  const [toolsEnabled] = TextSnapStore.createValue<boolean>(
+    TEXT_SNAP_CONSTS.store.keys.tools_panel,
+  );
   const isSmartTool = createMemo(() => activeTool() === "smart_tool");
   const isCopyTool = createMemo(() => activeTool() === "text_capture");
   const isRulerTool = createMemo(() => activeTool() === "digital_ruler");
@@ -71,7 +75,7 @@ function SnapOverlay(props: snapOverlayProps) {
   };
 
   onMount(async () => {
-    await Theme.syncThemeFromStore();
+    await TextSnapStore.sync();
     await SnapOverlayApi.registerHideShortcut();
   });
 
@@ -130,17 +134,19 @@ function SnapOverlay(props: snapOverlayProps) {
         </Show>
       </div>
 
-      <Tools
-        class={cn(
-          "transition-[opacity,transform] duration-200 ease-in-out pointer-events-auto",
-          isSelecting() ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100",
-        )}
-        aria-hidden={isSelecting()}
-        onpointerover={() => setMouseOnTools(true)}
-        onpointerleave={() => setMouseOnTools(false)}
-        value={activeTool()}
-        onValueChange={(tool) => setActiveTool(tool)}
-      />
+      <Show when={toolsEnabled()}>
+        <Tools
+          class={cn(
+            "transition-[opacity,transform] duration-200 ease-in-out pointer-events-auto",
+            isSelecting() ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100",
+          )}
+          aria-hidden={isSelecting()}
+          onpointerover={() => setMouseOnTools(true)}
+          onpointerleave={() => setMouseOnTools(false)}
+          value={activeTool()}
+          onValueChange={(tool) => setActiveTool(tool)}
+        />
+      </Show>
     </Overlay>
   );
 }

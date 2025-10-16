@@ -1,4 +1,3 @@
-import { load } from "@tauri-apps/plugin-store";
 import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
 import { TEXT_SNAP_CONSTS } from "@/shared/constants";
@@ -59,25 +58,5 @@ export abstract class Theme {
 
     this._themeSingleton = [preference, setTheme] as const;
     return this._themeSingleton;
-  }
-
-  static async syncThemeFromStore() {
-    try {
-      if (!this._themeSingleton) {
-        return;
-      }
-
-      const [_, setTheme] = this._themeSingleton;
-      const store = await load(TEXT_SNAP_CONSTS.store.file);
-      const key = TEXT_SNAP_CONSTS.store.keys.theme;
-      const stored = (await store.get(key)) as themeOptions | null;
-
-      const next =
-        stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
-
-      setTheme(next);
-    } catch (err) {
-      console.error(err);
-    }
   }
 }

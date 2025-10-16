@@ -14,6 +14,7 @@ export abstract class TextSnapStore {
     {
       value: Resource<unknown | null>;
       setValue: (v: unknown) => Promise<void>;
+      refetch: () => Promise<unknown | null>;
       remove: () => Promise<void>;
     }
   > = new Map();
@@ -69,12 +70,13 @@ export abstract class TextSnapStore {
         refetch();
       }
 
-      return { value, setValue, dispose, remove } as const;
+      return { value, setValue, dispose, remove, refetch } as const;
     });
 
     this._valueSingletons.set(key, {
       value: inst.value as Resource<unknown | null>,
       setValue: inst.setValue as (v: unknown) => Promise<void>,
+      refetch: inst.refetch as () => Promise<unknown | null>,
       remove: inst.remove as () => Promise<void>,
     });
 
@@ -83,5 +85,39 @@ export abstract class TextSnapStore {
       inst.setValue as (v: T) => Promise<void>,
       inst.remove as () => Promise<void>,
     ] as const;
+  }
+
+  static async sync() {
+    const [storeResource] = TextSnapStore.create();
+    const store = storeResource();
+    if (!store) return;
+
+    await store.reload({ ignoreDefaults: true });
+
+    for (const [key, singleton] of this._valueSingletons) {
+      const storeValue = (await store.get<unknown>(key)) ?? null;
+      const currentValue = singleton.value();
+
+      if (!this._areValuesEqual(currentValue, storeValue)) {
+        await singleton.refetch();
+      }
+    }
+  }
+
+  private static _areValuesEqual(first: unknown, second: unknown) {
+    const normalizedFirst = this._normalizeValue(first);
+    const normalizedSecond = this._normalizeValue(second);
+
+    if (Object.is(normalizedFirst, normalizedSecond)) return true;
+
+    try {
+      return JSON.stringify(normalizedFirst) === JSON.stringify(normalizedSecond);
+    } catch {
+      return false;
+    }
+  }
+
+  private static _normalizeValue(value: unknown) {
+    return value === undefined ? null : value;
   }
 }
