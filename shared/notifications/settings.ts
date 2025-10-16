@@ -1,5 +1,5 @@
 import { load } from "@tauri-apps/plugin-store";
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createMemo, createSignal } from "solid-js";
 
 import { TEXT_SNAP_CONSTS } from "@/shared/constants";
 import { TextSnapStore } from "@/shared/store";
@@ -14,24 +14,13 @@ export abstract class NotificationSettings {
     if (this._singleton) return this._singleton;
 
     const [storeValue, setStoreValue] = TextSnapStore.createValue<boolean>(this.KEY);
-    const [enabled, setEnabled] = createSignal(true);
 
-    createEffect(() => {
+    const enabled = createMemo(() => {
       const value = storeValue();
-      if (value === undefined) return;
-
-      if (typeof value === "boolean") {
-        setEnabled(value);
-      } else {
-        setEnabled(true);
-        if (value === null) {
-          setStoreValue(true).catch(() => {});
-        }
-      }
+      return !!value;
     });
 
     function update(next: boolean) {
-      setEnabled(next);
       setStoreValue(next).catch(() => {});
     }
 

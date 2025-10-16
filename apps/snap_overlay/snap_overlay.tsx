@@ -18,7 +18,6 @@ import { cn } from "@/shared/libs/cn";
 import { TextSnapStore } from "@/shared/store";
 import { RegionCaptureParams } from "@/shared/tauri/region_capture_api";
 import { TextSnapOverlayTarget } from "@/shared/tauri/snap_overlay_target";
-import { Theme } from "@/shared/theme";
 import { Overlay, StaticBackdrop } from "@/shared/ui/overlay/overlay";
 
 import { Tools } from "./tools";
