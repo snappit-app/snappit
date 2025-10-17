@@ -1,4 +1,5 @@
 import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
+import { UnlistenFn } from "@tauri-apps/api/event";
 import {
   Accessor,
   createEffect,
@@ -27,6 +28,7 @@ interface snapOverlayProps {
 }
 
 function SnapOverlay(props: snapOverlayProps) {
+  let unregisterFocus: UnlistenFn | undefined;
   const [cursorStyle, setCursorStyle] = createSignal("cursor-default");
   const [activeTool, setActiveTool] = createSignal<SnappitOverlayTarget>("smart_tool");
   const [mouseOnTools, setMouseOnTools] = createSignal<boolean>(false);
@@ -73,20 +75,21 @@ function SnapOverlay(props: snapOverlayProps) {
 
   onMount(async () => {
     await SnappitStore.sync();
-    await SnapOverlayApi.registerHideShortcut();
-  });
-
-  onCleanup(async () => {
-    await SnapOverlayApi.unregisterHideShortcut();
   });
 
   onMount(async () => {
     const overlay = await SnapOverlayApi.get();
-    overlay?.onFocusChanged((e) => {
+    unregisterFocus = await overlay?.onFocusChanged((e) => {
       if (e.event === "tauri://blur") {
-        SnapOverlayApi.close();
+        SnapOverlayApi.hide();
       }
     });
+  });
+
+  onCleanup(() => {
+    if (unregisterFocus) {
+      unregisterFocus();
+    }
   });
 
   createEffect(() => {

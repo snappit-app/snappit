@@ -8,7 +8,7 @@ import { SNAPPIT_CONSTS } from "@/shared/constants";
 import { ColorDropperApi, ColorInfo } from "@/shared/tauri/screen_capture_api";
 import { SnapOverlayApi } from "@/shared/tauri/snap_overlay_api";
 
-const ratio = SNAPPIT_CONSTS.store.color_dropper.magnify_ratio;
+const ratio = SNAPPIT_CONSTS.defaults.color_dropper.magnify_ratio;
 
 export function ColorDropper() {
   const magnifierSrc = createScreenMagnifier();
@@ -26,7 +26,7 @@ export function ColorDropper() {
 
     if (colorInfo()) {
       onColorRecognized(colorInfo()!);
-      await SnapOverlayApi.close();
+      await SnapOverlayApi.hide();
     }
   };
 

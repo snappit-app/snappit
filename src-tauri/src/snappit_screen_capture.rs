@@ -37,8 +37,8 @@ pub struct SnappitScreenCapture;
 
 impl SnappitScreenCapture {
     fn get_params() -> (u32, u32, u32) {
-        let radius = SNAPPIT_CONSTS.store.color_dropper.magnify_radius;
-        let ratio = SNAPPIT_CONSTS.store.color_dropper.magnify_ratio;
+        let radius = SNAPPIT_CONSTS.defaults.color_dropper.magnify_radius;
+        let ratio = SNAPPIT_CONSTS.defaults.color_dropper.magnify_ratio;
         let size = radius * 2 + 1;
 
         return (radius, ratio, size);

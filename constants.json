@@ -4,6 +4,7 @@
     "keys": {
       "theme": "theme",
       "hotkey_capture": "hotkey.capture",
+      "hotkey_hide": "hotkey.hide",
       "hotkey_text_capture": "hotkey.text_capture",
       "hotkey_digital_ruler": "hotkey.digital_ruler",
       "hotkey_color_dropper": "hotkey.color_dropper",
@@ -13,10 +14,6 @@
       "tools_panel": "settings.tools_panel",
       "settings_initialized": "settings.initialized",
       "recognition_lang": "settings.recognition_lang"
-    },
-    "color_dropper": {
-      "magnify_ratio": 15,
-      "magnify_radius": 6
     }
   },
   "windows": {
@@ -26,10 +23,15 @@
   "defaults": {
     "shortcuts": {
       "hotkey.capture": "CommandOrControl+Shift+2",
+      "hotkey.hide": "Escape",
       "hotkey.text_capture": "",
       "hotkey.digital_ruler": "",
       "hotkey.color_dropper": "",
       "hotkey.qr_scanner": ""
+    },
+    "color_dropper": {
+      "magnify_ratio": 15,
+      "magnify_radius": 6
     }
   }
 }

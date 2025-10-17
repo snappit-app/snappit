@@ -12,17 +12,17 @@ pub struct SnappitConstants {
 #[derive(Debug, Deserialize)]
 pub struct SnappitStoreType {
     pub file: String,
-    pub keys: TextSpanStoreKeys,
-    pub color_dropper: TextSpanColorDropperKeys,
+    pub keys: SnappitStoreKeys,
 }
 #[derive(Debug, Deserialize)]
-pub struct TextSpanStoreKeys {
+pub struct SnappitStoreKeys {
     pub theme: String,
     pub hotkey_capture: String,
     pub hotkey_text_capture: String,
     pub hotkey_digital_ruler: String,
     pub hotkey_color_dropper: String,
     pub hotkey_qr_scanner: String,
+    pub hotkey_hide: String,
     pub notifications: String,
     pub autostart: String,
     pub recognition_lang: String,
@@ -30,7 +30,7 @@ pub struct TextSpanStoreKeys {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct TextSpanColorDropperKeys {
+pub struct SnappitColorDropperDefaults {
     pub magnify_ratio: u32,
     pub magnify_radius: u32,
 }
@@ -38,6 +38,7 @@ pub struct TextSpanColorDropperKeys {
 #[derive(Debug, Deserialize)]
 pub struct SnappitDefaults {
     pub shortcuts: HashMap<String, String>,
+    pub color_dropper: SnappitColorDropperDefaults,
 }
 
 #[derive(Debug, Deserialize)]

@@ -5,6 +5,7 @@ use std::time::Duration;
 
 use crate::snappit_errors::SnappitResult;
 use crate::snappit_settings::SnappitSettings;
+use crate::snappit_shortcut_manager::SnappitShortcutManager;
 use crate::{
     platform::Platform, snappit_consts::SNAPPIT_CONSTS, snappit_permissions::SnappitPermissions,
 };
@@ -58,6 +59,7 @@ impl SnappitOverlay {
         overlay.emit("snap_overlay:hidden", true)?;
         panel.hide();
         overlay.hide()?;
+        SnappitShortcutManager::unregister_hide(app)?;
 
         let has_opened = app
             .webview_windows()
@@ -106,8 +108,10 @@ impl SnappitOverlay {
         overlay.show()?;
         panel.show_and_make_key();
         log::info!("shown");
+
         overlay.emit("snap_overlay:shown", target)?;
         overlay.set_focus()?;
+        SnappitShortcutManager::register_hide(app)?;
 
         Ok(overlay)
     }

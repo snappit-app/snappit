@@ -21,7 +21,7 @@ function resolveAxisLock(start: Point, target: Point): AxisLock {
   return Math.abs(dy) <= Math.abs(dx) ? "y" : "x";
 }
 
-const ratio = SNAPPIT_CONSTS.store.color_dropper.magnify_ratio;
+const ratio = SNAPPIT_CONSTS.defaults.color_dropper.magnify_ratio;
 
 export function Ruler() {
   const magnifierSrc = createScreenMagnifier();
@@ -126,7 +126,7 @@ export function Ruler() {
         event.preventDefault();
         const text = `${Math.round(length).toString()}px`;
         await onRulerSuccess(text);
-        await SnapOverlayApi.close();
+        await SnapOverlayApi.hide();
       }
     }
   });

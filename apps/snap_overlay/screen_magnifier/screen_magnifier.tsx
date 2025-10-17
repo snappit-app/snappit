@@ -6,8 +6,8 @@ import { SNAPPIT_CONSTS } from "@/shared/constants";
 import { RegionCaptureApi } from "@/shared/tauri/region_capture_api";
 import { ColorDropperApi } from "@/shared/tauri/screen_capture_api";
 
-const ratio = SNAPPIT_CONSTS.store.color_dropper.magnify_ratio;
-const size = SNAPPIT_CONSTS.store.color_dropper.magnify_radius * 2 + 1;
+const ratio = SNAPPIT_CONSTS.defaults.color_dropper.magnify_ratio;
+const size = SNAPPIT_CONSTS.defaults.color_dropper.magnify_radius * 2 + 1;
 const magnifyDim = ratio * size;
 
 interface screenMagnifierProps {

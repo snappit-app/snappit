@@ -1,6 +1,10 @@
 import { For } from "solid-js";
 
-import { ShortcutPreferenceItem, SMART_SHORTCUT, TOOL_SHORTCUTS } from "@/apps/settings/shortcuts";
+import {
+  ShortcutPreferenceItem,
+  SMART_SHORTCUT,
+  TOOL_SHORTCUTS,
+} from "@/apps/settings/preferences";
 
 export function Shortcuts() {
   return (

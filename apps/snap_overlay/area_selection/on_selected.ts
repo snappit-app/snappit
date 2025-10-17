@@ -14,7 +14,7 @@ export async function onTextRecognized(text: string) {
 }
 
 export async function onAreaSelected(selection: RegionCaptureParams, smartMode = false) {
-  SnapOverlayApi.close();
+  SnapOverlayApi.hide();
 
   if (smartMode) {
     const res = await RegionCaptureApi.onSmartTool(selection);

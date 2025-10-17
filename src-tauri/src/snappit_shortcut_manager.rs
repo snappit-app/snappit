@@ -35,6 +35,58 @@ impl SnappitShortcutManager {
         Ok(())
     }
 
+    pub fn register_hide(app: &AppHandle<Wry>) -> SnappitResult<()> {
+        let key = SNAPPIT_CONSTS.store.keys.hotkey_hide.clone();
+
+        let accelerator = SNAPPIT_CONSTS
+            .defaults
+            .shortcuts
+            .get(key.as_str())
+            .ok_or(SnappitError::ConstUndefined)?;
+
+        let app_clone = app.clone();
+
+        tauri::async_runtime::spawn(async move {
+            app_clone.global_shortcut().on_shortcut(
+                accelerator.as_str(),
+                move |app_handle, _shortcut, event: ShortcutEvent| {
+                    if event.state == ShortcutState::Released {
+                        if let Err(err) = SnappitOverlay::hide(&app_handle) {
+                            if !matches!(err, SnappitError::MissingPermissions(_)) {
+                                log::error!("Failed to register hide shortcut {:?}", err);
+                            }
+                        }
+                    }
+                },
+            );
+        });
+
+        Ok(())
+    }
+
+    pub fn unregister_hide(app: &AppHandle<Wry>) -> SnappitResult<()> {
+        let key = SNAPPIT_CONSTS.store.keys.hotkey_hide.clone();
+
+        let accelerator = SNAPPIT_CONSTS
+            .defaults
+            .shortcuts
+            .get(key.as_str())
+            .ok_or(SnappitError::ConstUndefined)?;
+
+        let app_clone = app.clone();
+
+        tauri::async_runtime::spawn(async move {
+            if app_clone
+                .global_shortcut()
+                .is_registered(accelerator.as_str())
+            {
+                app_clone.global_shortcut().unregister(accelerator.as_str());
+            }
+        });
+
+        Ok(())
+    }
+
     pub fn sync_target(
         app: &AppHandle<Wry>,
         target: SnappitOverlayTarget,

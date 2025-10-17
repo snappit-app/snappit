@@ -22,5 +22,5 @@ export async function onScanSuccess(content: string) {
     await NotificationCenter.notifyQr(`Copied: ${content}`);
   }
 
-  SnapOverlayApi.close();
+  SnapOverlayApi.hide();
 }

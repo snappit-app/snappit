@@ -40,6 +40,9 @@ pub enum SnappitError {
     #[error("Monitor not found under cursor")]
     MonitorNotFound,
 
+    #[error("Const undefined")]
+    ConstUndefined,
+
     #[error("Bad RGBA frame size")]
     BadRgbaFrameSize,
 
@@ -66,6 +69,9 @@ impl From<SnappitError> for TauriError {
             SnappitError::Utf8Error(e) => TauriError::Anyhow(e.into()),
             SnappitError::ImageError(e) => TauriError::Anyhow(e.into()),
             SnappitError::IoError(e) => TauriError::Anyhow(e.into()),
+            SnappitError::ConstUndefined => TauriError::Anyhow(
+                std::io::Error::new(std::io::ErrorKind::NotFound, "Const undefined").into(),
+            ),
             SnappitError::MonitorNotFound => TauriError::Anyhow(
                 std::io::Error::new(std::io::ErrorKind::NotFound, "Monitor not found").into(),
             ),
@@ -103,6 +109,7 @@ impl From<SnappitError> for XCapError {
             SnappitError::Utf8Error(e) => XCapError::Error(e.to_string()),
             SnappitError::ImageError(e) => XCapError::Error(e.to_string()),
             SnappitError::IoError(e) => XCapError::Error(e.to_string()),
+            SnappitError::ConstUndefined => XCapError::new("Const undefined"),
             SnappitError::MonitorNotFound => XCapError::new("Monitor not found under cursor"),
             SnappitError::BadRgbaFrameSize => XCapError::new("Bad RGBA frame size"),
             SnappitError::ModelDirNotFound => XCapError::new("Model DIR not found"),
