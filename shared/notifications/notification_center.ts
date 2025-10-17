@@ -18,7 +18,7 @@ export abstract class NotificationCenter {
   static async notifyQr(body: string) {
     if (await this.canNotify()) {
       sendNotification({
-        title: "TextSnap — QR",
+        title: "Snappit — QR",
         body,
       });
     }
@@ -27,7 +27,7 @@ export abstract class NotificationCenter {
   static async notifyOcr(body: string) {
     if (await this.canNotify()) {
       sendNotification({
-        title: "TextSnap",
+        title: "Snappit",
         body: `Copied: ${body}`,
       });
     }
@@ -36,7 +36,7 @@ export abstract class NotificationCenter {
   static async notifyDropper(body: string) {
     if (await this.canNotify()) {
       sendNotification({
-        title: "TextSnap - Color recognized",
+        title: "Snappit - Color recognized",
         body: `Copied: ${body}`,
       });
     }
@@ -45,7 +45,7 @@ export abstract class NotificationCenter {
   static async notifyRuler(body: string) {
     if (await this.canNotify()) {
       sendNotification({
-        title: "TextSnap - Ruler",
+        title: "Snappit - Ruler",
         body: `Copied: ${body}`,
       });
     }

@@ -1,7 +1,7 @@
 import { createEffect, createSignal } from "solid-js";
 
-import { TEXT_SNAP_CONSTS } from "@/shared/constants";
-import { TextSnapStore } from "@/shared/store";
+import { SNAPPIT_CONSTS } from "@/shared/constants";
+import { SnappitStore } from "@/shared/store";
 
 export const RECOGNITION_LANGUAGE_OPTIONS = [
   { label: "Auto", value: "auto" },
@@ -25,7 +25,7 @@ type RecognitionLanguagePreference = readonly [
 ];
 
 export const DEFAULT_VALUE: RecognitionLanguageValue = "auto";
-const STORE_KEY = TEXT_SNAP_CONSTS.store.keys.recognition_lang;
+const STORE_KEY = SNAPPIT_CONSTS.store.keys.recognition_lang;
 const VALID_CODES = new Set<RecognitionLanguageValue>(
   RECOGNITION_LANGUAGE_OPTIONS.filter((option) => option.value !== DEFAULT_VALUE).map(
     (option) => option.value,
@@ -71,7 +71,7 @@ export abstract class RecognitionLanguage {
     if (this._singleton) return this._singleton;
 
     const [storeValue, setStoreValue] =
-      TextSnapStore.createValue<RecognitionLanguageValue>(STORE_KEY);
+      SnappitStore.createValue<RecognitionLanguageValue>(STORE_KEY);
     const [preference, setPreference] = createSignal<RecognitionLanguageValue>(DEFAULT_VALUE);
 
     createEffect(() => {

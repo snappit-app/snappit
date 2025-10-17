@@ -1,37 +1,37 @@
 mod img_protocol;
 mod platform;
 mod region_capture;
-mod text_snap_consts;
-mod text_snap_errors;
-mod text_snap_ocr;
-mod text_snap_overlay;
-mod text_snap_permissions;
-mod text_snap_qr;
-mod text_snap_res;
-mod text_snap_screen_capture;
-mod text_snap_settings;
-mod text_snap_store;
-mod text_snap_tray;
+mod snappit_consts;
+mod snappit_errors;
+mod snappit_ocr;
+mod snappit_overlay;
+mod snappit_permissions;
+mod snappit_qr;
+mod snappit_res;
+mod snappit_screen_capture;
+mod snappit_settings;
+mod snappit_store;
+mod snappit_tray;
 mod traits;
 
 use region_capture::{RegionCapture, RegionCaptureParams};
 use serde_json::json;
+use snappit_overlay::SnappitOverlay;
+use snappit_tray::SnappitTray;
 use tauri::{async_runtime::spawn_blocking, AppHandle};
-use text_snap_overlay::TextSnapOverlay;
-use text_snap_tray::TextSnapTray;
 
 use crate::{
     img_protocol::{handle_img_request, ImageSlot, IMAGE},
-    text_snap_consts::TEXT_SNAP_CONSTS,
-    text_snap_errors::{TextSnapError, TextSnapResult},
-    text_snap_ocr::TextSnapOcr,
-    text_snap_overlay::TextSnapOverlayTarget,
-    text_snap_permissions::{TextSnapPermissions, TextSnapPermissionsState},
-    text_snap_qr::TextSnapQr,
-    text_snap_res::TextSnapResponse,
-    text_snap_screen_capture::{TextSnapColorInfo, TextSnapScreenCapture},
-    text_snap_settings::TextSnapSettings,
-    text_snap_store::TextSnapStore,
+    snappit_consts::SNAPPIT_CONSTS,
+    snappit_errors::{SnappitError, SnappitResult},
+    snappit_ocr::SnappitOcr,
+    snappit_overlay::SnappitOverlayTarget,
+    snappit_permissions::{SnappitPermissions, SnappitPermissionsState},
+    snappit_qr::SnappitQr,
+    snappit_res::SnappitResponse,
+    snappit_screen_capture::{SnappitColorInfo, SnappitScreenCapture},
+    snappit_settings::SnappitSettings,
+    snappit_store::SnappitStore,
     traits::into_dynamic::IntoPngByes,
 };
 
@@ -40,11 +40,11 @@ async fn capture_color_at_cursor(
     app: AppHandle,
     x: u32,
     y: u32,
-) -> tauri::Result<TextSnapColorInfo> {
+) -> tauri::Result<SnappitColorInfo> {
     let app_handle = app.clone();
 
-    let color_info = spawn_blocking(move || -> TextSnapResult<_> {
-        TextSnapScreenCapture::capture_color_at_cursor(&app_handle, x, y)
+    let color_info = spawn_blocking(move || -> SnappitResult<_> {
+        SnappitScreenCapture::capture_color_at_cursor(&app_handle, x, y)
     })
     .await??;
 
@@ -55,8 +55,8 @@ async fn capture_color_at_cursor(
 async fn capture_magnified_view(app: AppHandle, x: u32, y: u32) -> tauri::Result<()> {
     let app_handle = app.clone();
 
-    let image_data = spawn_blocking(move || -> TextSnapResult<_> {
-        TextSnapScreenCapture::capture_magnified_view(&app_handle, x, y)
+    let image_data = spawn_blocking(move || -> SnappitResult<_> {
+        SnappitScreenCapture::capture_magnified_view(&app_handle, x, y)
     })
     .await??;
 
@@ -83,18 +83,18 @@ fn get_last_shot_dim() -> tauri::Result<Option<(u32, u32)>> {
 }
 
 #[tauri::command]
-fn get_permissions_state(app: AppHandle) -> tauri::Result<TextSnapPermissionsState> {
-    Ok(TextSnapPermissions::refresh_and_emit(&app)?)
+fn get_permissions_state(app: AppHandle) -> tauri::Result<SnappitPermissionsState> {
+    Ok(SnappitPermissions::refresh_and_emit(&app)?)
 }
 
 #[tauri::command]
-fn request_screen_recording_permission(app: AppHandle) -> tauri::Result<TextSnapPermissionsState> {
-    Ok(TextSnapPermissions::request_screen_recording(&app)?)
+fn request_screen_recording_permission(app: AppHandle) -> tauri::Result<SnappitPermissionsState> {
+    Ok(SnappitPermissions::request_screen_recording(&app)?)
 }
 
 #[tauri::command]
 fn open_screen_recording_settings(app: AppHandle) -> tauri::Result<()> {
-    TextSnapPermissions::open_screen_recording_settings(&app)?;
+    SnappitPermissions::open_screen_recording_settings(&app)?;
     Ok(())
 }
 
@@ -102,13 +102,12 @@ fn open_screen_recording_settings(app: AppHandle) -> tauri::Result<()> {
 async fn on_smart_tool(
     app: AppHandle,
     params: RegionCaptureParams,
-) -> tauri::Result<TextSnapResponse> {
+) -> tauri::Result<SnappitResponse> {
     let app_handle = app.clone();
 
-    let captured = spawn_blocking(move || -> TextSnapResult<_> {
-        RegionCapture::capture(&app_handle, params)
-    })
-    .await??;
+    let captured =
+        spawn_blocking(move || -> SnappitResult<_> { RegionCapture::capture(&app_handle, params) })
+            .await??;
 
     let img_for_qr = captured.clone();
     let img_for_dropper = captured.clone();
@@ -117,97 +116,97 @@ async fn on_smart_tool(
     let app_for_dropper = app.clone();
 
     let qr_handle =
-        spawn_blocking(move || -> TextSnapResult<_> { Ok(TextSnapQr::scan(img_for_qr)?) });
-    let ocr_handle = spawn_blocking(move || -> TextSnapResult<_> {
-        TextSnapOcr::recognize(&app_for_ocr, img_for_ocr)
+        spawn_blocking(move || -> SnappitResult<_> { Ok(SnappitQr::scan(img_for_qr)?) });
+    let ocr_handle = spawn_blocking(move || -> SnappitResult<_> {
+        SnappitOcr::recognize(&app_for_ocr, img_for_ocr)
     });
-    let dropper_handle = spawn_blocking(move || -> TextSnapResult<_> {
-        TextSnapScreenCapture::capture_color_at_img(&app_for_dropper, img_for_dropper)
+    let dropper_handle = spawn_blocking(move || -> SnappitResult<_> {
+        SnappitScreenCapture::capture_color_at_img(&app_for_dropper, img_for_dropper)
     });
 
     if let Some(qr) = qr_handle.await?? {
-        return Ok(TextSnapResponse::Qr(Some(qr)));
+        return Ok(SnappitResponse::Qr(Some(qr)));
     }
 
     let text = ocr_handle.await??;
     if !text.is_empty() {
-        return Ok(TextSnapResponse::Ocr(text));
+        return Ok(SnappitResponse::Ocr(text));
     }
 
     let color = dropper_handle.await??;
-    Ok(TextSnapResponse::Dropper(color))
+    Ok(SnappitResponse::Dropper(color))
 }
 
 #[tauri::command]
 async fn recognize_region_text(
     app: AppHandle,
     params: RegionCaptureParams,
-) -> tauri::Result<TextSnapResponse> {
+) -> tauri::Result<SnappitResponse> {
     let app_handle = app.clone();
 
-    let task = spawn_blocking(move || -> TextSnapResult<_> {
+    let task = spawn_blocking(move || -> SnappitResult<_> {
         let image = RegionCapture::capture(&app_handle, params)?;
-        TextSnapOcr::recognize(&app, image)
+        SnappitOcr::recognize(&app, image)
     });
 
     let ocr_result = task.await??;
 
-    Ok(TextSnapResponse::Ocr(ocr_result))
+    Ok(SnappitResponse::Ocr(ocr_result))
 }
 
 #[tauri::command]
 async fn scan_region_qr(
     app: AppHandle,
     params: RegionCaptureParams,
-) -> tauri::Result<TextSnapResponse> {
+) -> tauri::Result<SnappitResponse> {
     let app_handle = app.clone();
 
-    let task = spawn_blocking(move || -> TextSnapResult<_> {
+    let task = spawn_blocking(move || -> SnappitResult<_> {
         let image = RegionCapture::capture(&app_handle, params)?;
-        TextSnapQr::scan(image)
+        SnappitQr::scan(image)
     });
 
     let qr_result = task.await??;
 
-    Ok(TextSnapResponse::Qr(qr_result))
+    Ok(SnappitResponse::Qr(qr_result))
 }
 
 #[tauri::command]
-fn show_snap_overlay(app: AppHandle, target: TextSnapOverlayTarget) -> tauri::Result<()> {
-    match TextSnapOverlay::show(&app, target) {
+fn show_snap_overlay(app: AppHandle, target: SnappitOverlayTarget) -> tauri::Result<()> {
+    match SnappitOverlay::show(&app, target) {
         Ok(_) => Ok(()),
-        Err(TextSnapError::MissingPermissions(_)) => Ok(()),
+        Err(SnappitError::MissingPermissions(_)) => Ok(()),
         Err(err) => Err(err.into()),
     }
 }
 
 #[tauri::command]
 fn hide_snap_overlay(app: AppHandle) -> tauri::Result<()> {
-    TextSnapOverlay::hide(&app)?;
+    SnappitOverlay::hide(&app)?;
     Ok(())
 }
 
 #[tauri::command]
 fn show_settings(app: AppHandle) -> tauri::Result<()> {
-    TextSnapSettings::show(&app)?;
+    SnappitSettings::show(&app)?;
     Ok(())
 }
 
 #[tauri::command]
 fn hide_settings(app: AppHandle) -> tauri::Result<()> {
-    TextSnapSettings::hide(&app)?;
+    SnappitSettings::hide(&app)?;
     Ok(())
 }
 
 #[tauri::command]
-fn update_tray_shortcut(app: AppHandle, target: TextSnapOverlayTarget) -> tauri::Result<()> {
-    TextSnapTray::update_overlay_shortcut(&app, target)?;
+fn update_tray_shortcut(app: AppHandle, target: SnappitOverlayTarget) -> tauri::Result<()> {
+    SnappitTray::update_overlay_shortcut(&app, target)?;
     Ok(())
 }
 
 #[tauri::command]
 fn update_tray_shortcuts(app: AppHandle) -> tauri::Result<()> {
-    TextSnapTray::update_overlay_shortcuts(&app)?;
+    SnappitTray::update_overlay_shortcuts(&app)?;
     Ok(())
 }
 
@@ -225,29 +224,29 @@ pub fn run() {
         .plugin(tauri_nspanel::init())
         .register_uri_scheme_protocol("img", move |_app, req| handle_img_request(&req))
         .setup(|app| {
-            TextSnapOverlay::preload(app.handle())?;
-            TextSnapSettings::preload(app.handle())?;
-            TextSnapSettings::show(app.handle())?;
-            TextSnapPermissions::refresh_and_emit(app.handle())?;
+            SnappitOverlay::preload(app.handle())?;
+            SnappitSettings::preload(app.handle())?;
+            SnappitSettings::show(app.handle())?;
+            SnappitPermissions::refresh_and_emit(app.handle())?;
 
-            let initialized = TextSnapStore::get_value(
+            let initialized = SnappitStore::get_value(
                 app.handle(),
-                TEXT_SNAP_CONSTS.store.keys.settings_initialized.as_str(),
+                SNAPPIT_CONSTS.store.keys.settings_initialized.as_str(),
             )?
             .and_then(|v| v.as_bool())
             .unwrap_or(false);
 
             if initialized {
-                TextSnapSettings::hide(app.handle())?;
+                SnappitSettings::hide(app.handle())?;
             } else {
-                TextSnapStore::set_value(
+                SnappitStore::set_value(
                     app.handle(),
-                    TEXT_SNAP_CONSTS.store.keys.settings_initialized.as_str(),
+                    SNAPPIT_CONSTS.store.keys.settings_initialized.as_str(),
                     Some(json!(true)),
                 )?;
             }
 
-            TextSnapTray::init(app.handle())?;
+            SnappitTray::init(app.handle())?;
 
             Ok(())
         })

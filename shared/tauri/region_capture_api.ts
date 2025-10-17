@@ -1,10 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
 
 import {
-  TextSnapOcrResponse,
-  TextSnapQrResponse,
-  TextSnapResponse,
-} from "@/shared/tauri/text_snap_res";
+  SnappitOcrResponse,
+  SnappitQrResponse,
+  SnappitResponse,
+} from "@/shared/tauri/snappit_res";
 
 export interface RegionCaptureParams {
   x: number;
@@ -15,15 +15,15 @@ export interface RegionCaptureParams {
 
 export abstract class RegionCaptureApi {
   static async onSmartTool(params: RegionCaptureParams) {
-    return invoke<TextSnapResponse>("on_smart_tool", { params });
+    return invoke<SnappitResponse>("on_smart_tool", { params });
   }
 
   static async recognizeRegionText(params: RegionCaptureParams) {
-    return invoke<TextSnapOcrResponse>("recognize_region_text", { params });
+    return invoke<SnappitOcrResponse>("recognize_region_text", { params });
   }
 
   static async scanRegionQr(params: RegionCaptureParams) {
-    return invoke<TextSnapQrResponse>("scan_region_qr", { params });
+    return invoke<SnappitQrResponse>("scan_region_qr", { params });
   }
 
   static async getLastShotDim() {

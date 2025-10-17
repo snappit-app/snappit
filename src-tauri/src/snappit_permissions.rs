@@ -2,17 +2,17 @@ use serde::Serialize;
 use tauri::{AppHandle, Emitter, Wry};
 
 use crate::{
-    text_snap_errors::{TextSnapError, TextSnapResult},
-    text_snap_settings::TextSnapSettings,
+    snappit_errors::{SnappitError, SnappitResult},
+    snappit_settings::SnappitSettings,
 };
 
 #[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct TextSnapPermissionsState {
+pub struct SnappitPermissionsState {
     pub screen_recording: bool,
 }
 
-impl TextSnapPermissionsState {
+impl SnappitPermissionsState {
     fn new() -> Self {
         Self {
             screen_recording: Self::screen_recording_granted(),
@@ -36,16 +36,16 @@ impl TextSnapPermissionsState {
     }
 }
 
-pub struct TextSnapPermissions;
+pub struct SnappitPermissions;
 
-impl TextSnapPermissions {
+impl SnappitPermissions {
     pub const EVENT_NAME: &'static str = "permissions:state";
 
-    pub fn current_state() -> TextSnapPermissionsState {
-        TextSnapPermissionsState::new()
+    pub fn current_state() -> SnappitPermissionsState {
+        SnappitPermissionsState::new()
     }
 
-    pub fn ensure_for_overlay(app: &AppHandle<Wry>) -> TextSnapResult<TextSnapPermissionsState> {
+    pub fn ensure_for_overlay(app: &AppHandle<Wry>) -> SnappitResult<SnappitPermissionsState> {
         let state = Self::current_state();
 
         if state.all_granted() {
@@ -53,19 +53,19 @@ impl TextSnapPermissions {
         }
 
         Self::emit_state(app, state)?;
-        TextSnapSettings::show(app)?;
+        SnappitSettings::show(app)?;
 
-        Err(TextSnapError::MissingPermissions(
+        Err(SnappitError::MissingPermissions(
             "screen recording permission is required",
         ))
     }
 
-    pub fn emit_state(app: &AppHandle<Wry>, state: TextSnapPermissionsState) -> TextSnapResult<()> {
+    pub fn emit_state(app: &AppHandle<Wry>, state: SnappitPermissionsState) -> SnappitResult<()> {
         app.emit(Self::EVENT_NAME, state)?;
         Ok(())
     }
 
-    pub fn refresh_and_emit(app: &AppHandle<Wry>) -> TextSnapResult<TextSnapPermissionsState> {
+    pub fn refresh_and_emit(app: &AppHandle<Wry>) -> SnappitResult<SnappitPermissionsState> {
         let state = Self::current_state();
         Self::emit_state(app, state)?;
         Ok(state)
@@ -73,7 +73,7 @@ impl TextSnapPermissions {
 
     pub fn request_screen_recording(
         app: &AppHandle<Wry>,
-    ) -> TextSnapResult<TextSnapPermissionsState> {
+    ) -> SnappitResult<SnappitPermissionsState> {
         #[cfg(target_os = "macos")]
         unsafe {
             _ = CGRequestScreenCaptureAccess();
@@ -82,13 +82,13 @@ impl TextSnapPermissions {
         let state = Self::refresh_and_emit(app)?;
 
         if !state.screen_recording {
-            TextSnapSettings::show(app)?;
+            SnappitSettings::show(app)?;
         }
 
         Ok(state)
     }
 
-    pub fn open_screen_recording_settings(app: &AppHandle<Wry>) -> TextSnapResult<()> {
+    pub fn open_screen_recording_settings(app: &AppHandle<Wry>) -> SnappitResult<()> {
         #[cfg(target_os = "macos")]
         {
             use tauri_plugin_opener::OpenerExt;

@@ -6,8 +6,7 @@ use leptess::LepTess;
 use tauri::Manager;
 
 use crate::{
-    text_snap_consts::TEXT_SNAP_CONSTS, text_snap_errors::TextSnapResult,
-    text_snap_store::TextSnapStore,
+    snappit_consts::SNAPPIT_CONSTS, snappit_errors::SnappitResult, snappit_store::SnappitStore,
 };
 
 const FALLBACK_RECOGNITION_LANGUAGE: &str = "eng";
@@ -107,10 +106,10 @@ fn sanitize_recognition_language(raw: &str) -> Option<String> {
     }
 }
 
-pub struct TextSnapTesseractOcr;
+pub struct SnappitTesseractOcr;
 
-impl TextSnapTesseractOcr {
-    pub fn recognize(app: &tauri::AppHandle, img: &DynamicImage) -> TextSnapResult<String> {
+impl SnappitTesseractOcr {
+    pub fn recognize(app: &tauri::AppHandle, img: &DynamicImage) -> SnappitResult<String> {
         let mut buf: Vec<u8> = Vec::new();
         let _ = img.write_to(&mut Cursor::new(&mut buf), ImageFormat::Png);
         let data_path = Self::get_data_path(app)?;
@@ -125,7 +124,7 @@ impl TextSnapTesseractOcr {
         Ok(text)
     }
 
-    pub fn get_data_path(app: &tauri::AppHandle) -> TextSnapResult<PathBuf> {
+    pub fn get_data_path(app: &tauri::AppHandle) -> SnappitResult<PathBuf> {
         let tess_data_path = app
             .path()
             .resource_dir()?
@@ -135,9 +134,9 @@ impl TextSnapTesseractOcr {
         Ok(tess_data_path)
     }
 
-    fn get_recognition_language(app: &tauri::AppHandle) -> TextSnapResult<String> {
-        let key = TEXT_SNAP_CONSTS.store.keys.recognition_lang.as_str();
-        let value = TextSnapStore::get_value(app, key)?
+    fn get_recognition_language(app: &tauri::AppHandle) -> SnappitResult<String> {
+        let key = SNAPPIT_CONSTS.store.keys.recognition_lang.as_str();
+        let value = SnappitStore::get_value(app, key)?
             .and_then(|stored| stored.as_str().map(String::from));
 
         let default_language = default_recognition_language();

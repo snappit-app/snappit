@@ -1,6 +1,6 @@
 import { SnapOverlayApi } from "@shared/tauri/snap_overlay_api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
-import { createMemo, Show } from "solid-js";
+import { createEffect, createMemo, Show } from "solid-js";
 
 import { Languages } from "@/apps/settings/languages";
 import { Shortcuts } from "@/apps/settings/shortcuts";

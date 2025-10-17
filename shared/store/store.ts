@@ -1,9 +1,9 @@
 import { load, Store } from "@tauri-apps/plugin-store";
 import { createResource, createRoot, Resource } from "solid-js";
 
-import { TEXT_SNAP_CONSTS } from "@/shared/constants";
+import { SNAPPIT_CONSTS } from "@/shared/constants";
 
-export abstract class TextSnapStore {
+export abstract class SnappitStore {
   private static _storeSingleton: {
     dispose: () => void;
     store: Resource<Store>;
@@ -23,7 +23,7 @@ export abstract class TextSnapStore {
     if (!this._storeSingleton) {
       const inst = createRoot((dispose) => {
         const [store] = createResource<Store>(async () => {
-          return await load(TEXT_SNAP_CONSTS.store.file);
+          return await load(SNAPPIT_CONSTS.store.file);
         });
 
         return { store, dispose } as const;
@@ -49,7 +49,7 @@ export abstract class TextSnapStore {
     }
 
     const inst = createRoot((dispose) => {
-      const [store] = TextSnapStore.create();
+      const [store] = SnappitStore.create();
       const [value, { refetch }] = createResource<T | null, Store, R>(store, async (s) => {
         return (await s.get(key)) ?? null;
       });
@@ -88,7 +88,7 @@ export abstract class TextSnapStore {
   }
 
   static async sync() {
-    const [storeResource] = TextSnapStore.create();
+    const [storeResource] = SnappitStore.create();
     const store = storeResource();
     if (!store) return;
 

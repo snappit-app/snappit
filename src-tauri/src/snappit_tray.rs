@@ -7,16 +7,16 @@ use tauri::{
     AppHandle, Wry,
 };
 
-use crate::text_snap_overlay::{TextSnapOverlay, TextSnapOverlayTarget};
+use crate::snappit_overlay::{SnappitOverlay, SnappitOverlayTarget};
 use crate::{
-    text_snap_consts::TEXT_SNAP_CONSTS,
-    text_snap_errors::{TextSnapError, TextSnapResult},
-    text_snap_settings::TextSnapSettings,
-    text_snap_store::TextSnapStore,
+    snappit_consts::SNAPPIT_CONSTS,
+    snappit_errors::{SnappitError, SnappitResult},
+    snappit_settings::SnappitSettings,
+    snappit_store::SnappitStore,
 };
 
 #[derive(EnumString, AsRefStr, Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum TextSnapTrayItemId {
+pub enum SnappitTrayItemId {
     #[strum(serialize = "capture")]
     Capture,
     #[strum(serialize = "capture_text")]
@@ -34,23 +34,23 @@ pub enum TextSnapTrayItemId {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub enum TextSnapTrayItem {
+pub enum SnappitTrayItem {
     Item {
-        id: TextSnapTrayItemId,
+        id: SnappitTrayItemId,
         title: &'static str,
         enabled: bool,
-        handler: fn(&AppHandle<Wry>) -> TextSnapResult<()>,
+        handler: fn(&AppHandle<Wry>) -> SnappitResult<()>,
         accelerator_store_key: Option<fn() -> String>,
     },
     Separator,
 }
 
-impl TextSnapTrayItem {
+impl SnappitTrayItem {
     pub const fn item(
-        id: TextSnapTrayItemId,
+        id: SnappitTrayItemId,
         title: &'static str,
         enabled: bool,
-        handler: fn(&AppHandle<Wry>) -> TextSnapResult<()>,
+        handler: fn(&AppHandle<Wry>) -> SnappitResult<()>,
     ) -> Self {
         Self::Item {
             id,
@@ -62,11 +62,11 @@ impl TextSnapTrayItem {
     }
 
     pub const fn item_with_accelerator(
-        id: TextSnapTrayItemId,
+        id: SnappitTrayItemId,
         title: &'static str,
         enabled: bool,
         accelerator_store_key: fn() -> String,
-        handler: fn(&AppHandle<Wry>) -> TextSnapResult<()>,
+        handler: fn(&AppHandle<Wry>) -> SnappitResult<()>,
     ) -> Self {
         Self::Item {
             id,
@@ -81,111 +81,111 @@ impl TextSnapTrayItem {
         Self::Separator
     }
 
-    pub fn handler(&self) -> Option<fn(&AppHandle<Wry>) -> TextSnapResult<()>> {
+    pub fn handler(&self) -> Option<fn(&AppHandle<Wry>) -> SnappitResult<()>> {
         match self {
-            TextSnapTrayItem::Item { handler, .. } => Some(*handler),
-            TextSnapTrayItem::Separator => None,
+            SnappitTrayItem::Item { handler, .. } => Some(*handler),
+            SnappitTrayItem::Separator => None,
         }
     }
 
     pub fn matches_id(&self, id: &str) -> bool {
         match self {
-            TextSnapTrayItem::Item { id: item_id, .. } => item_id.as_ref() == id,
-            TextSnapTrayItem::Separator => false,
+            SnappitTrayItem::Item { id: item_id, .. } => item_id.as_ref() == id,
+            SnappitTrayItem::Separator => false,
         }
     }
 }
 
 fn hotkey_capture_key() -> String {
-    TEXT_SNAP_CONSTS.store.keys.hotkey_capture.clone()
+    SNAPPIT_CONSTS.store.keys.hotkey_capture.clone()
 }
 
 fn hotkey_text_capture_key() -> String {
-    TEXT_SNAP_CONSTS.store.keys.hotkey_text_capture.clone()
+    SNAPPIT_CONSTS.store.keys.hotkey_text_capture.clone()
 }
 
 fn hotkey_digital_ruler_key() -> String {
-    TEXT_SNAP_CONSTS.store.keys.hotkey_digital_ruler.clone()
+    SNAPPIT_CONSTS.store.keys.hotkey_digital_ruler.clone()
 }
 
 fn hotkey_color_dropper_key() -> String {
-    TEXT_SNAP_CONSTS.store.keys.hotkey_color_dropper.clone()
+    SNAPPIT_CONSTS.store.keys.hotkey_color_dropper.clone()
 }
 
 fn hotkey_qr_scanner_key() -> String {
-    TEXT_SNAP_CONSTS.store.keys.hotkey_qr_scanner.clone()
+    SNAPPIT_CONSTS.store.keys.hotkey_qr_scanner.clone()
 }
 
-pub const TRAY_ITEMS: &[TextSnapTrayItem] = &[
-    TextSnapTrayItem::item_with_accelerator(
-        TextSnapTrayItemId::Capture,
+pub const TRAY_ITEMS: &[SnappitTrayItem] = &[
+    SnappitTrayItem::item_with_accelerator(
+        SnappitTrayItemId::Capture,
         "Capture",
         true,
         hotkey_capture_key,
-        |app| match TextSnapOverlay::show(app, TextSnapOverlayTarget::SmartTool) {
+        |app| match SnappitOverlay::show(app, SnappitOverlayTarget::SmartTool) {
             Ok(_) => Ok(()),
-            Err(TextSnapError::MissingPermissions(_)) => Ok(()),
+            Err(SnappitError::MissingPermissions(_)) => Ok(()),
             Err(err) => Err(err),
         },
     ),
-    TextSnapTrayItem::separator(),
-    TextSnapTrayItem::item_with_accelerator(
-        TextSnapTrayItemId::CaptureText,
+    SnappitTrayItem::separator(),
+    SnappitTrayItem::item_with_accelerator(
+        SnappitTrayItemId::CaptureText,
         "Capture Text",
         true,
         hotkey_text_capture_key,
-        |app| match TextSnapOverlay::show(app, TextSnapOverlayTarget::TextCapture) {
+        |app| match SnappitOverlay::show(app, SnappitOverlayTarget::TextCapture) {
             Ok(_) => Ok(()),
-            Err(TextSnapError::MissingPermissions(_)) => Ok(()),
+            Err(SnappitError::MissingPermissions(_)) => Ok(()),
             Err(err) => Err(err),
         },
     ),
-    TextSnapTrayItem::item_with_accelerator(
-        TextSnapTrayItemId::DigitalRuler,
+    SnappitTrayItem::item_with_accelerator(
+        SnappitTrayItemId::DigitalRuler,
         "Digital Ruler",
         true,
         hotkey_digital_ruler_key,
-        |app| match TextSnapOverlay::show(app, TextSnapOverlayTarget::DigitalRuler) {
+        |app| match SnappitOverlay::show(app, SnappitOverlayTarget::DigitalRuler) {
             Ok(_) => Ok(()),
-            Err(TextSnapError::MissingPermissions(_)) => Ok(()),
+            Err(SnappitError::MissingPermissions(_)) => Ok(()),
             Err(err) => Err(err),
         },
     ),
-    TextSnapTrayItem::item_with_accelerator(
-        TextSnapTrayItemId::ColorDropper,
+    SnappitTrayItem::item_with_accelerator(
+        SnappitTrayItemId::ColorDropper,
         "Color Dropper",
         true,
         hotkey_color_dropper_key,
-        |app| match TextSnapOverlay::show(app, TextSnapOverlayTarget::ColorDropper) {
+        |app| match SnappitOverlay::show(app, SnappitOverlayTarget::ColorDropper) {
             Ok(_) => Ok(()),
-            Err(TextSnapError::MissingPermissions(_)) => Ok(()),
+            Err(SnappitError::MissingPermissions(_)) => Ok(()),
             Err(err) => Err(err),
         },
     ),
-    TextSnapTrayItem::item_with_accelerator(
-        TextSnapTrayItemId::Qr,
+    SnappitTrayItem::item_with_accelerator(
+        SnappitTrayItemId::Qr,
         "Qr Scanner",
         true,
         hotkey_qr_scanner_key,
-        |app| match TextSnapOverlay::show(app, TextSnapOverlayTarget::QrScanner) {
+        |app| match SnappitOverlay::show(app, SnappitOverlayTarget::QrScanner) {
             Ok(_) => Ok(()),
-            Err(TextSnapError::MissingPermissions(_)) => Ok(()),
+            Err(SnappitError::MissingPermissions(_)) => Ok(()),
             Err(err) => Err(err),
         },
     ),
-    TextSnapTrayItem::separator(),
-    TextSnapTrayItem::item(TextSnapTrayItemId::Settings, "Settings", true, |app| {
-        TextSnapSettings::show(app)?;
+    SnappitTrayItem::separator(),
+    SnappitTrayItem::item(SnappitTrayItemId::Settings, "Settings", true, |app| {
+        SnappitSettings::show(app)?;
         Ok(())
     }),
-    TextSnapTrayItem::separator(),
-    TextSnapTrayItem::item(TextSnapTrayItemId::Quit, "Quit", true, |app| {
+    SnappitTrayItem::separator(),
+    SnappitTrayItem::item(SnappitTrayItemId::Quit, "Quit", true, |app| {
         app.exit(0);
         Ok(())
     }),
 ];
 
-impl<'a> TryFrom<&'a MenuEvent> for &'a TextSnapTrayItem {
+impl<'a> TryFrom<&'a MenuEvent> for &'a SnappitTrayItem {
     type Error = ();
 
     fn try_from(event: &'a MenuEvent) -> Result<Self, Self::Error> {
@@ -196,18 +196,18 @@ impl<'a> TryFrom<&'a MenuEvent> for &'a TextSnapTrayItem {
     }
 }
 
-pub struct TextSnapTray;
+pub struct SnappitTray;
 
 static MENU: OnceLock<Menu<Wry>> = OnceLock::new();
 
-impl TextSnapTray {
+impl SnappitTray {
     const TRAY_ID: &str = "main";
 
     fn update_shortcut(
         app: &AppHandle<Wry>,
-        id: TextSnapTrayItemId,
+        id: SnappitTrayItemId,
         accelerator: Option<&str>,
-    ) -> TextSnapResult<()> {
+    ) -> SnappitResult<()> {
         let tray = app.tray_by_id(Self::TRAY_ID).expect("tray not found");
 
         if let Some(menu) = MENU.get() {
@@ -263,35 +263,35 @@ impl TextSnapTray {
     }
 
     fn resolve_shortcut_target(
-        target: TextSnapOverlayTarget,
-    ) -> Option<(TextSnapTrayItemId, fn() -> String)> {
+        target: SnappitOverlayTarget,
+    ) -> Option<(SnappitTrayItemId, fn() -> String)> {
         match target {
-            TextSnapOverlayTarget::SmartTool => {
-                Some((TextSnapTrayItemId::Capture, hotkey_capture_key))
+            SnappitOverlayTarget::SmartTool => {
+                Some((SnappitTrayItemId::Capture, hotkey_capture_key))
             }
-            TextSnapOverlayTarget::TextCapture => {
-                Some((TextSnapTrayItemId::CaptureText, hotkey_text_capture_key))
+            SnappitOverlayTarget::TextCapture => {
+                Some((SnappitTrayItemId::CaptureText, hotkey_text_capture_key))
             }
-            TextSnapOverlayTarget::DigitalRuler => {
-                Some((TextSnapTrayItemId::DigitalRuler, hotkey_digital_ruler_key))
+            SnappitOverlayTarget::DigitalRuler => {
+                Some((SnappitTrayItemId::DigitalRuler, hotkey_digital_ruler_key))
             }
-            TextSnapOverlayTarget::ColorDropper => {
-                Some((TextSnapTrayItemId::ColorDropper, hotkey_color_dropper_key))
+            SnappitOverlayTarget::ColorDropper => {
+                Some((SnappitTrayItemId::ColorDropper, hotkey_color_dropper_key))
             }
-            TextSnapOverlayTarget::QrScanner => {
-                Some((TextSnapTrayItemId::Qr, hotkey_qr_scanner_key))
+            SnappitOverlayTarget::QrScanner => {
+                Some((SnappitTrayItemId::Qr, hotkey_qr_scanner_key))
             }
-            TextSnapOverlayTarget::None => None,
+            SnappitOverlayTarget::None => None,
         }
     }
 
     pub fn update_overlay_shortcut(
         app: &AppHandle<Wry>,
-        target: TextSnapOverlayTarget,
-    ) -> TextSnapResult<()> {
+        target: SnappitOverlayTarget,
+    ) -> SnappitResult<()> {
         if let Some((tray_item_id, store_key_fn)) = Self::resolve_shortcut_target(target) {
             let store_key = store_key_fn();
-            let accelerator = TextSnapStore::get_value(app, store_key.as_str())?
+            let accelerator = SnappitStore::get_value(app, store_key.as_str())?
                 .and_then(|value| value.as_str().map(|s| s.to_string()));
 
             Self::update_shortcut(app, tray_item_id, accelerator.as_deref())?;
@@ -300,13 +300,13 @@ impl TextSnapTray {
         Ok(())
     }
 
-    pub fn update_overlay_shortcuts(app: &AppHandle<Wry>) -> TextSnapResult<()> {
+    pub fn update_overlay_shortcuts(app: &AppHandle<Wry>) -> SnappitResult<()> {
         for target in [
-            TextSnapOverlayTarget::SmartTool,
-            TextSnapOverlayTarget::TextCapture,
-            TextSnapOverlayTarget::DigitalRuler,
-            TextSnapOverlayTarget::ColorDropper,
-            TextSnapOverlayTarget::QrScanner,
+            SnappitOverlayTarget::SmartTool,
+            SnappitOverlayTarget::TextCapture,
+            SnappitOverlayTarget::DigitalRuler,
+            SnappitOverlayTarget::ColorDropper,
+            SnappitOverlayTarget::QrScanner,
         ] {
             Self::update_overlay_shortcut(app, target)?;
         }
@@ -314,13 +314,13 @@ impl TextSnapTray {
         Ok(())
     }
 
-    pub fn init(app: &AppHandle<Wry>) -> TextSnapResult<TrayIcon> {
+    pub fn init(app: &AppHandle<Wry>) -> SnappitResult<TrayIcon> {
         let menu = Menu::new(app)?;
         let _ = MENU.set(menu.clone());
 
         for def in TRAY_ITEMS {
             match def {
-                TextSnapTrayItem::Item {
+                SnappitTrayItem::Item {
                     id,
                     title,
                     enabled,
@@ -330,7 +330,7 @@ impl TextSnapTray {
                     // Resolve accelerator from store by the provided key path
                     let resolved_accelerator = if let Some(key_fn) = accelerator_store_key {
                         let key = key_fn();
-                        TextSnapStore::get_value(app, key.as_str())?
+                        SnappitStore::get_value(app, key.as_str())?
                             .and_then(|v| v.as_str().map(|s| s.to_string()))
                     } else {
                         None
@@ -345,7 +345,7 @@ impl TextSnapTray {
                     )?;
                     menu.append(&item)?;
                 }
-                TextSnapTrayItem::Separator => {
+                SnappitTrayItem::Separator => {
                     menu.append(&PredefinedMenuItem::separator(app)?)?;
                 }
             }
@@ -356,7 +356,7 @@ impl TextSnapTray {
             .show_menu_on_left_click(true)
             .icon(app.default_window_icon().unwrap().clone())
             .on_menu_event(|app, event| {
-                if let Ok(item) = <&TextSnapTrayItem>::try_from(&event) {
+                if let Ok(item) = <&SnappitTrayItem>::try_from(&event) {
                     if let Some(handler) = item.handler() {
                         if let Err(err) = handler(app) {
                             log::error!("Tray item handler error: {err}");

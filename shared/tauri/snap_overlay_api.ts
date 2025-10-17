@@ -1,4 +1,4 @@
-import { TextSnapStore } from "@shared/store";
+import { SnappitStore } from "@shared/store";
 import { invoke } from "@tauri-apps/api/core";
 import { EventCallback } from "@tauri-apps/api/event";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
@@ -6,22 +6,22 @@ import { isRegistered, register, unregister } from "@tauri-apps/plugin-global-sh
 import { createEffect, createMemo, onCleanup } from "solid-js";
 
 import { DEFAULT_SHORTCUTS } from "@/apps/settings/shortcuts/consts";
-import { TEXT_SNAP_CONSTS } from "@/shared/constants";
-import { TextSnapOverlayTarget } from "@/shared/tauri/snap_overlay_target";
-import { TextSnapTrayApi } from "@/shared/tauri/snap_tray_api";
+import { SNAPPIT_CONSTS } from "@/shared/constants";
+import { SnappitOverlayTarget } from "@/shared/tauri/snap_overlay_target";
+import { SnappitTrayApi } from "@/shared/tauri/snap_tray_api";
 
 const HIDE_SNAP_OVERLAY_SHORTCUT = "Escape";
 
 export abstract class SnapOverlayApi {
   static async get() {
-    return WebviewWindow.getByLabel(TEXT_SNAP_CONSTS.windows.overlay);
+    return WebviewWindow.getByLabel(SNAPPIT_CONSTS.windows.overlay);
   }
 
   static async close() {
     return invoke("hide_snap_overlay");
   }
 
-  static async show(target: TextSnapOverlayTarget) {
+  static async show(target: SnappitOverlayTarget) {
     return invoke("show_snap_overlay", { target });
   }
 
@@ -42,7 +42,7 @@ export abstract class SnapOverlayApi {
     }
   }
 
-  static async registerShowShortcut(shortcut: string, target: TextSnapOverlayTarget) {
+  static async registerShowShortcut(shortcut: string, target: SnappitOverlayTarget) {
     return register(shortcut, (e) => {
       if (e.state === "Pressed") {
         SnapOverlayApi.show(target);
@@ -50,7 +50,7 @@ export abstract class SnapOverlayApi {
     });
   }
 
-  static createShortcut(key: string, target: TextSnapOverlayTarget) {
+  static createShortcut(key: string, target: SnappitOverlayTarget) {
     const [storeShortcut] = this.createStoredShortcut(key, target);
 
     createEffect<string | undefined>((prev) => {
@@ -69,7 +69,7 @@ export abstract class SnapOverlayApi {
       }
 
       this.registerShowShortcut(curr, target);
-      TextSnapTrayApi.updateShortcut(target);
+      SnappitTrayApi.updateShortcut(target);
       return curr;
     });
 
@@ -81,8 +81,8 @@ export abstract class SnapOverlayApi {
     });
   }
 
-  static createStoredShortcut(key: string, target: TextSnapOverlayTarget) {
-    const [storeShortcut, setStoreShortcut, remove] = TextSnapStore.createValue<string>(key);
+  static createStoredShortcut(key: string, target: SnappitOverlayTarget) {
+    const [storeShortcut, setStoreShortcut, remove] = SnappitStore.createValue<string>(key);
     const shortcut = createMemo(() => storeShortcut() ?? DEFAULT_SHORTCUTS[key]);
 
     createEffect(() => {
@@ -93,13 +93,13 @@ export abstract class SnapOverlayApi {
 
     async function removeShortcut() {
       await remove();
-      await TextSnapTrayApi.updateShortcut(target);
+      await SnappitTrayApi.updateShortcut(target);
     }
 
     return [shortcut, setStoreShortcut, removeShortcut] as const;
   }
 
-  static async onShown(handler: EventCallback<TextSnapOverlayTarget>) {
+  static async onShown(handler: EventCallback<SnappitOverlayTarget>) {
     const overlay = await this.get();
     return overlay?.listen("snap_overlay:shown", handler);
   }

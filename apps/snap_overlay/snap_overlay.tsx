@@ -13,25 +13,25 @@ import { AreaSelection, createSelection, onAreaSelected } from "@/apps/snap_over
 import { ColorDropper } from "@/apps/snap_overlay/color_dropper";
 import { createQrScanner, onScanSuccess, QrScanner } from "@/apps/snap_overlay/qr-scan";
 import { Ruler } from "@/apps/snap_overlay/ruler";
-import { TEXT_SNAP_CONSTS } from "@/shared/constants";
+import { SNAPPIT_CONSTS } from "@/shared/constants";
 import { cn } from "@/shared/libs/cn";
-import { TextSnapStore } from "@/shared/store";
+import { SnappitStore } from "@/shared/store";
 import { RegionCaptureParams } from "@/shared/tauri/region_capture_api";
-import { TextSnapOverlayTarget } from "@/shared/tauri/snap_overlay_target";
+import { SnappitOverlayTarget } from "@/shared/tauri/snap_overlay_target";
 import { Overlay, StaticBackdrop } from "@/shared/ui/overlay/overlay";
 
 import { Tools } from "./tools";
 
 interface snapOverlayProps {
-  target?: Accessor<TextSnapOverlayTarget>;
+  target?: Accessor<SnappitOverlayTarget>;
 }
 
 function SnapOverlay(props: snapOverlayProps) {
   const [cursorStyle, setCursorStyle] = createSignal("cursor-default");
-  const [activeTool, setActiveTool] = createSignal<TextSnapOverlayTarget>("smart_tool");
+  const [activeTool, setActiveTool] = createSignal<SnappitOverlayTarget>("smart_tool");
   const [mouseOnTools, setMouseOnTools] = createSignal<boolean>(false);
-  const [toolsEnabled] = TextSnapStore.createValue<boolean>(
-    TEXT_SNAP_CONSTS.store.keys.tools_panel,
+  const [toolsEnabled] = SnappitStore.createValue<boolean>(
+    SNAPPIT_CONSTS.store.keys.tools_panel,
   );
   const isSmartTool = createMemo(() => activeTool() === "smart_tool");
   const isCopyTool = createMemo(() => activeTool() === "text_capture");
@@ -74,7 +74,7 @@ function SnapOverlay(props: snapOverlayProps) {
   };
 
   onMount(async () => {
-    await TextSnapStore.sync();
+    await SnappitStore.sync();
     await SnapOverlayApi.registerHideShortcut();
   });
 

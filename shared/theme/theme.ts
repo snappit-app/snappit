@@ -1,7 +1,7 @@
 import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
-import { TEXT_SNAP_CONSTS } from "@/shared/constants";
-import { TextSnapStore } from "@/shared/store";
+import { SNAPPIT_CONSTS } from "@/shared/constants";
+import { SnappitStore } from "@/shared/store";
 
 export type themeOptions = "light" | "dark" | "system";
 
@@ -13,8 +13,8 @@ export abstract class Theme {
   static create() {
     if (this._themeSingleton) return this._themeSingleton;
 
-    const THEME_KEY = TEXT_SNAP_CONSTS.store.keys.theme;
-    const [storeTheme, setStoreTheme] = TextSnapStore.createValue<themeOptions>(THEME_KEY);
+    const THEME_KEY = SNAPPIT_CONSTS.store.keys.theme;
+    const [storeTheme, setStoreTheme] = SnappitStore.createValue<themeOptions>(THEME_KEY);
 
     const preference = createMemo<themeOptions>(() => {
       const stored = storeTheme();
@@ -42,7 +42,6 @@ export abstract class Theme {
 
     createEffect(() => {
       const pref = preference();
-      console.log(pref);
       const effectiveDark = pref === "system" ? systemDark() : pref === "dark";
 
       if (typeof document !== "undefined") {

@@ -7,7 +7,7 @@ import { tooltip } from "@/shared/ui/tooltip";
 
 const tooltipText = () => (
   <>
-    <div class="whitespace-nowrap">TextSnap requires Screen Recording access on macOS.</div>
+    <div class="whitespace-nowrap">Snappit requires Screen Recording access on macOS.</div>
     <div>Follow the steps below to allow it.</div>
   </>
 );
@@ -47,7 +47,7 @@ export function PermissionsGate() {
           <ol class="list-decimal space-y-2 pl-5 text-sm">
             <li>Open macOS Screen Recording preferences.</li>
             <li>
-              Enable <strong>TextSnap</strong> and confirm.
+              Enable <strong>Snappit</strong> and confirm.
             </li>
             <li>Restart the app.</li>
           </ol>

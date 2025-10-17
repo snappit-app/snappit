@@ -1,7 +1,7 @@
 import { AutostartSettings } from "@/shared/autostart";
-import { TEXT_SNAP_CONSTS } from "@/shared/constants";
+import { SNAPPIT_CONSTS } from "@/shared/constants";
 import { NotificationSettings } from "@/shared/notifications/settings";
-import { TextSnapStore } from "@/shared/store";
+import { SnappitStore } from "@/shared/store";
 import { Theme } from "@/shared/theme";
 import { Switch, SwitchControl, SwitchLabel, SwitchThumb } from "@/shared/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle_group";
@@ -10,8 +10,8 @@ export function Preferences() {
   const [theme, setTheme] = Theme.create();
   const [notificationsEnabled, setNotificationsEnabled] = NotificationSettings.create();
   const [autostartEnabled, setAutostartEnabled, autostartReady] = AutostartSettings.create();
-  const [toolsEnabled, setToolsEnabled] = TextSnapStore.createValue<boolean>(
-    TEXT_SNAP_CONSTS.store.keys.tools_panel,
+  const [toolsEnabled, setToolsEnabled] = SnappitStore.createValue<boolean>(
+    SNAPPIT_CONSTS.store.keys.tools_panel,
   );
 
   return (

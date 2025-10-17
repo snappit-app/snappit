@@ -2,12 +2,12 @@ use once_cell::sync::Lazy;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
-pub struct TextSnapConstants {
-    pub store: TextSnapStoreType,
-    pub windows: TextSnapWindows,
+pub struct SnappitConstants {
+    pub store: SnappitStoreType,
+    pub windows: SnappitWindows,
 }
 #[derive(Debug, Deserialize)]
-pub struct TextSnapStoreType {
+pub struct SnappitStoreType {
     pub file: String,
     pub keys: TextSpanStoreKeys,
     pub color_dropper: TextSpanColorDropperKeys,
@@ -33,12 +33,12 @@ pub struct TextSpanColorDropperKeys {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct TextSnapWindows {
+pub struct SnappitWindows {
     pub settings: String,
     pub overlay: String,
 }
 
-pub static TEXT_SNAP_CONSTS: Lazy<TextSnapConstants> = Lazy::new(|| {
+pub static SNAPPIT_CONSTS: Lazy<SnappitConstants> = Lazy::new(|| {
     let raw = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../constants.json"));
-    serde_json::from_str::<TextSnapConstants>(raw).expect("Invalid constants.json")
+    serde_json::from_str::<SnappitConstants>(raw).expect("Invalid constants.json")
 });

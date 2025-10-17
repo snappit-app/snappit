@@ -1,18 +1,18 @@
 use image::{GrayImage, ImageBuffer, Rgba};
 use rqrr::PreparedImage;
 
-use crate::{text_snap_errors::TextSnapResult, traits::IntoDynamic};
+use crate::{snappit_errors::SnappitResult, traits::IntoDynamic};
 
-pub struct TextSnapQr;
+pub struct SnappitQr;
 
-impl TextSnapQr {
-    fn prepare(image: ImageBuffer<Rgba<u8>, Vec<u8>>) -> TextSnapResult<PreparedImage<GrayImage>> {
+impl SnappitQr {
+    fn prepare(image: ImageBuffer<Rgba<u8>, Vec<u8>>) -> SnappitResult<PreparedImage<GrayImage>> {
         let dynamic = (image.width(), image.height(), image.into_raw()).into_dynamic()?;
         let grayscale = dynamic.to_luma8();
         Ok(PreparedImage::prepare(grayscale))
     }
 
-    pub fn scan(image: ImageBuffer<Rgba<u8>, Vec<u8>>) -> TextSnapResult<Option<String>> {
+    pub fn scan(image: ImageBuffer<Rgba<u8>, Vec<u8>>) -> SnappitResult<Option<String>> {
         let mut prepared = Self::prepare(image)?;
         let grids = prepared.detect_grids();
 

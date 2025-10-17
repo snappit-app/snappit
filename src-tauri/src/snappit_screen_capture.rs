@@ -1,8 +1,8 @@
 use crate::platform::Platform;
 use crate::region_capture::RegionCapture;
 use crate::region_capture::RegionCaptureParams;
-use crate::text_snap_consts::TEXT_SNAP_CONSTS;
-use crate::text_snap_errors::{TextSnapError, TextSnapResult};
+use crate::snappit_consts::SNAPPIT_CONSTS;
+use crate::snappit_errors::{SnappitError, SnappitResult};
 use image::ImageBuffer;
 use image::Rgba;
 use serde::{Deserialize, Serialize};
@@ -10,19 +10,19 @@ use std::fmt;
 use tauri::AppHandle;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TextSnapColorInfo {
+pub struct SnappitColorInfo {
     pub hex: String,
     pub rgb: (u8, u8, u8),
     pub rgba: (u8, u8, u8, u8),
 }
 
-impl fmt::Display for TextSnapColorInfo {
+impl fmt::Display for SnappitColorInfo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.hex)
     }
 }
 
-impl TextSnapColorInfo {
+impl SnappitColorInfo {
     pub fn from_rgba(r: u8, g: u8, b: u8, a: u8) -> Self {
         let hex = format!("#{:02X}{:02X}{:02X}", r, g, b);
         Self {
@@ -33,18 +33,18 @@ impl TextSnapColorInfo {
     }
 }
 
-pub struct TextSnapScreenCapture;
+pub struct SnappitScreenCapture;
 
-impl TextSnapScreenCapture {
+impl SnappitScreenCapture {
     fn get_params() -> (u32, u32, u32) {
-        let radius = TEXT_SNAP_CONSTS.store.color_dropper.magnify_radius;
-        let ratio = TEXT_SNAP_CONSTS.store.color_dropper.magnify_ratio;
+        let radius = SNAPPIT_CONSTS.store.color_dropper.magnify_radius;
+        let ratio = SNAPPIT_CONSTS.store.color_dropper.magnify_ratio;
         let size = radius * 2 + 1;
 
         return (radius, ratio, size);
     }
 
-    fn capture_logical_grid(app: &AppHandle, x: u32, y: u32) -> TextSnapResult<Vec<Rgba<u8>>> {
+    fn capture_logical_grid(app: &AppHandle, x: u32, y: u32) -> SnappitResult<Vec<Rgba<u8>>> {
         let (radius, _, size) = Self::get_params();
 
         let tauri_monitor = Platform::monitor_from_cursor(app)?;
@@ -190,21 +190,21 @@ impl TextSnapScreenCapture {
     pub fn capture_color_at_img(
         app: &AppHandle,
         img: ImageBuffer<Rgba<u8>, Vec<u8>>,
-    ) -> TextSnapResult<TextSnapColorInfo> {
+    ) -> SnappitResult<SnappitColorInfo> {
         let _ = app;
 
         let width = img.width();
         let height = img.height();
 
         if width == 0 || height == 0 {
-            return Err(TextSnapError::BadRgbaFrameSize);
+            return Err(SnappitError::BadRgbaFrameSize);
         }
 
         let center_x = (width - 1) / 2;
         let center_y = (height - 1) / 2;
         let pixel = *img.get_pixel(center_x, center_y);
 
-        Ok(TextSnapColorInfo::from_rgba(
+        Ok(SnappitColorInfo::from_rgba(
             pixel[0], pixel[1], pixel[2], pixel[3],
         ))
     }
@@ -213,14 +213,14 @@ impl TextSnapScreenCapture {
         app: &AppHandle,
         x: u32,
         y: u32,
-    ) -> TextSnapResult<TextSnapColorInfo> {
+    ) -> SnappitResult<SnappitColorInfo> {
         let (radius, _, size) = Self::get_params();
 
         let grid = Self::capture_logical_grid(app, x, y)?;
         let center_index = (radius * size + radius) as usize;
         let pixel = grid[center_index];
 
-        Ok(TextSnapColorInfo::from_rgba(
+        Ok(SnappitColorInfo::from_rgba(
             pixel[0], pixel[1], pixel[2], pixel[3],
         ))
     }
@@ -229,7 +229,7 @@ impl TextSnapScreenCapture {
         app: &AppHandle,
         x: u32,
         y: u32,
-    ) -> TextSnapResult<ImageBuffer<Rgba<u8>, Vec<u8>>> {
+    ) -> SnappitResult<ImageBuffer<Rgba<u8>, Vec<u8>>> {
         let (_, ratio, size) = Self::get_params();
         let grid = Self::capture_logical_grid(app, x, y)?;
 

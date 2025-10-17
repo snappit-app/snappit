@@ -4920,6 +4920,39 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
+name = "snappit"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "colored",
+ "fs_extra",
+ "image",
+ "leptess",
+ "log",
+ "objc2-app-kit",
+ "once_cell",
+ "rqrr",
+ "serde",
+ "serde_json",
+ "strum",
+ "strum_macros",
+ "sys-locale",
+ "tauri",
+ "tauri-build",
+ "tauri-nspanel",
+ "tauri-plugin-autostart",
+ "tauri-plugin-clipboard-manager",
+ "tauri-plugin-global-shortcut",
+ "tauri-plugin-log",
+ "tauri-plugin-notification",
+ "tauri-plugin-opener",
+ "tauri-plugin-os",
+ "tauri-plugin-store",
+ "thiserror 2.0.16",
+ "xcap",
+]
+
+[[package]]
 name = "socket2"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5618,39 +5651,6 @@ dependencies = [
  "leptonica-sys",
  "pkg-config",
  "vcpkg",
-]
-
-[[package]]
-name = "text-snap"
-version = "0.1.0"
-dependencies = [
- "base64 0.22.1",
- "colored",
- "fs_extra",
- "image",
- "leptess",
- "log",
- "objc2-app-kit",
- "once_cell",
- "rqrr",
- "serde",
- "serde_json",
- "strum",
- "strum_macros",
- "sys-locale",
- "tauri",
- "tauri-build",
- "tauri-nspanel",
- "tauri-plugin-autostart",
- "tauri-plugin-clipboard-manager",
- "tauri-plugin-global-shortcut",
- "tauri-plugin-log",
- "tauri-plugin-notification",
- "tauri-plugin-opener",
- "tauri-plugin-os",
- "tauri-plugin-store",
- "thiserror 2.0.16",
- "xcap",
 ]
 
 [[package]]

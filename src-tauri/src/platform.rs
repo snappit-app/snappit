@@ -1,4 +1,4 @@
-use crate::text_snap_errors::{TextSnapError, TextSnapResult};
+use crate::snappit_errors::{SnappitError, SnappitResult};
 use objc2_app_kit::NSWindowLevel;
 use tauri::{LogicalPosition, LogicalSize, Monitor, Wry};
 use xcap::Monitor as XCapMonitor;
@@ -6,7 +6,7 @@ use xcap::Monitor as XCapMonitor;
 pub struct Platform;
 
 impl Platform {
-    pub fn monitor_from_cursor(app: &tauri::AppHandle<Wry>) -> TextSnapResult<Monitor> {
+    pub fn monitor_from_cursor(app: &tauri::AppHandle<Wry>) -> SnappitResult<Monitor> {
         let cursor_pos = app.cursor_position()?;
         let monitors = app.available_monitors()?;
 
@@ -25,12 +25,12 @@ impl Platform {
 
                 lx >= pos.x && lx <= x_max && ly >= pos.y && ly <= y_max
             })
-            .ok_or(TextSnapError::MonitorNotFound)?;
+            .ok_or(SnappitError::MonitorNotFound)?;
 
         Ok(monitor)
     }
 
-    pub fn xcap_monitor_from_cursor(app: &tauri::AppHandle<Wry>) -> TextSnapResult<XCapMonitor> {
+    pub fn xcap_monitor_from_cursor(app: &tauri::AppHandle<Wry>) -> SnappitResult<XCapMonitor> {
         let cursor_pos: tauri::PhysicalPosition<f64> = app.cursor_position()?;
         let monitors = XCapMonitor::all()?;
 
@@ -70,7 +70,7 @@ impl Platform {
                     None
                 }
             })
-            .ok_or(TextSnapError::MonitorNotFound)?;
+            .ok_or(SnappitError::MonitorNotFound)?;
 
         Ok(monitor)
     }

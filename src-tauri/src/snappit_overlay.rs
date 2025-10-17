@@ -3,11 +3,11 @@ use std::sync::Mutex;
 use std::thread::{self};
 use std::time::Duration;
 
-use crate::text_snap_errors::TextSnapResult;
-use crate::text_snap_settings::TextSnapSettings;
+use crate::snappit_errors::SnappitResult;
+use crate::snappit_settings::SnappitSettings;
 use crate::{
-    platform::Platform, text_snap_consts::TEXT_SNAP_CONSTS,
-    text_snap_permissions::TextSnapPermissions,
+    platform::Platform, snappit_consts::SNAPPIT_CONSTS,
+    snappit_permissions::SnappitPermissions,
 };
 use ::serde::{Deserialize, Serialize};
 use once_cell::sync::Lazy;
@@ -20,7 +20,7 @@ use tauri_nspanel::{
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum TextSnapOverlayTarget {
+pub enum SnappitOverlayTarget {
     SmartTool,
     TextCapture,
     DigitalRuler,
@@ -38,14 +38,14 @@ tauri_panel! {
     })
 }
 
-pub struct TextSnapOverlay;
+pub struct SnappitOverlay;
 
 static OVERLAY_LAST_MONITOR: Lazy<Mutex<Option<Monitor>>> = Lazy::new(|| Mutex::new(None));
 
 static MONITOR_THREAD_RUNNING: Lazy<AtomicBool> = Lazy::new(|| AtomicBool::new(false));
 
-impl TextSnapOverlay {
-    pub fn hide(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
+impl SnappitOverlay {
+    pub fn hide(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
         {
             let mut last = OVERLAY_LAST_MONITOR.lock().unwrap();
             *last = None;
@@ -75,17 +75,17 @@ impl TextSnapOverlay {
 
     pub fn show(
         app: &AppHandle<Wry>,
-        target: TextSnapOverlayTarget,
-    ) -> TextSnapResult<WebviewWindow> {
+        target: SnappitOverlayTarget,
+    ) -> SnappitResult<WebviewWindow> {
         Self::subscribe_monitor_changes(app);
         Self::actual_show(app, target)
     }
 
     fn actual_show(
         app: &AppHandle<Wry>,
-        target: TextSnapOverlayTarget,
-    ) -> TextSnapResult<WebviewWindow> {
-        TextSnapPermissions::ensure_for_overlay(app)?;
+        target: SnappitOverlayTarget,
+    ) -> SnappitResult<WebviewWindow> {
+        SnappitPermissions::ensure_for_overlay(app)?;
 
         let monitor = Platform::monitor_from_cursor(&app)?;
         {
@@ -100,8 +100,8 @@ impl TextSnapOverlay {
         overlay.set_size(physical_size)?;
         overlay.set_position(monitor.position().clone())?;
 
-        if TextSnapSettings::get_window(app)?.is_visible()? {
-            TextSnapSettings::hide(app)?;
+        if SnappitSettings::get_window(app)?.is_visible()? {
+            SnappitSettings::hide(app)?;
         }
 
         overlay.show()?;
@@ -113,7 +113,7 @@ impl TextSnapOverlay {
         Ok(overlay)
     }
 
-    pub fn preload(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
+    pub fn preload(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
         let (_, window) = Self::ensure_overlay_handles(app)?;
 
         let monitor = Platform::monitor_from_cursor(&app)?;
@@ -125,9 +125,9 @@ impl TextSnapOverlay {
     }
 
     fn builder<'a>(app: &'a AppHandle<Wry>) -> PanelBuilder<'a, Wry, SnapOverlayPanel> {
-        PanelBuilder::<_, SnapOverlayPanel>::new(app, TEXT_SNAP_CONSTS.windows.overlay.as_str())
+        PanelBuilder::<_, SnapOverlayPanel>::new(app, SNAPPIT_CONSTS.windows.overlay.as_str())
             .url(WebviewUrl::App("apps/snap_overlay/index.html".into()))
-            .title(TEXT_SNAP_CONSTS.windows.overlay.as_str())
+            .title(SNAPPIT_CONSTS.windows.overlay.as_str())
             .level(PanelLevel::PopUpMenu)
             .floating(true)
             .transparent(true)
@@ -158,8 +158,8 @@ impl TextSnapOverlay {
 
     fn get_overlay_handles(
         app: &AppHandle<Wry>,
-    ) -> TextSnapResult<(PanelHandle<Wry>, WebviewWindow)> {
-        let label = TEXT_SNAP_CONSTS.windows.overlay.as_str();
+    ) -> SnappitResult<(PanelHandle<Wry>, WebviewWindow)> {
+        let label = SNAPPIT_CONSTS.windows.overlay.as_str();
         let panel = app
             .get_webview_panel(label)
             .map_err(|_| TauriError::WebviewNotFound)?;
@@ -172,8 +172,8 @@ impl TextSnapOverlay {
 
     fn ensure_overlay_handles(
         app: &AppHandle<Wry>,
-    ) -> TextSnapResult<(PanelHandle<Wry>, WebviewWindow)> {
-        let label = TEXT_SNAP_CONSTS.windows.overlay.as_str();
+    ) -> SnappitResult<(PanelHandle<Wry>, WebviewWindow)> {
+        let label = SNAPPIT_CONSTS.windows.overlay.as_str();
         let panel = match app.get_webview_panel(label) {
             Ok(panel) => panel,
             Err(_) => Self::builder(app).build()?,
@@ -204,7 +204,7 @@ impl TextSnapOverlay {
         MONITOR_THREAD_RUNNING.store(false, Ordering::SeqCst);
     }
 
-    fn detect_monitor_changed(app: &AppHandle<Wry>) -> TextSnapResult<()> {
+    fn detect_monitor_changed(app: &AppHandle<Wry>) -> SnappitResult<()> {
         let monitor = Platform::monitor_from_cursor(&app)?;
         let last_monitor = OVERLAY_LAST_MONITOR.lock().unwrap().clone();
 
@@ -212,7 +212,7 @@ impl TextSnapOverlay {
             if monitor.position() != last.position() {
                 let app_clone = app.clone();
                 app.run_on_main_thread(move || {
-                    if let Err(err) = Self::actual_show(&app_clone, TextSnapOverlayTarget::None) {
+                    if let Err(err) = Self::actual_show(&app_clone, SnappitOverlayTarget::None) {
                         log::error!(
                             "Failed to reposition overlay after monitor change: {:?}",
                             err

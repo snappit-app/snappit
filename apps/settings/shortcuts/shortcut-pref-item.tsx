@@ -13,15 +13,15 @@ import { fromGlobalShortcut, toGlobalShortcut } from "@/shared/libs/shortcut_rec
 import { RecordTooltip } from "@/shared/libs/shortcut_recorder";
 import createShortcutRecorder from "@/shared/libs/shortcut_recorder/shortcut_recorder";
 import { SnapOverlayApi } from "@/shared/tauri/snap_overlay_api";
-import { TextSnapOverlayTarget } from "@/shared/tauri/snap_overlay_target";
-import { TextSnapTrayApi } from "@/shared/tauri/snap_tray_api";
+import { SnappitOverlayTarget } from "@/shared/tauri/snap_overlay_target";
+import { SnappitTrayApi } from "@/shared/tauri/snap_tray_api";
 import { Button } from "@/shared/ui/button";
 import { KeyboardButton } from "@/shared/ui/keyboard_button";
 
 type ShortcutPreferenceItem = {
   label: string;
   storeKey: string;
-  target: TextSnapOverlayTarget;
+  target: SnappitOverlayTarget;
 };
 
 export const SMART_SHORTCUT: ShortcutPreferenceItem = {
@@ -80,7 +80,7 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
     void (async () => {
       const globalShortcut = toGlobalShortcut(latest);
       await setStoreShortcut(globalShortcut);
-      await TextSnapTrayApi.updateShortcut(props.item.target);
+      await SnappitTrayApi.updateShortcut(props.item.target);
     })();
   });
 

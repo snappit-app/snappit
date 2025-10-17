@@ -1,19 +1,19 @@
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { createEffect, createSignal } from "solid-js";
 
-import { TEXT_SNAP_CONSTS } from "@/shared/constants";
-import { TextSnapStore } from "@/shared/store";
+import { SNAPPIT_CONSTS } from "@/shared/constants";
+import { SnappitStore } from "@/shared/store";
 
 type AutostartPreference = readonly [() => boolean, (next: boolean) => void, () => boolean];
 
 export abstract class AutostartSettings {
-  private static readonly KEY = TEXT_SNAP_CONSTS.store.keys.autostart;
+  private static readonly KEY = SNAPPIT_CONSTS.store.keys.autostart;
   private static _singleton: AutostartPreference | null = null;
 
   static create(): AutostartPreference {
     if (this._singleton) return this._singleton;
 
-    const [storeValue, setStoreValue] = TextSnapStore.createValue<boolean>(this.KEY);
+    const [storeValue, setStoreValue] = SnappitStore.createValue<boolean>(this.KEY);
     const [enabled, setEnabled] = createSignal<boolean>(false);
     const [initialized, setInitialized] = createSignal(false);
     const [updating, setUpdating] = createSignal(false);

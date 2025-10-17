@@ -1,9 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
 
-import { TextSnapOverlayTarget } from "@/shared/tauri/snap_overlay_target";
+import { SnappitOverlayTarget } from "@/shared/tauri/snap_overlay_target";
 
-export abstract class TextSnapTrayApi {
-  static async updateShortcut(target: TextSnapOverlayTarget) {
+export abstract class SnappitTrayApi {
+  static async updateShortcut(target: SnappitOverlayTarget) {
     return invoke("update_tray_shortcut", { target });
   }
 

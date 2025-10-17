@@ -1,19 +1,19 @@
 import { load } from "@tauri-apps/plugin-store";
 import { createEffect, createMemo, createSignal } from "solid-js";
 
-import { TEXT_SNAP_CONSTS } from "@/shared/constants";
-import { TextSnapStore } from "@/shared/store";
+import { SNAPPIT_CONSTS } from "@/shared/constants";
+import { SnappitStore } from "@/shared/store";
 
 type NotificationPreference = readonly [() => boolean, (next: boolean) => void];
 
 export abstract class NotificationSettings {
-  private static readonly KEY = TEXT_SNAP_CONSTS.store.keys.notifications;
+  private static readonly KEY = SNAPPIT_CONSTS.store.keys.notifications;
   private static _singleton: NotificationPreference | null = null;
 
   static create(): NotificationPreference {
     if (this._singleton) return this._singleton;
 
-    const [storeValue, setStoreValue] = TextSnapStore.createValue<boolean>(this.KEY);
+    const [storeValue, setStoreValue] = SnappitStore.createValue<boolean>(this.KEY);
 
     const enabled = createMemo(() => {
       const value = storeValue();
@@ -30,7 +30,7 @@ export abstract class NotificationSettings {
 
   static async isEnabled(): Promise<boolean> {
     try {
-      const store = await load(TEXT_SNAP_CONSTS.store.file);
+      const store = await load(SNAPPIT_CONSTS.store.file);
       const value = await store.get<boolean>(this.KEY);
       if (typeof value === "boolean") {
         return value;

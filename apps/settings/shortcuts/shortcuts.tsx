@@ -9,7 +9,7 @@ export function Shortcuts() {
         <div class="mb-4">
           <h2 class="font-bold text-lg">Tool Shortcuts</h2>
           <p class="text-sm text-muted-foreground">
-            Set dedicated shortcuts for each TextSnap tool.
+            Set dedicated shortcuts for each Snappit tool.
           </p>
         </div>
 

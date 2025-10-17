@@ -3,7 +3,7 @@ import { createMemo, createSignal, Show } from "solid-js";
 
 import { onRulerSuccess } from "@/apps/snap_overlay/ruler/on_success";
 import { createScreenMagnifier, ScreenMagnifier } from "@/apps/snap_overlay/screen_magnifier";
-import { TEXT_SNAP_CONSTS } from "@/shared/constants";
+import { SNAPPIT_CONSTS } from "@/shared/constants";
 import { SnapOverlayApi } from "@/shared/tauri/snap_overlay_api";
 import { KeyboardButton } from "@/shared/ui/keyboard_button";
 
@@ -21,7 +21,7 @@ function resolveAxisLock(start: Point, target: Point): AxisLock {
   return Math.abs(dy) <= Math.abs(dx) ? "y" : "x";
 }
 
-const ratio = TEXT_SNAP_CONSTS.store.color_dropper.magnify_ratio;
+const ratio = SNAPPIT_CONSTS.store.color_dropper.magnify_ratio;
 
 export function Ruler() {
   const magnifierSrc = createScreenMagnifier();

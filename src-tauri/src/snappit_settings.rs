@@ -3,19 +3,19 @@ use tauri::{
     WebviewWindowBuilder, WindowEvent, Wry,
 };
 
-use crate::{text_snap_consts::TEXT_SNAP_CONSTS, text_snap_errors::TextSnapResult};
+use crate::{snappit_consts::SNAPPIT_CONSTS, snappit_errors::SnappitResult};
 
-pub struct TextSnapSettings;
+pub struct SnappitSettings;
 
-impl TextSnapSettings {
-    pub fn get_window(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
+impl SnappitSettings {
+    pub fn get_window(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
         let window = app
-            .get_webview_window(TEXT_SNAP_CONSTS.windows.settings.as_str())
+            .get_webview_window(SNAPPIT_CONSTS.windows.settings.as_str())
             .ok_or_else(|| TauriError::WebviewNotFound)?;
         return Ok(window);
     }
 
-    pub fn hide(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
+    pub fn hide(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
         let window = Self::get_window(app)?;
 
         #[cfg(target_os = "macos")]
@@ -26,20 +26,21 @@ impl TextSnapSettings {
         Ok(window)
     }
 
-    pub fn show(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
+    pub fn show(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
         let window = Self::get_window(app)?;
 
         #[cfg(target_os = "macos")]
         app.set_activation_policy(tauri::ActivationPolicy::Regular)?;
 
         window.show()?;
+
         window.emit("settings:shown", true)?;
         window.set_focus()?;
 
         Ok(window)
     }
 
-    pub fn preload(app: &AppHandle<Wry>) -> TextSnapResult<WebviewWindow> {
+    pub fn preload(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
         let window = Self::builder(app)
             .fullscreen(false)
             .shadow(false)
@@ -57,7 +58,7 @@ impl TextSnapSettings {
         window.on_window_event(move |event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
                 api.prevent_close();
-                if let Err(err) = TextSnapSettings::hide(&app_clone) {
+                if let Err(err) = SnappitSettings::hide(&app_clone) {
                     log::error!("Fail to hide setting window on CloseRequested: {err}");
                 }
             }
@@ -69,10 +70,10 @@ impl TextSnapSettings {
     fn builder<'a>(app: &'a AppHandle<Wry>) -> WebviewWindowBuilder<'a, Wry, AppHandle<Wry>> {
         let builder = WebviewWindow::builder(
             app,
-            TEXT_SNAP_CONSTS.windows.settings.as_str(),
+            SNAPPIT_CONSTS.windows.settings.as_str(),
             WebviewUrl::App("apps/settings/index.html".into()),
         )
-        .title("TextSnap Settings")
+        .title("Snappit Settings")
         .visible(false)
         .accept_first_mouse(true)
         .shadow(true);

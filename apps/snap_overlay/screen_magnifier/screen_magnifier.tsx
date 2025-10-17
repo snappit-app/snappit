@@ -2,12 +2,12 @@ import { createEventListener } from "@solid-primitives/event-listener";
 import { throttle } from "@solid-primitives/scheduled";
 import { Accessor, createSignal, onCleanup } from "solid-js";
 
-import { TEXT_SNAP_CONSTS } from "@/shared/constants";
+import { SNAPPIT_CONSTS } from "@/shared/constants";
 import { RegionCaptureApi } from "@/shared/tauri/region_capture_api";
 import { ColorDropperApi } from "@/shared/tauri/screen_capture_api";
 
-const ratio = TEXT_SNAP_CONSTS.store.color_dropper.magnify_ratio;
-const size = TEXT_SNAP_CONSTS.store.color_dropper.magnify_radius * 2 + 1;
+const ratio = SNAPPIT_CONSTS.store.color_dropper.magnify_ratio;
+const size = SNAPPIT_CONSTS.store.color_dropper.magnify_radius * 2 + 1;
 const magnifyDim = ratio * size;
 
 interface screenMagnifierProps {

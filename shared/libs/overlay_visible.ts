@@ -2,13 +2,13 @@ import { UnlistenFn } from "@tauri-apps/api/event";
 import { createSignal, onCleanup, onMount } from "solid-js";
 
 import { SnapOverlayApi } from "@/shared/tauri/snap_overlay_api";
-import { TextSnapOverlayTarget } from "@/shared/tauri/snap_overlay_target";
+import { SnappitOverlayTarget } from "@/shared/tauri/snap_overlay_target";
 
 export function createOverlayVisible() {
   let unlistenShown: UnlistenFn | undefined;
   let unlistenHidden: UnlistenFn | undefined;
   const [windowVisible, setWindowVisible] = createSignal<boolean>(false);
-  const [target, setTarget] = createSignal<TextSnapOverlayTarget>("smart_tool");
+  const [target, setTarget] = createSignal<SnappitOverlayTarget>("smart_tool");
 
   onMount(async () => {
     unlistenShown = await SnapOverlayApi.onShown(async (tool) => {

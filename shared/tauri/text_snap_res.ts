@@ -1,18 +1,18 @@
 import { ColorInfo } from "@/shared/tauri/screen_capture_api";
 
-export interface TextSnapQrResponse {
+export interface SnappitQrResponse {
   kind: "qr";
   payload: string;
 }
 
-export interface TextSnapOcrResponse {
+export interface SnappitOcrResponse {
   kind: "ocr";
   payload: string;
 }
 
-export interface TextSnapDropperResponse {
+export interface SnappitDropperResponse {
   kind: "dropper";
   payload: ColorInfo;
 }
 
-export type TextSnapResponse = TextSnapQrResponse | TextSnapOcrResponse | TextSnapDropperResponse;
+export type SnappitResponse = SnappitQrResponse | SnappitOcrResponse | SnappitDropperResponse;

@@ -5,7 +5,7 @@ import { JSX, onCleanup, splitProps } from "solid-js";
 
 import { cn } from "@/shared/libs/cn";
 import { createDnd } from "@/shared/libs/dnd";
-import { TextSnapOverlayTarget } from "@/shared/tauri/snap_overlay_target";
+import { SnappitOverlayTarget } from "@/shared/tauri/snap_overlay_target";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle_group";
 import { tooltip } from "@/shared/ui/tooltip";
 
@@ -13,8 +13,8 @@ void tooltip;
 
 export type toolsProps = JSX.HTMLAttributes<HTMLDivElement> & {
   class?: string;
-  value: TextSnapOverlayTarget;
-  onValueChange: (value: TextSnapOverlayTarget) => void;
+  value: SnappitOverlayTarget;
+  onValueChange: (value: SnappitOverlayTarget) => void;
 };
 
 export function Tools(props: toolsProps) {

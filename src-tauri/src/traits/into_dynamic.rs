@@ -5,27 +5,27 @@ use image::{
     ImageFormat, Rgba,
 };
 
-use crate::text_snap_errors::{TextSnapError, TextSnapResult};
+use crate::snappit_errors::{SnappitError, SnappitResult};
 
 pub trait IntoDynamic {
-    fn into_dynamic(self) -> TextSnapResult<DynamicImage>;
+    fn into_dynamic(self) -> SnappitResult<DynamicImage>;
 }
 
 impl IntoDynamic for (u32, u32, Vec<u8>) {
-    fn into_dynamic(self) -> TextSnapResult<DynamicImage> {
+    fn into_dynamic(self) -> SnappitResult<DynamicImage> {
         let (width, height, bytes) = self;
         let buf = ImageBuffer::<Rgba<u8>, Vec<u8>>::from_raw(width, height, bytes)
-            .ok_or(TextSnapError::BadRgbaFrameSize)?;
+            .ok_or(SnappitError::BadRgbaFrameSize)?;
         Ok(DynamicImage::ImageRgba8(buf))
     }
 }
 
 pub trait IntoPngByes {
-    fn into_png_bytes(self) -> TextSnapResult<Vec<u8>>;
+    fn into_png_bytes(self) -> SnappitResult<Vec<u8>>;
 }
 
 impl IntoPngByes for ImageBuffer<Rgba<u8>, Vec<u8>> {
-    fn into_png_bytes(self) -> TextSnapResult<Vec<u8>> {
+    fn into_png_bytes(self) -> SnappitResult<Vec<u8>> {
         let width = self.width();
         let height = self.height();
 

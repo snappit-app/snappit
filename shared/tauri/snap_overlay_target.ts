@@ -1,4 +1,4 @@
-export type TextSnapOverlayTarget =
+export type SnappitOverlayTarget =
   | "smart_tool"
   | "text_capture"
   | "digital_ruler"

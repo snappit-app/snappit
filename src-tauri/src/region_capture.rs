@@ -1,4 +1,4 @@
-use crate::text_snap_errors::TextSnapResult;
+use crate::snappit_errors::SnappitResult;
 use colored::Colorize;
 use image::{ImageBuffer, Rgba};
 use serde::Deserialize;
@@ -25,7 +25,7 @@ impl RegionCapture {
     pub fn capture(
         app: &AppHandle<Wry>,
         params: RegionCaptureParams,
-    ) -> TextSnapResult<ImageBuffer<Rgba<u8>, Vec<u8>>> {
+    ) -> SnappitResult<ImageBuffer<Rgba<u8>, Vec<u8>>> {
         let monitor = Platform::xcap_monitor_from_cursor(app)?;
         let monitor_w = monitor.width()?;
         let monitor_h = monitor.height()?;
@@ -46,7 +46,7 @@ impl RegionCapture {
     pub fn capture_around_cursor(
         app: &AppHandle<Wry>,
         params: RegionCaptureParams,
-    ) -> TextSnapResult<ImageBuffer<Rgba<u8>, Vec<u8>>> {
+    ) -> SnappitResult<ImageBuffer<Rgba<u8>, Vec<u8>>> {
         let left_top_x = params.x.saturating_sub(params.width / 2);
         let left_top_y = params.y.saturating_sub(params.height / 2);
 
