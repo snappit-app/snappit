@@ -1,8 +1,5 @@
-use std::io::Cursor;
-
 use image::{
-    codecs::png::PngEncoder, DynamicImage, ExtendedColorType, ImageBuffer, ImageEncoder,
-    ImageFormat, Rgba,
+    codecs::png::PngEncoder, DynamicImage, ExtendedColorType, ImageBuffer, ImageEncoder, Rgba,
 };
 
 use crate::snappit_errors::{SnappitError, SnappitResult};

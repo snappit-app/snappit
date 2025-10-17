@@ -1,5 +1,4 @@
 use crate::snappit_errors::SnappitResult;
-use colored::Colorize;
 use image::{ImageBuffer, Rgba};
 use serde::Deserialize;
 use tauri::{AppHandle, Wry};

@@ -54,70 +54,61 @@ pub enum SnappitError {
 
     #[error("Missing permissions: {0}")]
     MissingPermissions(&'static str),
+
+    #[error("Missing permissions")]
+    Other,
 }
 
 pub type SnappitResult<T> = Result<T, SnappitError>;
+
+impl SnappitError {
+    fn skip_default_logging(&self) -> bool {
+        matches!(self, SnappitError::MissingPermissions(_))
+    }
+}
+
+pub trait SnappitResultExt<T> {
+    fn log_on_err(self);
+
+    fn log_on_err_with(self, context: &str);
+
+    fn log_on_err_with_filter<F>(self, context: &str, filter: F)
+    where
+        F: FnOnce(&SnappitError) -> bool;
+}
+
+impl<T> SnappitResultExt<T> for SnappitResult<T> {
+    fn log_on_err(self) {
+        self.log_on_err_with("Snappit error");
+    }
+
+    fn log_on_err_with(self, context: &str) {
+        self.log_on_err_with_filter(context, SnappitError::skip_default_logging);
+    }
+
+    fn log_on_err_with_filter<F>(self, context: &str, filter: F)
+    where
+        F: FnOnce(&SnappitError) -> bool,
+    {
+        if let Err(err) = self {
+            if filter(&err) {
+                return;
+            }
+
+            if matches!(err, SnappitError::MissingPermissions(_)) {
+                log::warn!("{context}: {err}");
+            } else {
+                log::error!("{context}: {err}");
+            }
+        }
+    }
+}
 
 impl From<SnappitError> for TauriError {
     fn from(err: SnappitError) -> Self {
         match err {
             SnappitError::Tauri(e) => e,
-            SnappitError::XCap(e) => TauriError::Anyhow(e.into()),
-            SnappitError::Store(e) => TauriError::Anyhow(e.into()),
-            SnappitError::PixError(e) => TauriError::Anyhow(e.into()),
-            SnappitError::TessInitError(e) => TauriError::Anyhow(e.into()),
-            SnappitError::Utf8Error(e) => TauriError::Anyhow(e.into()),
-            SnappitError::ImageError(e) => TauriError::Anyhow(e.into()),
-            SnappitError::IoError(e) => TauriError::Anyhow(e.into()),
-            SnappitError::ConstUndefined => TauriError::Anyhow(
-                std::io::Error::new(std::io::ErrorKind::NotFound, "Const undefined").into(),
-            ),
-            SnappitError::MonitorNotFound => TauriError::Anyhow(
-                std::io::Error::new(std::io::ErrorKind::NotFound, "Monitor not found").into(),
-            ),
-            SnappitError::BadRgbaFrameSize => TauriError::Anyhow(
-                std::io::Error::new(std::io::ErrorKind::InvalidData, "Bad RGBA frame size").into(),
-            ),
-            SnappitError::ModelDirNotFound => TauriError::Anyhow(
-                std::io::Error::new(std::io::ErrorKind::NotFound, "Model DIR not found").into(),
-            ),
-            SnappitError::PaddleModelNotFound => TauriError::Anyhow(
-                std::io::Error::new(
-                    std::io::ErrorKind::NotFound,
-                    "Missing models: need det, cls, rec .onnx files",
-                )
-                .into(),
-            ),
-            SnappitError::MissingPermissions(msg) => TauriError::Anyhow(
-                std::io::Error::new(std::io::ErrorKind::PermissionDenied, msg).into(),
-            ),
-            SnappitError::Shortcut(err) => TauriError::Anyhow(
-                std::io::Error::new(std::io::ErrorKind::Other, err.to_string()).into(),
-            ),
-        }
-    }
-}
-
-impl From<SnappitError> for XCapError {
-    fn from(err: SnappitError) -> Self {
-        match err {
-            SnappitError::XCap(e) => e,
-            SnappitError::Tauri(e) => XCapError::Error(e.to_string()),
-            SnappitError::Store(e) => XCapError::Error(e.to_string()),
-            SnappitError::PixError(e) => XCapError::Error(e.to_string()),
-            SnappitError::TessInitError(e) => XCapError::Error(e.to_string()),
-            SnappitError::Utf8Error(e) => XCapError::Error(e.to_string()),
-            SnappitError::ImageError(e) => XCapError::Error(e.to_string()),
-            SnappitError::IoError(e) => XCapError::Error(e.to_string()),
-            SnappitError::ConstUndefined => XCapError::new("Const undefined"),
-            SnappitError::MonitorNotFound => XCapError::new("Monitor not found under cursor"),
-            SnappitError::BadRgbaFrameSize => XCapError::new("Bad RGBA frame size"),
-            SnappitError::ModelDirNotFound => XCapError::new("Model DIR not found"),
-            SnappitError::PaddleModelNotFound => {
-                XCapError::new("Missing models: need det, cls, rec .onnx files")
-            }
-            SnappitError::MissingPermissions(msg) => XCapError::Error(msg.to_string()),
-            SnappitError::Shortcut(err) => XCapError::Error(err.to_string()),
+            other => TauriError::Anyhow(other.into()),
         }
     }
 }

@@ -1,6 +1,5 @@
 use std::{io::Cursor, path::PathBuf};
 
-use colored::Colorize;
 use image::{DynamicImage, ImageFormat};
 use leptess::LepTess;
 use tauri::Manager;

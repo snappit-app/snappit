@@ -1,4 +1,3 @@
-use colored::Colorize;
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
 use tauri::http::{Request, Response};

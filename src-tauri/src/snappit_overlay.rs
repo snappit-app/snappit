@@ -3,13 +3,14 @@ use std::sync::Mutex;
 use std::thread::{self};
 use std::time::Duration;
 
-use crate::snappit_errors::SnappitResult;
+use crate::snappit_errors::{SnappitResult, SnappitResultExt};
 use crate::snappit_settings::SnappitSettings;
 use crate::snappit_shortcut_manager::SnappitShortcutManager;
 use crate::{
     platform::Platform, snappit_consts::SNAPPIT_CONSTS, snappit_permissions::SnappitPermissions,
 };
 use ::serde::{Deserialize, Serialize};
+use colored::Colorize;
 use once_cell::sync::Lazy;
 use tauri::{
     AppHandle, Emitter, Error as TauriError, Manager, Monitor, WebviewUrl, WebviewWindow, Wry,
@@ -55,7 +56,7 @@ impl SnappitOverlay {
 
         let (panel, overlay) = Self::get_overlay_handles(app)?;
 
-        log::info!("hidden");
+        log::info!("{}", "snap_overlay hidden".blue());
         overlay.emit("snap_overlay:hidden", true)?;
         panel.hide();
         overlay.hide()?;
@@ -107,7 +108,7 @@ impl SnappitOverlay {
 
         overlay.show()?;
         panel.show_and_make_key();
-        log::info!("shown");
+        log::info!("{}", "snap_overlay shown".blue());
 
         overlay.emit("snap_overlay:shown", target)?;
         overlay.set_focus()?;
@@ -215,12 +216,7 @@ impl SnappitOverlay {
             if monitor.position() != last.position() {
                 let app_clone = app.clone();
                 app.run_on_main_thread(move || {
-                    if let Err(err) = Self::actual_show(&app_clone, SnappitOverlayTarget::None) {
-                        log::error!(
-                            "Failed to reposition overlay after monitor change: {:?}",
-                            err
-                        );
-                    }
+                    Self::actual_show(&app_clone, SnappitOverlayTarget::None).log_on_err();
                 })?;
             }
         }

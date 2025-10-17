@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
 
+use colored::Colorize;
 use once_cell::sync::Lazy;
 use serde_json::json;
 use tauri::{AppHandle, Wry};
@@ -8,7 +9,7 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutEvent, ShortcutSta
 
 use crate::{
     snappit_consts::SNAPPIT_CONSTS,
-    snappit_errors::{SnappitError, SnappitResult},
+    snappit_errors::{SnappitError, SnappitResult, SnappitResultExt},
     snappit_overlay::{SnappitOverlay, SnappitOverlayTarget},
     snappit_store::SnappitStore,
 };
@@ -47,15 +48,11 @@ impl SnappitShortcutManager {
         let app_clone = app.clone();
 
         tauri::async_runtime::spawn(async move {
-            app_clone.global_shortcut().on_shortcut(
+            let _ = app_clone.global_shortcut().on_shortcut(
                 accelerator.as_str(),
                 move |app_handle, _shortcut, event: ShortcutEvent| {
                     if event.state == ShortcutState::Released {
-                        if let Err(err) = SnappitOverlay::hide(&app_handle) {
-                            if !matches!(err, SnappitError::MissingPermissions(_)) {
-                                log::error!("Failed to register hide shortcut {:?}", err);
-                            }
-                        }
+                        SnappitOverlay::hide(&app_handle).log_on_err();
                     }
                 },
             );
@@ -80,7 +77,7 @@ impl SnappitShortcutManager {
                 .global_shortcut()
                 .is_registered(accelerator.as_str())
             {
-                app_clone.global_shortcut().unregister(accelerator.as_str());
+                let _ = app_clone.global_shortcut().unregister(accelerator.as_str());
             }
         });
 
@@ -157,15 +154,9 @@ impl SnappitShortcutManager {
                 accelerator_string.as_str(),
                 move |app_handle, _shortcut, event: ShortcutEvent| {
                     if event.state == ShortcutState::Pressed {
-                        if let Err(err) = SnappitOverlay::show(&app_handle, target_for_handler) {
-                            if !matches!(err, SnappitError::MissingPermissions(_)) {
-                                log::error!(
-                                    "Failed to show overlay for {:?}: {:?}",
-                                    target_for_handler,
-                                    err
-                                );
-                            }
-                        }
+                        SnappitOverlay::show(&app_handle, target_for_handler).log_on_err_with(
+                            &format!("Failed to show overlay for {:?}", target_for_handler),
+                        );
                     }
                 },
             )?;

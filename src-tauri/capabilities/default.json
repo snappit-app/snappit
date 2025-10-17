@@ -19,6 +19,7 @@
     "global-shortcut:default",
     "store:default",
     "notification:default",
-    "autostart:default"
+    "autostart:default",
+    "log:default"
   ]
 }

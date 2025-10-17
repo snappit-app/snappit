@@ -145,6 +145,7 @@ async fn recognize_region_text(
     params: RegionCaptureParams,
 ) -> tauri::Result<SnappitResponse> {
     let app_handle = app.clone();
+    read_config()?;
 
     let task = spawn_blocking(move || -> SnappitResult<_> {
         let image = RegionCapture::capture(&app_handle, params)?;
@@ -207,15 +208,27 @@ fn sync_shortcut(app: AppHandle, target: SnappitOverlayTarget) -> tauri::Result<
     Ok(())
 }
 
+#[tauri::command]
+fn read_config() -> tauri::Result<()> {
+    match std::fs::read_to_string("asdasdasd.json") {
+        Ok(_) => Ok(()),
+        Err(err) => Err(err.into()),
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
-    tauri::Builder::default()
+pub fn run() -> tauri::Result<()> {
+    return tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_log::Builder::default().build())
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(log::LevelFilter::Debug)
+                .build(),
+        )
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_autostart::Builder::new().build())
         .plugin(tauri_nspanel::init())
@@ -262,8 +275,8 @@ pub fn run() {
             get_permissions_state,
             request_screen_recording_permission,
             open_screen_recording_settings,
-            sync_shortcut
+            sync_shortcut,
+            read_config,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .run(tauri::generate_context!());
 }
