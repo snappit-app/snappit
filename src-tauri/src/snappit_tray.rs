@@ -7,11 +7,12 @@ use tauri::{
     AppHandle, Wry,
 };
 
-use crate::snappit_overlay::{SnappitOverlay, SnappitOverlayTarget};
 use crate::{
     snappit_consts::SNAPPIT_CONSTS,
     snappit_errors::{SnappitError, SnappitResult},
+    snappit_overlay::{SnappitOverlay, SnappitOverlayTarget},
     snappit_settings::SnappitSettings,
+    snappit_shortcut_manager::SnappitShortcutManager,
     snappit_store::SnappitStore,
 };
 
@@ -278,9 +279,7 @@ impl SnappitTray {
             SnappitOverlayTarget::ColorDropper => {
                 Some((SnappitTrayItemId::ColorDropper, hotkey_color_dropper_key))
             }
-            SnappitOverlayTarget::QrScanner => {
-                Some((SnappitTrayItemId::Qr, hotkey_qr_scanner_key))
-            }
+            SnappitOverlayTarget::QrScanner => Some((SnappitTrayItemId::Qr, hotkey_qr_scanner_key)),
             SnappitOverlayTarget::None => None,
         }
     }
@@ -289,10 +288,8 @@ impl SnappitTray {
         app: &AppHandle<Wry>,
         target: SnappitOverlayTarget,
     ) -> SnappitResult<()> {
-        if let Some((tray_item_id, store_key_fn)) = Self::resolve_shortcut_target(target) {
-            let store_key = store_key_fn();
-            let accelerator = SnappitStore::get_value(app, store_key.as_str())?
-                .and_then(|value| value.as_str().map(|s| s.to_string()));
+        if let Some((tray_item_id, _)) = Self::resolve_shortcut_target(target) {
+            let accelerator = SnappitShortcutManager::sync_target(app, target)?;
 
             Self::update_shortcut(app, tray_item_id, accelerator.as_deref())?;
         }
@@ -332,6 +329,7 @@ impl SnappitTray {
                         let key = key_fn();
                         SnappitStore::get_value(app, key.as_str())?
                             .and_then(|v| v.as_str().map(|s| s.to_string()))
+                            .filter(|value| !value.is_empty())
                     } else {
                         None
                     };

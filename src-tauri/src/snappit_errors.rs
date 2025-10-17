@@ -3,6 +3,7 @@ use std::{io, str::Utf8Error};
 use image::ImageError;
 use leptess::{leptonica::PixError, tesseract::TessInitError};
 use tauri::Error as TauriError;
+use tauri_plugin_global_shortcut::Error as ShortcutError;
 use tauri_plugin_store::Error as StoreError;
 use thiserror::Error;
 use xcap::XCapError;
@@ -32,6 +33,9 @@ pub enum SnappitError {
 
     #[error("IO error: {0}")]
     IoError(#[from] io::Error),
+
+    #[error("Shortcut error: {0}")]
+    Shortcut(#[from] ShortcutError),
 
     #[error("Monitor not found under cursor")]
     MonitorNotFound,
@@ -81,6 +85,9 @@ impl From<SnappitError> for TauriError {
             SnappitError::MissingPermissions(msg) => TauriError::Anyhow(
                 std::io::Error::new(std::io::ErrorKind::PermissionDenied, msg).into(),
             ),
+            SnappitError::Shortcut(err) => TauriError::Anyhow(
+                std::io::Error::new(std::io::ErrorKind::Other, err.to_string()).into(),
+            ),
         }
     }
 }
@@ -103,6 +110,7 @@ impl From<SnappitError> for XCapError {
                 XCapError::new("Missing models: need det, cls, rec .onnx files")
             }
             SnappitError::MissingPermissions(msg) => XCapError::Error(msg.to_string()),
+            SnappitError::Shortcut(err) => XCapError::Error(err.to_string()),
         }
     }
 }

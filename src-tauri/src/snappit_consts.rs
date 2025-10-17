@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 
@@ -5,6 +7,7 @@ use serde::Deserialize;
 pub struct SnappitConstants {
     pub store: SnappitStoreType,
     pub windows: SnappitWindows,
+    pub defaults: SnappitDefaults,
 }
 #[derive(Debug, Deserialize)]
 pub struct SnappitStoreType {
@@ -30,6 +33,11 @@ pub struct TextSpanStoreKeys {
 pub struct TextSpanColorDropperKeys {
     pub magnify_ratio: u32,
     pub magnify_radius: u32,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SnappitDefaults {
+    pub shortcuts: HashMap<String, String>,
 }
 
 #[derive(Debug, Deserialize)]

@@ -22,5 +22,14 @@
   "windows": {
     "settings": "settings",
     "overlay": "snap_overlay"
+  },
+  "defaults": {
+    "shortcuts": {
+      "hotkey.capture": "CommandOrControl+Shift+2",
+      "hotkey.text_capture": "",
+      "hotkey.digital_ruler": "",
+      "hotkey.color_dropper": "",
+      "hotkey.qr_scanner": ""
+    }
   }
 }

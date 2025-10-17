@@ -6,8 +6,7 @@ use std::time::Duration;
 use crate::snappit_errors::SnappitResult;
 use crate::snappit_settings::SnappitSettings;
 use crate::{
-    platform::Platform, snappit_consts::SNAPPIT_CONSTS,
-    snappit_permissions::SnappitPermissions,
+    platform::Platform, snappit_consts::SNAPPIT_CONSTS, snappit_permissions::SnappitPermissions,
 };
 use ::serde::{Deserialize, Serialize};
 use once_cell::sync::Lazy;
@@ -18,7 +17,7 @@ use tauri_nspanel::{
     tauri_panel, CollectionBehavior, ManagerExt, PanelBuilder, PanelHandle, PanelLevel, StyleMask,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SnappitOverlayTarget {
     SmartTool,

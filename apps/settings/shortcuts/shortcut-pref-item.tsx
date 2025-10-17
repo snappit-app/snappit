@@ -6,6 +6,7 @@ import {
   DEFAULT_SHORTCUTS,
   DIGITAL_RULER_SHORTCUT_KEY,
   QR_SHORTCUT_KEY,
+  ShortcutKeys,
   SMART_SHORTCUT_KEY,
   TEXT_CAPTURE_SHORTCUT_KEY,
 } from "@/apps/settings/shortcuts";
@@ -14,13 +15,12 @@ import { RecordTooltip } from "@/shared/libs/shortcut_recorder";
 import createShortcutRecorder from "@/shared/libs/shortcut_recorder/shortcut_recorder";
 import { SnapOverlayApi } from "@/shared/tauri/snap_overlay_api";
 import { SnappitOverlayTarget } from "@/shared/tauri/snap_overlay_target";
-import { SnappitTrayApi } from "@/shared/tauri/snap_tray_api";
 import { Button } from "@/shared/ui/button";
 import { KeyboardButton } from "@/shared/ui/keyboard_button";
 
 type ShortcutPreferenceItem = {
   label: string;
-  storeKey: string;
+  storeKey: ShortcutKeys;
   target: SnappitOverlayTarget;
 };
 
@@ -80,7 +80,6 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
     void (async () => {
       const globalShortcut = toGlobalShortcut(latest);
       await setStoreShortcut(globalShortcut);
-      await SnappitTrayApi.updateShortcut(props.item.target);
     })();
   });
 
@@ -112,12 +111,24 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
         </Button>
 
         <Show when={!defaultCut}>
-          <Button variant={"ghost"} size="icon" onClick={() => removeShortcut()}>
+          <Button
+            variant={"ghost"}
+            size="icon"
+            onClick={() => {
+              void removeShortcut();
+            }}
+          >
             <BsTrash />
           </Button>
         </Show>
         <Show when={defaultCut}>
-          <Button variant={"ghost"} size="icon" onClick={() => setStoreShortcut(defaultCut)}>
+          <Button
+            variant={"ghost"}
+            size="icon"
+            onClick={() => {
+              void setStoreShortcut(defaultCut);
+            }}
+          >
             <BsArrowCounterclockwise />
           </Button>
         </Show>

@@ -10,6 +10,7 @@ mod snappit_qr;
 mod snappit_res;
 mod snappit_screen_capture;
 mod snappit_settings;
+mod snappit_shortcut_manager;
 mod snappit_store;
 mod snappit_tray;
 mod traits;
@@ -17,6 +18,7 @@ mod traits;
 use region_capture::{RegionCapture, RegionCaptureParams};
 use serde_json::json;
 use snappit_overlay::SnappitOverlay;
+use snappit_shortcut_manager::SnappitShortcutManager;
 use snappit_tray::SnappitTray;
 use tauri::{async_runtime::spawn_blocking, AppHandle};
 
@@ -246,6 +248,7 @@ pub fn run() {
                 )?;
             }
 
+            SnappitShortcutManager::sync_all(app.handle())?;
             SnappitTray::init(app.handle())?;
 
             Ok(())

@@ -3,9 +3,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { EventCallback } from "@tauri-apps/api/event";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { isRegistered, register, unregister } from "@tauri-apps/plugin-global-shortcut";
-import { createEffect, createMemo, onCleanup } from "solid-js";
+import { createEffect, createMemo } from "solid-js";
 
-import { DEFAULT_SHORTCUTS } from "@/apps/settings/shortcuts/consts";
+import { DEFAULT_SHORTCUTS, ShortcutKeys } from "@/apps/settings/shortcuts/consts";
 import { SNAPPIT_CONSTS } from "@/shared/constants";
 import { SnappitOverlayTarget } from "@/shared/tauri/snap_overlay_target";
 import { SnappitTrayApi } from "@/shared/tauri/snap_tray_api";
@@ -29,10 +29,6 @@ export abstract class SnapOverlayApi {
     await unregister(HIDE_SNAP_OVERLAY_SHORTCUT);
   }
 
-  static async unregisterShowShortcut(shortcut: string) {
-    return await unregister(shortcut);
-  }
-
   static async registerHideShortcut() {
     const registered = await isRegistered(HIDE_SNAP_OVERLAY_SHORTCUT);
     if (!registered) {
@@ -42,61 +38,27 @@ export abstract class SnapOverlayApi {
     }
   }
 
-  static async registerShowShortcut(shortcut: string, target: SnappitOverlayTarget) {
-    return register(shortcut, (e) => {
-      if (e.state === "Pressed") {
-        SnapOverlayApi.show(target);
-      }
-    });
-  }
-
-  static createShortcut(key: string, target: SnappitOverlayTarget) {
-    const [storeShortcut] = this.createStoredShortcut(key, target);
-
-    createEffect<string | undefined>((prev) => {
-      const curr = storeShortcut();
-
-      if (!curr.length) {
-        if (prev) {
-          SnapOverlayApi.unregisterShowShortcut(prev);
-        }
-
-        return;
-      }
-
-      if (prev && prev !== curr) {
-        SnapOverlayApi.unregisterShowShortcut(prev);
-      }
-
-      this.registerShowShortcut(curr, target);
-      SnappitTrayApi.updateShortcut(target);
-      return curr;
-    });
-
-    onCleanup(() => {
-      const curr = storeShortcut();
-      if (curr) {
-        SnapOverlayApi.unregisterShowShortcut(curr);
-      }
-    });
-  }
-
-  static createStoredShortcut(key: string, target: SnappitOverlayTarget) {
-    const [storeShortcut, setStoreShortcut, remove] = SnappitStore.createValue<string>(key);
+  static createStoredShortcut(key: ShortcutKeys, target: SnappitOverlayTarget) {
+    const [storeShortcut, setStoreValue, remove] = SnappitStore.createValue<string>(key);
     const shortcut = createMemo(() => storeShortcut() ?? DEFAULT_SHORTCUTS[key]);
 
     createEffect(() => {
       if (!storeShortcut() && DEFAULT_SHORTCUTS[key]) {
-        setStoreShortcut(DEFAULT_SHORTCUTS[key]);
+        void setShortcut(DEFAULT_SHORTCUTS[key]);
       }
     });
+
+    async function setShortcut(newShortcut: string) {
+      await setStoreValue(newShortcut);
+      await SnappitTrayApi.updateShortcut(target);
+    }
 
     async function removeShortcut() {
       await remove();
       await SnappitTrayApi.updateShortcut(target);
     }
 
-    return [shortcut, setStoreShortcut, removeShortcut] as const;
+    return [shortcut, setShortcut, removeShortcut] as const;
   }
 
   static async onShown(handler: EventCallback<SnappitOverlayTarget>) {

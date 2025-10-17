@@ -30,9 +30,7 @@ function SnapOverlay(props: snapOverlayProps) {
   const [cursorStyle, setCursorStyle] = createSignal("cursor-default");
   const [activeTool, setActiveTool] = createSignal<SnappitOverlayTarget>("smart_tool");
   const [mouseOnTools, setMouseOnTools] = createSignal<boolean>(false);
-  const [toolsEnabled] = SnappitStore.createValue<boolean>(
-    SNAPPIT_CONSTS.store.keys.tools_panel,
-  );
+  const [toolsEnabled] = SnappitStore.createValue<boolean>(SNAPPIT_CONSTS.store.keys.tools_panel);
   const isSmartTool = createMemo(() => activeTool() === "smart_tool");
   const isCopyTool = createMemo(() => activeTool() === "text_capture");
   const isRulerTool = createMemo(() => activeTool() === "digital_ruler");

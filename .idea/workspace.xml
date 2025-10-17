@@ -12,10 +12,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f10ecd03-ea8a-4841-ab37-6df17632449d" name="Changes" comment="initial commit">
-      <change beforePath="$PROJECT_DIR$/apps/snap_overlay/qr-scan/create_qr_scanner.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/snap_overlay/qr-scan/create_qr_scanner.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/settings/settings_app.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/settings/settings_app.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/settings/shortcuts/consts.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/settings/shortcuts/consts.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/settings/shortcuts/shortcut-pref-item.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/settings/shortcuts/shortcut-pref-item.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/snap_overlay/snap_overlay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/snap_overlay/snap_overlay.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/constants.json" beforeDir="false" afterPath="$PROJECT_DIR$/constants.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/tauri/snap_overlay_api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/shared/tauri/snap_overlay_api.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src-tauri/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src-tauri/src/snappit_consts.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/src/snappit_consts.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src-tauri/src/snappit_errors.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/src/snappit_errors.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src-tauri/src/snappit_ocr/tesseract_ocr.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/src/snappit_ocr/tesseract_ocr.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src-tauri/src/snappit_overlay.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/src/snappit_overlay.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src-tauri/src/snappit_tray.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src-tauri/src/snappit_tray.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,7 +72,7 @@
     &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
     &quot;org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon&quot;: &quot;&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;/Users/pinkcolorrr/projects/snappit/node_modules/typescript/lib&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Applications/WebStorm.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -170,6 +179,9 @@
       <workItem from="1759080284945" duration="10000" />
       <workItem from="1759081495886" duration="2000" />
       <workItem from="1759130107196" duration="258000" />
+      <workItem from="1760682429451" duration="12000" />
+      <workItem from="1760682443896" duration="51000" />
+      <workItem from="1760682495827" duration="35000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -198,7 +210,19 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="master" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>

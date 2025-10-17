@@ -136,8 +136,8 @@ impl SnappitTesseractOcr {
 
     fn get_recognition_language(app: &tauri::AppHandle) -> SnappitResult<String> {
         let key = SNAPPIT_CONSTS.store.keys.recognition_lang.as_str();
-        let value = SnappitStore::get_value(app, key)?
-            .and_then(|stored| stored.as_str().map(String::from));
+        let value =
+            SnappitStore::get_value(app, key)?.and_then(|stored| stored.as_str().map(String::from));
 
         let default_language = default_recognition_language();
         let lang = match value {
