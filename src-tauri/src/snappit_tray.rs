@@ -297,20 +297,6 @@ impl SnappitTray {
         Ok(())
     }
 
-    pub fn update_overlay_shortcuts(app: &AppHandle<Wry>) -> SnappitResult<()> {
-        for target in [
-            SnappitOverlayTarget::SmartTool,
-            SnappitOverlayTarget::TextCapture,
-            SnappitOverlayTarget::DigitalRuler,
-            SnappitOverlayTarget::ColorDropper,
-            SnappitOverlayTarget::QrScanner,
-        ] {
-            Self::update_overlay_shortcut(app, target)?;
-        }
-
-        Ok(())
-    }
-
     pub fn init(app: &AppHandle<Wry>) -> SnappitResult<TrayIcon> {
         let menu = Menu::new(app)?;
         let _ = MENU.set(menu.clone());

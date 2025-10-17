@@ -201,14 +201,9 @@ fn hide_settings(app: AppHandle) -> tauri::Result<()> {
 }
 
 #[tauri::command]
-fn update_tray_shortcut(app: AppHandle, target: SnappitOverlayTarget) -> tauri::Result<()> {
+fn sync_shortcut(app: AppHandle, target: SnappitOverlayTarget) -> tauri::Result<()> {
+    SnappitShortcutManager::sync_target(&app, target)?;
     SnappitTray::update_overlay_shortcut(&app, target)?;
-    Ok(())
-}
-
-#[tauri::command]
-fn update_tray_shortcuts(app: AppHandle) -> tauri::Result<()> {
-    SnappitTray::update_overlay_shortcuts(&app)?;
     Ok(())
 }
 
@@ -258,8 +253,6 @@ pub fn run() {
             hide_snap_overlay,
             show_settings,
             hide_settings,
-            update_tray_shortcut,
-            update_tray_shortcuts,
             recognize_region_text,
             scan_region_qr,
             on_smart_tool,
@@ -268,7 +261,8 @@ pub fn run() {
             get_last_shot_dim,
             get_permissions_state,
             request_screen_recording_permission,
-            open_screen_recording_settings
+            open_screen_recording_settings,
+            sync_shortcut
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

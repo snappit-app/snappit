@@ -1,19 +1,19 @@
 import { BsArrowCounterclockwise, BsRecordFill, BsTrash } from "solid-icons/bs";
 import { createEffect, createMemo, For, Show } from "solid-js";
 
+import { fromGlobalShortcut, toGlobalShortcut } from "@/shared/libs/shortcut_recorder";
+import { RecordTooltip } from "@/shared/libs/shortcut_recorder";
+import createShortcutRecorder from "@/shared/libs/shortcut_recorder/shortcut_recorder";
 import {
   COLOR_DROPPER_SHORTCUT_KEY,
   DEFAULT_SHORTCUTS,
   DIGITAL_RULER_SHORTCUT_KEY,
   QR_SHORTCUT_KEY,
   ShortcutKeys,
+  ShortcutsApi,
   SMART_SHORTCUT_KEY,
   TEXT_CAPTURE_SHORTCUT_KEY,
-} from "@/apps/settings/shortcuts";
-import { fromGlobalShortcut, toGlobalShortcut } from "@/shared/libs/shortcut_recorder";
-import { RecordTooltip } from "@/shared/libs/shortcut_recorder";
-import createShortcutRecorder from "@/shared/libs/shortcut_recorder/shortcut_recorder";
-import { SnapOverlayApi } from "@/shared/tauri/snap_overlay_api";
+} from "@/shared/tauri/shortcuts_api";
 import { SnappitOverlayTarget } from "@/shared/tauri/snap_overlay_target";
 import { Button } from "@/shared/ui/button";
 import { KeyboardButton } from "@/shared/ui/keyboard_button";
@@ -59,7 +59,7 @@ type ShortcutPreferenceItemProps = {
 
 export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
   const defaultCut = DEFAULT_SHORTCUTS[props.item.storeKey];
-  const [storeShortcut, setStoreShortcut, removeShortcut] = SnapOverlayApi.createStoredShortcut(
+  const [storeShortcut, setStoreShortcut, removeShortcut] = ShortcutsApi.createStoredShortcut(
     props.item.storeKey,
     props.item.target,
   );

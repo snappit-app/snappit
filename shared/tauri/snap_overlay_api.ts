@@ -1,14 +1,10 @@
-import { SnappitStore } from "@shared/store";
 import { invoke } from "@tauri-apps/api/core";
 import { EventCallback } from "@tauri-apps/api/event";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { isRegistered, register, unregister } from "@tauri-apps/plugin-global-shortcut";
-import { createEffect, createMemo } from "solid-js";
 
-import { DEFAULT_SHORTCUTS, ShortcutKeys } from "@/apps/settings/shortcuts/consts";
 import { SNAPPIT_CONSTS } from "@/shared/constants";
 import { SnappitOverlayTarget } from "@/shared/tauri/snap_overlay_target";
-import { SnappitTrayApi } from "@/shared/tauri/snap_tray_api";
 
 const HIDE_SNAP_OVERLAY_SHORTCUT = "Escape";
 
@@ -36,29 +32,6 @@ export abstract class SnapOverlayApi {
         if (e.state === "Released") SnapOverlayApi.close();
       });
     }
-  }
-
-  static createStoredShortcut(key: ShortcutKeys, target: SnappitOverlayTarget) {
-    const [storeShortcut, setStoreValue, remove] = SnappitStore.createValue<string>(key);
-    const shortcut = createMemo(() => storeShortcut() ?? DEFAULT_SHORTCUTS[key]);
-
-    createEffect(() => {
-      if (!storeShortcut() && DEFAULT_SHORTCUTS[key]) {
-        void setShortcut(DEFAULT_SHORTCUTS[key]);
-      }
-    });
-
-    async function setShortcut(newShortcut: string) {
-      await setStoreValue(newShortcut);
-      await SnappitTrayApi.updateShortcut(target);
-    }
-
-    async function removeShortcut() {
-      await remove();
-      await SnappitTrayApi.updateShortcut(target);
-    }
-
-    return [shortcut, setShortcut, removeShortcut] as const;
   }
 
   static async onShown(handler: EventCallback<SnappitOverlayTarget>) {
