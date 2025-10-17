@@ -2,7 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": ["snap_overlay", "settings"],
+  "windows": ["snap_overlay", "settings", "notification"],
   "permissions": [
     "core:default",
     "opener:default",

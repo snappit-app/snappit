@@ -18,7 +18,8 @@
   },
   "windows": {
     "settings": "settings",
-    "overlay": "snap_overlay"
+    "overlay": "snap_overlay",
+    "notification": "notification"
   },
   "defaults": {
     "shortcuts": {

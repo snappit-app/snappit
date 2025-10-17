@@ -1,14 +1,9 @@
-import { isPermissionGranted, sendNotification } from "@tauri-apps/plugin-notification";
-
 import { NotificationSettings } from "@/shared/notifications/settings";
+import { NotificationApi } from "@/shared/tauri/notification_api";
 
 export abstract class NotificationCenter {
   private static async canNotify() {
     if (!(await NotificationSettings.isEnabled())) {
-      return false;
-    }
-
-    if (!(await isPermissionGranted())) {
       return false;
     }
 
@@ -17,37 +12,25 @@ export abstract class NotificationCenter {
 
   static async notifyQr(body: string) {
     if (await this.canNotify()) {
-      sendNotification({
-        title: "Snappit — QR",
-        body,
-      });
+      return await NotificationApi.show({ value: body, target: "qr_scanner" });
     }
   }
 
   static async notifyOcr(body: string) {
     if (await this.canNotify()) {
-      sendNotification({
-        title: "Snappit",
-        body: `Copied: ${body}`,
-      });
+      return await NotificationApi.show({ value: body, target: "text_capture" });
     }
   }
 
   static async notifyDropper(body: string) {
     if (await this.canNotify()) {
-      sendNotification({
-        title: "Snappit - Color recognized",
-        body: `Copied: ${body}`,
-      });
+      return await NotificationApi.show({ value: body, target: "color_dropper" });
     }
   }
 
   static async notifyRuler(body: string) {
     if (await this.canNotify()) {
-      sendNotification({
-        title: "Snappit - Ruler",
-        body: `Copied: ${body}`,
-      });
+      return await NotificationApi.show({ value: body, target: "digital_ruler" });
     }
   }
 }

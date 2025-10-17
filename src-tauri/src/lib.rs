@@ -3,6 +3,7 @@ mod platform;
 mod region_capture;
 mod snappit_consts;
 mod snappit_errors;
+mod snappit_notifications;
 mod snappit_ocr;
 mod snappit_overlay;
 mod snappit_permissions;
@@ -17,6 +18,7 @@ mod traits;
 
 use region_capture::{RegionCapture, RegionCaptureParams};
 use serde_json::json;
+use snappit_notifications::{SnappitNotificationPayload, SnappitNotifications};
 use snappit_overlay::SnappitOverlay;
 use snappit_shortcut_manager::SnappitShortcutManager;
 use snappit_tray::SnappitTray;
@@ -190,6 +192,18 @@ fn hide_snap_overlay(app: AppHandle) -> tauri::Result<()> {
 }
 
 #[tauri::command]
+fn show_notification(app: AppHandle, payload: SnappitNotificationPayload) -> tauri::Result<()> {
+    SnappitNotifications::show(&app, payload)?;
+    Ok(())
+}
+
+#[tauri::command]
+fn hide_notification(app: AppHandle) -> tauri::Result<()> {
+    SnappitNotifications::hide(&app)?;
+    Ok(())
+}
+
+#[tauri::command]
 fn show_settings(app: AppHandle) -> tauri::Result<()> {
     SnappitSettings::show(&app)?;
     Ok(())
@@ -235,6 +249,7 @@ pub fn run() -> tauri::Result<()> {
         .register_uri_scheme_protocol("img", move |_app, req| handle_img_request(&req))
         .setup(|app| {
             SnappitOverlay::preload(app.handle())?;
+            SnappitNotifications::preload(app.handle())?;
             SnappitSettings::preload(app.handle())?;
             SnappitSettings::show(app.handle())?;
             SnappitPermissions::refresh_and_emit(app.handle())?;
@@ -264,6 +279,8 @@ pub fn run() -> tauri::Result<()> {
         .invoke_handler(tauri::generate_handler![
             show_snap_overlay,
             hide_snap_overlay,
+            show_notification,
+            hide_notification,
             show_settings,
             hide_settings,
             recognize_region_text,

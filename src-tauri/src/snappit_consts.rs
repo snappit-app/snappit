@@ -45,6 +45,7 @@ pub struct SnappitDefaults {
 pub struct SnappitWindows {
     pub settings: String,
     pub overlay: String,
+    pub notification: String,
 }
 
 pub static SNAPPIT_CONSTS: Lazy<SnappitConstants> = Lazy::new(|| {

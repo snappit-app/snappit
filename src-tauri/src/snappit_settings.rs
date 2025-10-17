@@ -3,7 +3,10 @@ use tauri::{
     WebviewWindowBuilder, WindowEvent, Wry,
 };
 
-use crate::{snappit_consts::SNAPPIT_CONSTS, snappit_errors::SnappitResult};
+use crate::{
+    snappit_consts::SNAPPIT_CONSTS,
+    snappit_errors::{SnappitResult, SnappitResultExt},
+};
 
 pub struct SnappitSettings;
 
@@ -58,9 +61,8 @@ impl SnappitSettings {
         window.on_window_event(move |event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
                 api.prevent_close();
-                if let Err(err) = SnappitSettings::hide(&app_clone) {
-                    log::error!("Fail to hide setting window on CloseRequested: {err}");
-                }
+                SnappitSettings::hide(&app_clone)
+                    .log_on_err_with("Fail to hide setting window on CloseRequested");
             }
         });
 
@@ -74,9 +76,7 @@ impl SnappitSettings {
             WebviewUrl::App("apps/settings/index.html".into()),
         )
         .title("Snappit Settings")
-        .visible(false)
-        .accept_first_mouse(true)
-        .shadow(true);
+        .visible(false);
 
         builder
     }

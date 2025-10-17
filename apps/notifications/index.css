@@ -1,0 +1,20 @@
+@import "tailwindcss";
+@import "@shared/global.css";
+
+#root {
+  height: 100%;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body,
+  html,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply text-foreground;
+  }
+}

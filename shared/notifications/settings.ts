@@ -1,5 +1,5 @@
 import { load } from "@tauri-apps/plugin-store";
-import { createEffect, createMemo, createSignal } from "solid-js";
+import { createMemo } from "solid-js";
 
 import { SNAPPIT_CONSTS } from "@/shared/constants";
 import { SnappitStore } from "@/shared/store";
