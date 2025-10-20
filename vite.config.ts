@@ -13,6 +13,7 @@ export default defineConfig(async () => ({
       "@shared": path.resolve(__dirname, "./shared"),
       "@overlay": path.resolve(__dirname, "./apps/overlay"),
       "@settings": path.resolve(__dirname, "./apps/settings"),
+      "@notifications": path.resolve(__dirname, "./apps/notifications"),
     },
   },
   build: {
@@ -20,6 +21,7 @@ export default defineConfig(async () => ({
       input: {
         overlay: path.resolve(__dirname, "apps/snap_overlay/index.html"),
         settings: path.resolve(__dirname, "apps/settings/index.html"),
+        notifications: path.resolve(__dirname, "apps/notifications/index.html"),
       },
     },
   },

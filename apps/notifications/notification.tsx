@@ -54,7 +54,7 @@ export function NotificationItem(props: notificationProps) {
   return (
     <div
       class={cn(
-        `pointer-events-none opacity-65 flex h-full w-full flex-col items-center justify-center gap-5 rounded-3xl bg-background text-center text-foreground backdrop-blur-xl`,
+        `pointer-events-none opacity-85 flex h-full w-full flex-col items-center justify-center gap-5 rounded-3xl bg-background text-center text-foreground backdrop-blur-xl`,
         animationState() === "enter" && "animate-in duration-200 fade-in-0 zoom-in-95",
         animationState() === "exit" && "animate-out duration-200 fade-out-0 zoom-out-95",
       )}

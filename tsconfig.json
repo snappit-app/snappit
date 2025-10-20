@@ -25,7 +25,8 @@
       "@/*": ["./*"],
       "@shared/*": ["./shared/*"],
       "@overlay/*": ["./apps/snap_overlay/*"],
-      "@settings/*": ["./apps/settings/*"]
+      "@settings/*": ["./apps/settings/*"],
+      "@notifications/*": ["./apps/notifications/*"]
     }
   },
   "include": ["apps", "shared"],
