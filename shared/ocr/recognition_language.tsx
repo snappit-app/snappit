@@ -6,7 +6,6 @@ import { SnappitStore } from "@/shared/store";
 export const RECOGNITION_LANGUAGE_OPTIONS = [
   { label: "Auto", value: "auto" },
   { label: "English", value: "eng" },
-  { label: "Russian", value: "rus" },
   { label: "Chinese (Simplified)", value: "chi_sim" },
   { label: "Chinese (Traditional)", value: "chi_tra" },
   { label: "Japanese", value: "jpn" },
@@ -14,6 +13,7 @@ export const RECOGNITION_LANGUAGE_OPTIONS = [
   { label: "Spanish", value: "spa" },
   { label: "French", value: "fra" },
   { label: "German", value: "deu" },
+  { label: "Russian", value: "rus" },
   { label: "Thai", value: "tha" },
 ] as const;
 

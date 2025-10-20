@@ -9,18 +9,21 @@ export function createNotificationVisible() {
   let unlistenHidden: UnlistenFn | undefined;
   const [windowVisible, setWindowVisible] = createSignal<boolean>(false);
   const [target, setTarget] = createSignal<SnappitOverlayTarget | null>("text_capture");
-  const [payload, setPayload] = createSignal<string>("asd");
+  const [payload, setPayload] = createSignal<string>("");
+  const [data, setData] = createSignal<string | undefined>(undefined);
 
   onMount(async () => {
     unlistenShown = await NotificationApi.onShown(async (event) => {
       setWindowVisible(true);
       setTarget(event.payload.target);
       setPayload(event.payload.value);
+      setData(event.payload.data);
     });
     unlistenHidden = await NotificationApi.onHidden(async () => {
       setWindowVisible(false);
       setTarget(null);
       setPayload("");
+      setData(undefined);
     });
   });
 
@@ -34,5 +37,5 @@ export function createNotificationVisible() {
     }
   });
 
-  return [windowVisible, target, payload] as const;
+  return [windowVisible, target, payload, data] as const;
 }

@@ -20,6 +20,8 @@ const WINDOW_BOTTOM_MARGIN: i32 = 400;
 pub struct SnappitNotificationPayload {
     pub target: SnappitOverlayTarget,
     pub value: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<String>,
 }
 
 pub struct SnappitNotifications;

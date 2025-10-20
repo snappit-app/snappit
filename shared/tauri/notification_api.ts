@@ -8,6 +8,7 @@ import { SnappitOverlayTarget } from "@/shared/tauri/snap_overlay_target";
 export interface ShowPayload {
   target: SnappitOverlayTarget;
   value: string;
+  data?: string;
 }
 
 export abstract class NotificationApi {

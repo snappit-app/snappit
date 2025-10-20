@@ -10,9 +10,15 @@ export abstract class NotificationCenter {
     return true;
   }
 
-  static async notifyQr(body: string) {
+  static async notifyQrOnUrl(body: string) {
     if (await this.canNotify()) {
-      return await NotificationApi.show({ value: body, target: "qr_scanner" });
+      return await NotificationApi.show({ value: body, data: "on_url", target: "qr_scanner" });
+    }
+  }
+
+  static async notifyQrOnCopied(body: string) {
+    if (await this.canNotify()) {
+      return await NotificationApi.show({ value: body, data: "on_copied", target: "qr_scanner" });
     }
   }
 

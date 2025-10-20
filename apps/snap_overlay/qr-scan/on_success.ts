@@ -11,15 +11,15 @@ export async function onScanSuccess(content: string) {
   if (normalizedUrl) {
     try {
       await openUrl(normalizedUrl);
-      await NotificationCenter.notifyQr(`Opened: ${normalizedUrl}`);
+      await NotificationCenter.notifyQrOnUrl(`${normalizedUrl}`);
     } catch (err) {
       console.error("Failed to open QR URL", err);
       await writeText(content);
-      await NotificationCenter.notifyQr(`Copied: ${content}`);
+      await NotificationCenter.notifyQrOnUrl(`${content}`);
     }
   } else {
     await writeText(content);
-    await NotificationCenter.notifyQr(`Copied: ${content}`);
+    await NotificationCenter.notifyQrOnUrl(`${content}`);
   }
 
   SnapOverlayApi.hide();
