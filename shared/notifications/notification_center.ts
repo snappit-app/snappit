@@ -3,11 +3,7 @@ import { NotificationApi } from "@/shared/tauri/notification_api";
 
 export abstract class NotificationCenter {
   private static async canNotify() {
-    if (!(await NotificationSettings.isEnabled())) {
-      return false;
-    }
-
-    return true;
+    return await NotificationSettings.isEnabled();
   }
 
   static async notifyQrOnUrl(body: string) {

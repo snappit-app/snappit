@@ -1,3 +1,6 @@
+import { onMount } from "solid-js";
+import { effect } from "solid-js/web";
+
 import { AutostartSettings } from "@/shared/autostart";
 import { SNAPPIT_CONSTS } from "@/shared/constants";
 import { NotificationSettings } from "@/shared/notifications/settings";
@@ -13,6 +16,14 @@ export function Preferences() {
   const [toolsEnabled, setToolsEnabled] = SnappitStore.createValue<boolean>(
     SNAPPIT_CONSTS.store.keys.tools_panel,
   );
+
+  onMount(async () => {
+    SnappitStore.sync();
+  });
+
+  effect(() => {
+    console.log(notificationsEnabled());
+  });
 
   return (
     <div class="p-6">
@@ -56,7 +67,7 @@ export function Preferences() {
           <Switch
             class="flex justify-between"
             checked={notificationsEnabled()}
-            onChange={setNotificationsEnabled}
+            onChange={(e) => setNotificationsEnabled(e)}
           >
             <SwitchLabel>Notifications</SwitchLabel>
             <SwitchControl>
