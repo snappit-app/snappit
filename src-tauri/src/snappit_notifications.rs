@@ -2,8 +2,11 @@ use std::cmp;
 
 use serde::{Deserialize, Serialize};
 use tauri::{
-    AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewUrl, WebviewWindow,
-    WebviewWindowBuilder, Wry,
+    AppHandle, Emitter, Manager, PhysicalPosition, WebviewUrl, WebviewWindow, Wry,
+};
+use tauri::Error as TauriError;
+use tauri_nspanel::{
+    tauri_panel, CollectionBehavior, ManagerExt, PanelBuilder, PanelHandle, PanelLevel, StyleMask,
 };
 
 use crate::{
@@ -24,6 +27,15 @@ pub struct SnappitNotificationPayload {
     pub data: Option<String>,
 }
 
+tauri_panel! {
+    panel!(SnappitNotificationPanel {
+        config: {
+            can_become_key_window: false,
+            is_floating_panel: true
+        }
+    })
+}
+
 pub struct SnappitNotifications;
 
 impl SnappitNotifications {
@@ -31,7 +43,7 @@ impl SnappitNotifications {
         app: &AppHandle<Wry>,
         payload: SnappitNotificationPayload,
     ) -> SnappitResult<WebviewWindow> {
-        let window = Self::ensure_window(app)?;
+        let (panel, window) = Self::ensure_handles(app)?;
 
         let monitor = Platform::monitor_from_cursor(app)?;
         let width = WINDOW_WIDTH as i32;
@@ -48,6 +60,7 @@ impl SnappitNotifications {
 
         window.set_position(PhysicalPosition::new(x, y))?;
         window.show()?;
+        panel.show();
         window.emit("notification:shown", payload.clone())?;
         log::info!("shown");
 
@@ -55,49 +68,81 @@ impl SnappitNotifications {
     }
 
     pub fn hide(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
-        let window = Self::ensure_window(app)?;
+        let (panel, window) = Self::ensure_handles(app)?;
 
         window.emit("notification:hidden", true)?;
         log::info!("hidden");
+        panel.hide();
         window.hide()?;
 
         Ok(window)
     }
 
     fn ensure_window(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
-        if let Some(window) = app.get_webview_window(SNAPPIT_CONSTS.windows.notification.as_str()) {
-            Ok(window)
-        } else {
-            Self::preload(app)
-        }
-    }
-
-    pub fn preload(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
-        let window = Self::builder(app)
-            .fullscreen(false)
-            .always_on_top(true)
-            .content_protected(false)
-            .closable(false)
-            .decorations(false)
-            .transparent(true)
-            .resizable(false)
-            .shadow(false)
-            .inner_size(WINDOW_WIDTH.into(), WINDOW_HEIGHT.into())
-            .focusable(false)
-            .build()?;
+        let (_, window) = Self::ensure_handles(app)?;
 
         Ok(window)
     }
 
-    fn builder<'a>(app: &'a AppHandle<Wry>) -> WebviewWindowBuilder<'a, Wry, AppHandle<Wry>> {
-        let builder = WebviewWindow::builder(
+    pub fn preload(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
+        Self::ensure_window(app)
+    }
+
+    fn ensure_handles(
+        app: &AppHandle<Wry>,
+    ) -> SnappitResult<(PanelHandle<Wry>, WebviewWindow)> {
+        let label = SNAPPIT_CONSTS.windows.notification.as_str();
+
+        let panel = match app.get_webview_panel(label) {
+            Ok(panel) => panel,
+            Err(_) => Self::builder(app).build()?,
+        };
+
+        let window = app
+            .get_webview_window(label)
+            .ok_or_else(|| TauriError::WebviewNotFound)?;
+
+        Ok((panel, window))
+    }
+
+    fn builder<'a>(app: &'a AppHandle<Wry>) -> PanelBuilder<'a, Wry, SnappitNotificationPanel> {
+        PanelBuilder::<_, SnappitNotificationPanel>::new(
             app,
             SNAPPIT_CONSTS.windows.notification.as_str(),
-            WebviewUrl::App("apps/notifications/index.html".into()),
         )
+        .url(WebviewUrl::App("apps/notifications/index.html".into()))
         .title("Notification Notifications")
-        .visible(false);
-
-        builder
+        .level(PanelLevel::PopUpMenu)
+        .floating(true)
+        .transparent(true)
+        .opaque(false)
+        .has_shadow(false)
+        .collection_behavior(
+            CollectionBehavior::new()
+                .move_to_active_space()
+                .full_screen_auxiliary()
+                .ignores_cycle(),
+        )
+        .style_mask(
+            StyleMask::empty()
+                .borderless()
+                .nonactivating_panel(),
+        )
+        .no_activate(true)
+        .with_window(|window| {
+            window
+                .visible(false)
+                .fullscreen(false)
+                .always_on_top(true)
+                .content_protected(false)
+                .closable(false)
+                .decorations(false)
+                .transparent(true)
+                .resizable(false)
+                .shadow(false)
+                .focusable(false)
+                .skip_taskbar(true)
+                .inner_size(WINDOW_WIDTH.into(), WINDOW_HEIGHT.into())
+        })
     }
 }
