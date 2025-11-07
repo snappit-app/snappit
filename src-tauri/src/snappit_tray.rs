@@ -301,8 +301,7 @@ impl SnappitTray {
     pub fn init(app: &AppHandle<Wry>) -> SnappitResult<TrayIcon> {
         let menu = Menu::new(app)?;
         let _ = MENU.set(menu.clone());
-        let tray_icon =
-            Image::from_bytes(include_bytes!("../icons/tray-generated/64x64.png"))?;
+        let tray_icon = Image::from_bytes(include_bytes!("../icons/tray-generated/64x64.png"))?;
 
         for def in TRAY_ITEMS {
             match def {

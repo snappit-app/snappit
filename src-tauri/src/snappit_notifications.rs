@@ -1,10 +1,8 @@
 use std::cmp;
 
 use serde::{Deserialize, Serialize};
-use tauri::{
-    AppHandle, Emitter, Manager, PhysicalPosition, WebviewUrl, WebviewWindow, Wry,
-};
 use tauri::Error as TauriError;
+use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, WebviewUrl, WebviewWindow, Wry};
 use tauri_nspanel::{
     tauri_panel, CollectionBehavior, ManagerExt, PanelBuilder, PanelHandle, PanelLevel, StyleMask,
 };
@@ -88,9 +86,7 @@ impl SnappitNotifications {
         Self::ensure_window(app)
     }
 
-    fn ensure_handles(
-        app: &AppHandle<Wry>,
-    ) -> SnappitResult<(PanelHandle<Wry>, WebviewWindow)> {
+    fn ensure_handles(app: &AppHandle<Wry>) -> SnappitResult<(PanelHandle<Wry>, WebviewWindow)> {
         let label = SNAPPIT_CONSTS.windows.notification.as_str();
 
         let panel = match app.get_webview_panel(label) {
@@ -123,11 +119,7 @@ impl SnappitNotifications {
                 .full_screen_auxiliary()
                 .ignores_cycle(),
         )
-        .style_mask(
-            StyleMask::empty()
-                .borderless()
-                .nonactivating_panel(),
-        )
+        .style_mask(StyleMask::empty().borderless().nonactivating_panel())
         .no_activate(true)
         .with_window(|window| {
             window

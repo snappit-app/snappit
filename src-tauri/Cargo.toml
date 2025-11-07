@@ -43,6 +43,7 @@ leptess = "0.14.0"
 sys-locale = "0.3.2"
 rqrr = "0.10.0"
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2.1" }
+objc2 = "0.6"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-global-shortcut = "2"

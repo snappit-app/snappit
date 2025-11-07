@@ -11,6 +11,10 @@ use crate::{
 };
 use ::serde::{Deserialize, Serialize};
 use colored::Colorize;
+#[cfg(target_os = "macos")]
+use objc2::rc::{autoreleasepool, Retained as ObjcRetained};
+#[cfg(target_os = "macos")]
+use objc2_app_kit::{NSApplicationActivationOptions, NSRunningApplication, NSWorkspace};
 use once_cell::sync::Lazy;
 use tauri::{
     AppHandle, Emitter, Error as TauriError, Manager, Monitor, WebviewUrl, WebviewWindow, Wry,
@@ -45,6 +49,10 @@ static OVERLAY_LAST_MONITOR: Lazy<Mutex<Option<Monitor>>> = Lazy::new(|| Mutex::
 
 static MONITOR_THREAD_RUNNING: Lazy<AtomicBool> = Lazy::new(|| AtomicBool::new(false));
 
+#[cfg(target_os = "macos")]
+static PREVIOUS_FOREGROUND_APP: Lazy<Mutex<Option<ObjcRetained<NSRunningApplication>>>> =
+    Lazy::new(|| Mutex::new(None));
+
 impl SnappitOverlay {
     pub fn hide(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
         {
@@ -60,6 +68,8 @@ impl SnappitOverlay {
         overlay.emit("snap_overlay:hidden", true)?;
         panel.hide();
         overlay.hide()?;
+        #[cfg(target_os = "macos")]
+        Self::restore_previous_app_focus();
         SnappitShortcutManager::unregister_hide(app)?;
 
         let has_opened = app
@@ -99,6 +109,11 @@ impl SnappitOverlay {
 
         let (panel, overlay) = Self::ensure_overlay_handles(app)?;
 
+        #[cfg(target_os = "macos")]
+        let overlay_was_visible = overlay.is_visible().unwrap_or(false);
+        #[cfg(target_os = "macos")]
+        Self::remember_previous_app(overlay_was_visible);
+
         overlay.set_size(physical_size)?;
         overlay.set_position(monitor.position().clone())?;
 
@@ -126,6 +141,59 @@ impl SnappitOverlay {
         window.set_position(monitor.position().clone())?;
 
         Ok(window)
+    }
+
+    #[cfg(target_os = "macos")]
+    fn remember_previous_app(overlay_was_visible: bool) {
+        if overlay_was_visible {
+            return;
+        }
+
+        unsafe {
+            autoreleasepool(|_| {
+                let workspace = NSWorkspace::sharedWorkspace();
+                let current_app = NSRunningApplication::currentApplication();
+
+                let mut slot = PREVIOUS_FOREGROUND_APP.lock().unwrap();
+                if let Some(front_app) = workspace.frontmostApplication() {
+                    if front_app == current_app {
+                        slot.take();
+                    } else {
+                        *slot = Some(front_app);
+                    }
+                } else {
+                    slot.take();
+                }
+            });
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    fn restore_previous_app_focus() {
+        let previous = {
+            let mut slot = PREVIOUS_FOREGROUND_APP.lock().unwrap();
+            slot.take()
+        };
+
+        let Some(previous_app) = previous else {
+            return;
+        };
+
+        unsafe {
+            autoreleasepool(|_| {
+                if previous_app.isTerminated() {
+                    return;
+                }
+
+                #[allow(deprecated)]
+                let options = NSApplicationActivationOptions::ActivateAllWindows
+                    | NSApplicationActivationOptions::ActivateIgnoringOtherApps;
+
+                if !previous_app.activateWithOptions(options) {
+                    log::warn!("snappit overlay: failed to restore previous focus");
+                }
+            });
+        }
     }
 
     fn builder<'a>(app: &'a AppHandle<Wry>) -> PanelBuilder<'a, Wry, SnapOverlayPanel> {

@@ -4929,6 +4929,7 @@ dependencies = [
  "image",
  "leptess",
  "log",
+ "objc2 0.6.2",
  "objc2-app-kit",
  "once_cell",
  "rqrr",
