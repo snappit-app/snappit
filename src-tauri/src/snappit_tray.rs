@@ -2,6 +2,7 @@ use std::sync::OnceLock;
 use strum_macros::{AsRefStr, EnumString};
 use tauri::menu::MenuItemKind;
 use tauri::{
+    image::Image,
     menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem},
     tray::{TrayIcon, TrayIconBuilder},
     AppHandle, Wry,
@@ -300,6 +301,8 @@ impl SnappitTray {
     pub fn init(app: &AppHandle<Wry>) -> SnappitResult<TrayIcon> {
         let menu = Menu::new(app)?;
         let _ = MENU.set(menu.clone());
+        let tray_icon =
+            Image::from_bytes(include_bytes!("../icons/tray-generated/64x64.png"))?;
 
         for def in TRAY_ITEMS {
             match def {
@@ -338,7 +341,7 @@ impl SnappitTray {
         let tray = TrayIconBuilder::with_id(Self::TRAY_ID)
             .menu(&menu)
             .show_menu_on_left_click(true)
-            .icon(app.default_window_icon().unwrap().clone())
+            .icon(tray_icon)
             .on_menu_event(|app, event| {
                 if let Ok(item) = <&SnappitTrayItem>::try_from(&event) {
                     if let Some(handler) = item.handler() {
