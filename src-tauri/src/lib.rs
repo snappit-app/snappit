@@ -17,7 +17,6 @@ mod snappit_tray;
 mod traits;
 
 use region_capture::{RegionCapture, RegionCaptureParams};
-use serde_json::json;
 use snappit_notifications::{SnappitNotificationPayload, SnappitNotifications};
 use snappit_overlay::SnappitOverlay;
 use snappit_shortcut_manager::SnappitShortcutManager;
@@ -26,7 +25,6 @@ use tauri::{async_runtime::spawn_blocking, AppHandle};
 
 use crate::{
     img_protocol::{handle_img_request, ImageSlot, IMAGE},
-    snappit_consts::SNAPPIT_CONSTS,
     snappit_errors::{SnappitError, SnappitResult},
     snappit_ocr::SnappitOcr,
     snappit_overlay::SnappitOverlayTarget,
@@ -35,7 +33,6 @@ use crate::{
     snappit_res::SnappitResponse,
     snappit_screen_capture::{SnappitColorInfo, SnappitScreenCapture},
     snappit_settings::SnappitSettings,
-    snappit_store::SnappitStore,
     traits::into_dynamic::IntoPngByes,
 };
 
@@ -248,27 +245,24 @@ pub fn run() -> tauri::Result<()> {
         .plugin(tauri_nspanel::init())
         .register_uri_scheme_protocol("img", move |_app, req| handle_img_request(&req))
         .setup(|app| {
+            #[cfg(target_os = "macos")]
+            app.handle()
+                .set_activation_policy(tauri::ActivationPolicy::Accessory)?;
+
             SnappitOverlay::preload(app.handle())?;
             SnappitNotifications::preload(app.handle())?;
             SnappitSettings::preload(app.handle())?;
             SnappitSettings::show(app.handle())?;
             SnappitPermissions::refresh_and_emit(app.handle())?;
 
-            let initialized = SnappitStore::get_value(
-                app.handle(),
-                SNAPPIT_CONSTS.store.keys.settings_initialized.as_str(),
-            )?
-            .and_then(|v| v.as_bool())
-            .unwrap_or(false);
+            let permissions = SnappitPermissions::ensure_for_overlay(app.handle()).unwrap_or(
+                SnappitPermissionsState {
+                    screen_recording: false,
+                },
+            );
 
-            if initialized {
+            if permissions.all_granted() {
                 SnappitSettings::hide(app.handle())?;
-            } else {
-                SnappitStore::set_value(
-                    app.handle(),
-                    SNAPPIT_CONSTS.store.keys.settings_initialized.as_str(),
-                    Some(json!(true)),
-                )?;
             }
 
             SnappitShortcutManager::sync_all(app.handle())?;

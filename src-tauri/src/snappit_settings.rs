@@ -21,9 +21,6 @@ impl SnappitSettings {
     pub fn hide(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
         let window = Self::get_window(app)?;
 
-        #[cfg(target_os = "macos")]
-        app.set_activation_policy(tauri::ActivationPolicy::Accessory)?;
-
         window.emit("settings:hidden", true)?;
         window.hide()?;
         Ok(window)
@@ -31,9 +28,6 @@ impl SnappitSettings {
 
     pub fn show(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
         let window = Self::get_window(app)?;
-
-        #[cfg(target_os = "macos")]
-        app.set_activation_policy(tauri::ActivationPolicy::Regular)?;
 
         window.show()?;
 
@@ -50,6 +44,7 @@ impl SnappitSettings {
             .always_on_top(false)
             .content_protected(false)
             .closable(true)
+            .minimizable(false)
             .decorations(true)
             .transparent(false)
             .resizable(false)
@@ -58,12 +53,17 @@ impl SnappitSettings {
             .build()?;
 
         let app_clone = app.clone();
-        window.on_window_event(move |event| {
-            if let WindowEvent::CloseRequested { api, .. } = event {
+        window.on_window_event(move |event| match event {
+            WindowEvent::CloseRequested { api, .. } => {
                 api.prevent_close();
                 SnappitSettings::hide(&app_clone)
-                    .log_on_err_with("Fail to hide setting window on CloseRequested");
+                    .log_on_err_with("Fail to hide settings window on CloseRequested");
             }
+            WindowEvent::Focused(false) => {
+                SnappitSettings::hide(&app_clone)
+                    .log_on_err_with("Fail to hide settings window on focus change");
+            }
+            _ => {}
         });
 
         Ok(window)

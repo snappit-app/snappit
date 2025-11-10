@@ -72,16 +72,6 @@ impl SnappitOverlay {
         Self::restore_previous_app_focus();
         SnappitShortcutManager::unregister_hide(app)?;
 
-        let has_opened = app
-            .webview_windows()
-            .values()
-            .any(|win| win.is_visible().unwrap_or(false) || win.is_minimized().unwrap_or(false));
-
-        if !has_opened {
-            #[cfg(target_os = "macos")]
-            app.set_activation_policy(tauri::ActivationPolicy::Accessory)?;
-        }
-
         Ok(overlay)
     }
 
