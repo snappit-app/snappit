@@ -246,6 +246,7 @@ pub fn run() -> tauri::Result<()> {
         .register_uri_scheme_protocol("img", move |_app, req| handle_img_request(&req))
         .setup(|app| {
             #[cfg(target_os = "macos")]
+            #[cfg(not(debug_assertions))]
             app.handle()
                 .set_activation_policy(tauri::ActivationPolicy::Accessory)?;
 

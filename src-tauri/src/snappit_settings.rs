@@ -59,6 +59,8 @@ impl SnappitSettings {
                 SnappitSettings::hide(&app_clone)
                     .log_on_err_with("Fail to hide settings window on CloseRequested");
             }
+
+            #[cfg(not(debug_assertions))]
             WindowEvent::Focused(false) => {
                 SnappitSettings::hide(&app_clone)
                     .log_on_err_with("Fail to hide settings window on focus change");

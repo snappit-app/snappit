@@ -2,12 +2,12 @@ import { cn } from "@shared/libs/cn";
 import { displayKey, isModKey } from "@shared/libs/shortcut_recorder";
 import { platform } from "@tauri-apps/plugin-os";
 import { cva, VariantProps } from "class-variance-authority";
-import { createEffect, splitProps } from "solid-js";
+import { splitProps } from "solid-js";
 
 export const buttonVariants = cva("bg-accent flex justify-center items-center", {
   variants: {
     size: {
-      sm: "min-w-[36px] p-2 rounded",
+      sm: "min-w-[40px] p-2 rounded",
       lg: "min-w-[68px] p-5 rounded-lg",
       xs: "min-w-[12px] p-1 rounded text-xs",
     },
