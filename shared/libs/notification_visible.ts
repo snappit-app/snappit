@@ -8,7 +8,7 @@ export function createNotificationVisible() {
   let unlistenShown: UnlistenFn | undefined;
   let unlistenHidden: UnlistenFn | undefined;
   const [windowVisible, setWindowVisible] = createSignal<boolean>(false);
-  const [target, setTarget] = createSignal<SnappitOverlayTarget | null>("text_capture");
+  const [target, setTarget] = createSignal<SnappitOverlayTarget | null>("capture");
   const [payload, setPayload] = createSignal<string>("");
   const [data, setData] = createSignal<string | undefined>(undefined);
 

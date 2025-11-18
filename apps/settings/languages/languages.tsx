@@ -7,7 +7,8 @@ export function Languages() {
         <div class="mb-4">
           <h2 class="font-bold text-lg">Language selection</h2>
           <p class="text-sm text-muted-foreground">
-            Choose the languages you want the app to search for on text capture <br />
+            Choose the languages you want the app to search for
+            <br />
             Selecting more languages may make the search a bit slower
           </p>
         </div>

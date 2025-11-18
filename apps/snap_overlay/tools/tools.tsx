@@ -1,6 +1,5 @@
 import { UnlistenFn } from "@tauri-apps/api/event";
-import { BiRegularCopy, BiRegularQrScan, BiSolidEyedropper, BiSolidRuler } from "solid-icons/bi";
-import { BsGripVertical, BsMagic } from "solid-icons/bs";
+import { BiRegularQrScan, BiSolidCopy, BiSolidEyedropper, BiSolidRuler } from "solid-icons/bi";
 import { JSX, onCleanup, splitProps } from "solid-js";
 
 import { cn } from "@/shared/libs/cn";
@@ -21,7 +20,7 @@ export function Tools(props: toolsProps) {
   let unlistenShown: UnlistenFn | undefined;
 
   const [local, rest] = splitProps(props as toolsProps, ["class", "value", "onValueChange"]);
-  const { setEl, pos, onHandlePointerDown } = createDnd({
+  const { setEl, pos } = createDnd({
     initialPosition: "bottomCenter",
   });
 
@@ -41,27 +40,10 @@ export function Tools(props: toolsProps) {
       style={{ left: `${pos().x}px`, top: `${pos().y}px` }}
       {...rest}
     >
-      <div
-        class="px-1 py-2 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
-        onPointerDown={onHandlePointerDown}
-        onMouseDown={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-        aria-label="Drag handle"
-      >
-        <BsGripVertical />
-      </div>
-
       <ToggleGroup value={local.value} variant={"ghost"}>
-        <div use:tooltip={"Smart Tool"}>
-          <ToggleGroupItem value="smart_tool" onClick={() => local.onValueChange("smart_tool")}>
-            <BsMagic />
-          </ToggleGroupItem>
-        </div>
-        <div use:tooltip={"Text Capture"}>
-          <ToggleGroupItem value="text_capture" onClick={() => local.onValueChange("text_capture")}>
-            <BiRegularCopy />
+        <div use:tooltip={"Capture"}>
+          <ToggleGroupItem value="capture" onClick={() => local.onValueChange("capture")}>
+            <BiSolidCopy />
           </ToggleGroupItem>
         </div>
         <div use:tooltip={"Ruler Tool"}>

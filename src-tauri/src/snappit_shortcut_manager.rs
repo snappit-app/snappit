@@ -20,9 +20,8 @@ static REGISTERED_SHORTCUTS: Lazy<Mutex<HashMap<SnappitOverlayTarget, String>>> 
 pub struct SnappitShortcutManager;
 
 impl SnappitShortcutManager {
-    const TARGETS: [SnappitOverlayTarget; 5] = [
-        SnappitOverlayTarget::SmartTool,
-        SnappitOverlayTarget::TextCapture,
+    const TARGETS: [SnappitOverlayTarget; 4] = [
+        SnappitOverlayTarget::Capture,
         SnappitOverlayTarget::DigitalRuler,
         SnappitOverlayTarget::ColorDropper,
         SnappitOverlayTarget::QrScanner,
@@ -169,10 +168,7 @@ impl SnappitShortcutManager {
 
     fn store_key_for(target: SnappitOverlayTarget) -> String {
         match target {
-            SnappitOverlayTarget::SmartTool => SNAPPIT_CONSTS.store.keys.hotkey_capture.clone(),
-            SnappitOverlayTarget::TextCapture => {
-                SNAPPIT_CONSTS.store.keys.hotkey_text_capture.clone()
-            }
+            SnappitOverlayTarget::Capture => SNAPPIT_CONSTS.store.keys.hotkey_capture.clone(),
             SnappitOverlayTarget::DigitalRuler => {
                 SNAPPIT_CONSTS.store.keys.hotkey_digital_ruler.clone()
             }

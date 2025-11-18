@@ -1,18 +1,18 @@
-import { BsArrowCounterclockwise, BsRecordFill, BsTrash } from "solid-icons/bs";
+import { BiRegularRadioCircleMarked, BiRegularReset, BiSolidTrash } from "solid-icons/bi";
+import { BsRecordFill } from "solid-icons/bs";
 import { createEffect, createMemo, For, Show } from "solid-js";
 
 import { fromGlobalShortcut, toGlobalShortcut } from "@/shared/libs/shortcut_recorder";
 import { RecordTooltip } from "@/shared/libs/shortcut_recorder";
 import createShortcutRecorder from "@/shared/libs/shortcut_recorder/shortcut_recorder";
 import {
+  CAPTURE_SHORTCUT_KEY,
   COLOR_DROPPER_SHORTCUT_KEY,
   DEFAULT_SHORTCUTS,
   DIGITAL_RULER_SHORTCUT_KEY,
   QR_SHORTCUT_KEY,
   ShortcutKeys,
   ShortcutsApi,
-  SMART_SHORTCUT_KEY,
-  TEXT_CAPTURE_SHORTCUT_KEY,
 } from "@/shared/tauri/shortcuts_api";
 import { SnappitOverlayTarget } from "@/shared/tauri/snap_overlay_target";
 import { Button } from "@/shared/ui/button";
@@ -24,17 +24,11 @@ type ShortcutPreferenceItem = {
   target: SnappitOverlayTarget;
 };
 
-export const SMART_SHORTCUT: ShortcutPreferenceItem = {
-  label: "Smart tool",
-  storeKey: SMART_SHORTCUT_KEY,
-  target: "smart_tool",
-};
-
 export const TOOL_SHORTCUTS: ShortcutPreferenceItem[] = [
   {
-    label: "Text Capture",
-    storeKey: TEXT_CAPTURE_SHORTCUT_KEY,
-    target: "text_capture",
+    label: "Capture",
+    storeKey: CAPTURE_SHORTCUT_KEY,
+    target: "capture",
   },
   {
     label: "Digital Ruler",
@@ -104,7 +98,7 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
             variant="ghost"
             onClick={() => startRecording()}
           >
-            <BsRecordFill size={"20"} />
+            <BiRegularRadioCircleMarked size={"20"} />
             Record
             <Show when={isRecording()}>
               <RecordTooltip candidate={candidate} />
@@ -119,7 +113,7 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
                 void removeShortcut();
               }}
             >
-              <BsTrash />
+              <BiSolidTrash />
             </Button>
           </Show>
           <Show when={defaultCut}>
@@ -130,7 +124,7 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
                 void setStoreShortcut(defaultCut);
               }}
             >
-              <BsArrowCounterclockwise />
+              <BiRegularReset />
             </Button>
           </Show>
         </div>

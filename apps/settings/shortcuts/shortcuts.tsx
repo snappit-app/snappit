@@ -1,10 +1,6 @@
 import { For } from "solid-js";
 
-import {
-  ShortcutPreferenceItem,
-  SMART_SHORTCUT,
-  TOOL_SHORTCUTS,
-} from "@/apps/settings/preferences";
+import { ShortcutPreferenceItem, TOOL_SHORTCUTS } from "@/apps/settings/preferences";
 
 export function Shortcuts() {
   return (
@@ -17,9 +13,6 @@ export function Shortcuts() {
           </p>
         </div>
 
-        <div>
-          <ShortcutPreferenceItem item={SMART_SHORTCUT} />
-        </div>
         <div class="divide-y">
           <For each={TOOL_SHORTCUTS}>{(item) => <ShortcutPreferenceItem item={item} />}</For>
         </div>

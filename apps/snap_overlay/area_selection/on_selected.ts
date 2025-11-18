@@ -13,23 +13,19 @@ export async function onTextRecognized(text: string) {
   }
 }
 
-export async function onAreaSelected(selection: RegionCaptureParams, smartMode = false) {
+export async function onAreaSelected(selection: RegionCaptureParams) {
   SnapOverlayApi.hide();
 
-  if (smartMode) {
-    const res = await RegionCaptureApi.onSmartTool(selection);
+  const res = await RegionCaptureApi.onCapture(selection);
 
-    switch (res.kind) {
-      case "qr":
-        return onScanSuccess(res.payload);
-      case "ocr":
-        return onTextRecognized(res.payload);
-      case "dropper":
-        return onColorRecognized(res.payload);
-      default:
-        return;
-    }
+  switch (res.kind) {
+    case "qr":
+      return onScanSuccess(res.payload);
+    case "ocr":
+      return onTextRecognized(res.payload);
+    case "dropper":
+      return onColorRecognized(res.payload);
+    default:
+      return;
   }
-  const text = await RegionCaptureApi.recognizeRegionText(selection);
-  onTextRecognized(text.payload);
 }

@@ -20,7 +20,7 @@ export abstract class NotificationCenter {
 
   static async notifyOcr(body: string) {
     if (await this.canNotify()) {
-      return await NotificationApi.show({ value: body, target: "text_capture" });
+      return await NotificationApi.show({ value: body, target: "capture" });
     }
   }
 

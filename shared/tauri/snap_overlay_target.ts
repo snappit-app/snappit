@@ -1,6 +1,5 @@
 export type SnappitOverlayTarget =
-  | "smart_tool"
-  | "text_capture"
+  | "capture"
   | "digital_ruler"
   | "color_dropper"
   | "qr_scanner"

@@ -1,6 +1,5 @@
 import { createTimer } from "@solid-primitives/timer";
-import { BiRegularCopy, BiRegularQrScan, BiSolidEyedropper, BiSolidRuler } from "solid-icons/bi";
-import { BsMagic } from "solid-icons/bs";
+import { BiRegularQrScan, BiSolidCopy, BiSolidEyedropper, BiSolidRuler } from "solid-icons/bi";
 import { Accessor, Component, createMemo, createSignal, Match, onMount, Switch } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
@@ -10,12 +9,11 @@ import { NotificationApi } from "@/shared/tauri/notification_api";
 import { SnappitOverlayTarget } from "@/shared/tauri/snap_overlay_target";
 
 const ICON_MAP: Record<SnappitOverlayTarget, Component<{ size?: number }>> = {
-  smart_tool: BsMagic,
-  text_capture: BiRegularCopy,
+  capture: BiSolidCopy,
   digital_ruler: BiSolidRuler,
   color_dropper: BiSolidEyedropper,
   qr_scanner: BiRegularQrScan,
-  none: BsMagic,
+  none: BiSolidCopy,
 };
 
 type notificationProps = {
@@ -66,7 +64,6 @@ export function NotificationItem(props: notificationProps) {
       <div class="text-lg font-bold text-foreground">
         <Switch fallback={<>Content copied</>}>
           <Match when={props.target() === "digital_ruler"}>Measurement copied</Match>
-          <Match when={props.target() === "text_capture"}>Text copied</Match>
           <Match when={props.target() === "color_dropper"}>Color copied</Match>
           <Match when={props.target() === "qr_scanner"}>
             {props.data() === "on_url" ? "Link opened" : "Content copied"}

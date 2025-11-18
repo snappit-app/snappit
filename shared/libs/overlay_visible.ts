@@ -8,7 +8,7 @@ export function createOverlayVisible() {
   let unlistenShown: UnlistenFn | undefined;
   let unlistenHidden: UnlistenFn | undefined;
   const [windowVisible, setWindowVisible] = createSignal<boolean>(false);
-  const [target, setTarget] = createSignal<SnappitOverlayTarget>("smart_tool");
+  const [target, setTarget] = createSignal<SnappitOverlayTarget>("capture");
 
   onMount(async () => {
     unlistenShown = await SnapOverlayApi.onShown(async (tool) => {

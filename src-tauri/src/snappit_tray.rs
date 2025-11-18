@@ -21,8 +21,6 @@ use crate::{
 pub enum SnappitTrayItemId {
     #[strum(serialize = "capture")]
     Capture,
-    #[strum(serialize = "capture_text")]
-    CaptureText,
     #[strum(serialize = "digital_ruler")]
     DigitalRuler,
     #[strum(serialize = "color_dropper")]
@@ -102,10 +100,6 @@ fn hotkey_capture_key() -> String {
     SNAPPIT_CONSTS.store.keys.hotkey_capture.clone()
 }
 
-fn hotkey_text_capture_key() -> String {
-    SNAPPIT_CONSTS.store.keys.hotkey_text_capture.clone()
-}
-
 fn hotkey_digital_ruler_key() -> String {
     SNAPPIT_CONSTS.store.keys.hotkey_digital_ruler.clone()
 }
@@ -124,19 +118,7 @@ pub const TRAY_ITEMS: &[SnappitTrayItem] = &[
         "Capture",
         true,
         hotkey_capture_key,
-        |app| match SnappitOverlay::show(app, SnappitOverlayTarget::SmartTool) {
-            Ok(_) => Ok(()),
-            Err(SnappitError::MissingPermissions(_)) => Ok(()),
-            Err(err) => Err(err),
-        },
-    ),
-    SnappitTrayItem::separator(),
-    SnappitTrayItem::item_with_accelerator(
-        SnappitTrayItemId::CaptureText,
-        "Capture Text",
-        true,
-        hotkey_text_capture_key,
-        |app| match SnappitOverlay::show(app, SnappitOverlayTarget::TextCapture) {
+        |app| match SnappitOverlay::show(app, SnappitOverlayTarget::Capture) {
             Ok(_) => Ok(()),
             Err(SnappitError::MissingPermissions(_)) => Ok(()),
             Err(err) => Err(err),
@@ -268,12 +250,7 @@ impl SnappitTray {
         target: SnappitOverlayTarget,
     ) -> Option<(SnappitTrayItemId, fn() -> String)> {
         match target {
-            SnappitOverlayTarget::SmartTool => {
-                Some((SnappitTrayItemId::Capture, hotkey_capture_key))
-            }
-            SnappitOverlayTarget::TextCapture => {
-                Some((SnappitTrayItemId::CaptureText, hotkey_text_capture_key))
-            }
+            SnappitOverlayTarget::Capture => Some((SnappitTrayItemId::Capture, hotkey_capture_key)),
             SnappitOverlayTarget::DigitalRuler => {
                 Some((SnappitTrayItemId::DigitalRuler, hotkey_digital_ruler_key))
             }

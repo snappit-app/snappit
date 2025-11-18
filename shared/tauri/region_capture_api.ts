@@ -1,10 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 
-import {
-  SnappitOcrResponse,
-  SnappitQrResponse,
-  SnappitResponse,
-} from "@/shared/tauri/snappit_res";
+import { SnappitQrResponse, SnappitResponse } from "@/shared/tauri/snappit_res";
 
 export interface RegionCaptureParams {
   x: number;
@@ -14,12 +10,8 @@ export interface RegionCaptureParams {
 }
 
 export abstract class RegionCaptureApi {
-  static async onSmartTool(params: RegionCaptureParams) {
-    return invoke<SnappitResponse>("on_smart_tool", { params });
-  }
-
-  static async recognizeRegionText(params: RegionCaptureParams) {
-    return invoke<SnappitOcrResponse>("recognize_region_text", { params });
+  static async onCapture(params: RegionCaptureParams) {
+    return invoke<SnappitResponse>("on_capture", { params });
   }
 
   static async scanRegionQr(params: RegionCaptureParams) {

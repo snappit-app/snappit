@@ -30,11 +30,10 @@ interface snapOverlayProps {
 function SnapOverlay(props: snapOverlayProps) {
   let unregisterFocus: UnlistenFn | undefined;
   const [cursorStyle, setCursorStyle] = createSignal("cursor-default");
-  const [activeTool, setActiveTool] = createSignal<SnappitOverlayTarget>("smart_tool");
+  const [activeTool, setActiveTool] = createSignal<SnappitOverlayTarget>("capture");
   const [mouseOnTools, setMouseOnTools] = createSignal<boolean>(false);
   const [toolsEnabled] = SnappitStore.createValue<boolean>(SNAPPIT_CONSTS.store.keys.tools_panel);
-  const isSmartTool = createMemo(() => activeTool() === "smart_tool");
-  const isCopyTool = createMemo(() => activeTool() === "text_capture");
+  const isCaptureTool = createMemo(() => activeTool() === "capture");
   const isRulerTool = createMemo(() => activeTool() === "digital_ruler");
   const isQrTool = createMemo(() => activeTool() === "qr_scanner");
   const isColorDropperTool = createMemo(() => activeTool() === "color_dropper");
@@ -45,7 +44,7 @@ function SnapOverlay(props: snapOverlayProps) {
   const [selection, isSelecting, onSelectionStart] = createSelection(
     async (selection: RegionCaptureParams) => {
       setCursorStyle("cursor-none");
-      await onAreaSelected(selection, activeTool() === "smart_tool");
+      await onAreaSelected(selection);
       setCursorStyle("cursor-default");
     },
   );
@@ -55,7 +54,7 @@ function SnapOverlay(props: snapOverlayProps) {
       return false;
     }
 
-    if (isSmartTool() || isCopyTool()) {
+    if (isCaptureTool()) {
       return !isSelecting();
     }
 
@@ -68,7 +67,7 @@ function SnapOverlay(props: snapOverlayProps) {
   });
 
   const onOverlayMouseDown = (event: MouseEvent) => {
-    if (activeTool() === "smart_tool" || activeTool() === "text_capture") {
+    if (activeTool() === "capture") {
       onSelectionStart(event);
     }
   };
@@ -99,7 +98,7 @@ function SnapOverlay(props: snapOverlayProps) {
   });
 
   createEffect(() => {
-    if (isCopyTool() || isSmartTool()) {
+    if (isCaptureTool()) {
       setCursorStyle("cursor-crosshair");
     } else {
       setCursorStyle("cursor-default");

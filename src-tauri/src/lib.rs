@@ -100,10 +100,7 @@ fn open_screen_recording_settings(app: AppHandle) -> tauri::Result<()> {
 }
 
 #[tauri::command]
-async fn on_smart_tool(
-    app: AppHandle,
-    params: RegionCaptureParams,
-) -> tauri::Result<SnappitResponse> {
+async fn on_capture(app: AppHandle, params: RegionCaptureParams) -> tauri::Result<SnappitResponse> {
     let app_handle = app.clone();
 
     let captured =
@@ -111,18 +108,13 @@ async fn on_smart_tool(
             .await??;
 
     let img_for_qr = captured.clone();
-    let img_for_dropper = captured.clone();
     let img_for_ocr = captured;
     let app_for_ocr = app.clone();
-    let app_for_dropper = app.clone();
 
     let qr_handle =
         spawn_blocking(move || -> SnappitResult<_> { Ok(SnappitQr::scan(img_for_qr)?) });
     let ocr_handle = spawn_blocking(move || -> SnappitResult<_> {
         SnappitOcr::recognize(&app_for_ocr, img_for_ocr)
-    });
-    let dropper_handle = spawn_blocking(move || -> SnappitResult<_> {
-        SnappitScreenCapture::capture_color_at_img(&app_for_dropper, img_for_dropper)
     });
 
     if let Some(qr) = qr_handle.await?? {
@@ -130,30 +122,7 @@ async fn on_smart_tool(
     }
 
     let text = ocr_handle.await??;
-    if !text.is_empty() {
-        return Ok(SnappitResponse::Ocr(text));
-    }
-
-    let color = dropper_handle.await??;
-    Ok(SnappitResponse::Dropper(color))
-}
-
-#[tauri::command]
-async fn recognize_region_text(
-    app: AppHandle,
-    params: RegionCaptureParams,
-) -> tauri::Result<SnappitResponse> {
-    let app_handle = app.clone();
-    read_config()?;
-
-    let task = spawn_blocking(move || -> SnappitResult<_> {
-        let image = RegionCapture::capture(&app_handle, params)?;
-        SnappitOcr::recognize(&app, image)
-    });
-
-    let ocr_result = task.await??;
-
-    Ok(SnappitResponse::Ocr(ocr_result))
+    Ok(SnappitResponse::Ocr(text))
 }
 
 #[tauri::command]
@@ -278,9 +247,8 @@ pub fn run() -> tauri::Result<()> {
             hide_notification,
             show_settings,
             hide_settings,
-            recognize_region_text,
             scan_region_qr,
-            on_smart_tool,
+            on_capture,
             capture_color_at_cursor,
             capture_magnified_view,
             get_last_shot_dim,
