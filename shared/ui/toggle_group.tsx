@@ -9,18 +9,6 @@ import { createContext, createMemo, splitProps, useContext } from "solid-js";
 
 import { toggleVariants } from "./toggle";
 
-const ToggleGroupContext = createContext<Accessor<VariantProps<typeof toggleVariants>>>();
-
-const useToggleGroup = () => {
-  const context = useContext(ToggleGroupContext);
-
-  if (!context) {
-    throw new Error("`useToggleGroup`: must be used within a `ToggleGroup` component");
-  }
-
-  return context;
-};
-
 const toggleGroupRootVariants = cva("flex items-center justify-center gap-1 rounded-md p-1", {
   variants: {
     variant: {
@@ -34,9 +22,37 @@ const toggleGroupRootVariants = cva("flex items-center justify-center gap-1 roun
   },
 });
 
+const toggleGroupItemVariants = cva("", {
+  variants: {
+    color: {
+      default: "",
+      product: "data-[pressed]:bg-product data-[pressed]:text-product-foreground",
+    },
+  },
+  defaultVariants: {
+    color: "default",
+  },
+});
+
+type ToggleGroupContextValue = VariantProps<typeof toggleVariants> &
+  VariantProps<typeof toggleGroupItemVariants>;
+
+const ToggleGroupContext = createContext<Accessor<ToggleGroupContextValue>>();
+
+const useToggleGroup = () => {
+  const context = useContext(ToggleGroupContext);
+
+  if (!context) {
+    throw new Error("`useToggleGroup`: must be used within a `ToggleGroup` component");
+  }
+
+  return context;
+};
+
 type toggleGroupProps<T extends ValidComponent = "div"> = ParentProps<
   ToggleGroupRootProps<T> &
-    VariantProps<typeof toggleVariants> & {
+    VariantProps<typeof toggleVariants> &
+    VariantProps<typeof toggleGroupItemVariants> & {
       class?: string;
     }
 >;
@@ -49,11 +65,13 @@ export const ToggleGroup = <T extends ValidComponent = "div">(
     "children",
     "size",
     "variant",
+    "color",
   ]);
 
-  const value = createMemo<VariantProps<typeof toggleVariants>>(() => ({
+  const value = createMemo<ToggleGroupContextValue>(() => ({
     size: local.size,
     variant: local.variant,
+    color: local.color,
   }));
 
   return (
@@ -82,6 +100,9 @@ export const ToggleGroupItem = <T extends ValidComponent = "button">(
         toggleVariants({
           variant: context().variant,
           size: context().size,
+        }),
+        toggleGroupItemVariants({
+          color: context().color,
         }),
         local.class,
       )}

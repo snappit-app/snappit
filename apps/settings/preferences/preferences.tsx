@@ -1,5 +1,4 @@
 import { onMount } from "solid-js";
-import { effect } from "solid-js/web";
 
 import { AutostartSettings } from "@/shared/autostart";
 import { SNAPPIT_CONSTS } from "@/shared/constants";
@@ -21,10 +20,6 @@ export function Preferences() {
     SnappitStore.sync();
   });
 
-  effect(() => {
-    console.log(notificationsEnabled());
-  });
-
   return (
     <div class="p-6">
       <div class="border rounded-lg p-5">
@@ -38,7 +33,7 @@ export function Preferences() {
         <div class="flex flex-col gap-6">
           <div class="flex justify-between items-center">
             <div>Theme</div>
-            <ToggleGroup size={"sm"} value={theme()}>
+            <ToggleGroup size={"sm"} color={"product"} value={theme()}>
               <ToggleGroupItem onClick={() => setTheme("light")} value="light">
                 Light
               </ToggleGroupItem>
