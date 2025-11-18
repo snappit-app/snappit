@@ -9,6 +9,10 @@ export function createSettingsVisible() {
   const [windowVisible, setWindowVisible] = createSignal<boolean>(false);
 
   onMount(async () => {
+    const settingsWindow = await SettingsApi.get();
+    const isVisible = (await settingsWindow?.isVisible()) ?? false;
+    setWindowVisible(isVisible);
+
     unlistenShown = await SettingsApi.onShown(async () => {
       setWindowVisible(true);
     });

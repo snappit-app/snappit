@@ -49,7 +49,7 @@ impl SnappitSettings {
             .transparent(false)
             .resizable(false)
             .shadow(true)
-            .inner_size(550.0, 660.0)
+            .inner_size(500.0, 660.0)
             .build()?;
 
         let app_clone = app.clone();

@@ -59,7 +59,7 @@ export function Preferences() {
             disabled={!autostartReady()}
           >
             <SwitchLabel>Startup</SwitchLabel>
-            <SwitchControl>
+            <SwitchControl variant={"product"}>
               <SwitchThumb />
             </SwitchControl>
           </Switch>
@@ -70,7 +70,7 @@ export function Preferences() {
             onChange={(e) => setNotificationsEnabled(e)}
           >
             <SwitchLabel>Notifications</SwitchLabel>
-            <SwitchControl>
+            <SwitchControl variant={"product"}>
               <SwitchThumb />
             </SwitchControl>
           </Switch>
@@ -81,7 +81,7 @@ export function Preferences() {
             onChange={(value) => setToolsEnabled(value)}
           >
             <SwitchLabel>Tools panel</SwitchLabel>
-            <SwitchControl>
+            <SwitchControl variant={"product"}>
               <SwitchThumb />
             </SwitchControl>
           </Switch>
