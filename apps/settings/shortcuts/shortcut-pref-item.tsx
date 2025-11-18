@@ -84,54 +84,56 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
   });
 
   return (
-    <div class="flex items-center justify-between gap-4 py-3">
-      <div class="flex flex-col">
-        <span class="text-sm font-medium text-foreground">{props.item.label}</span>
-        <Show
-          when={buttons().length > 0}
-          fallback={<span class="text-xs text-muted-foreground mt-2">Not set</span>}
-        >
-          <div class="flex gap-1 mt-2">
-            <For each={buttons()}>{(b) => <KeyboardButton key={b} size={"sm"} />}</For>
-          </div>
-        </Show>
-      </div>
-
-      <div class="flex items-center gap-1">
-        <Button
-          class="relative flex items-center gap-2"
-          variant="ghost"
-          onClick={() => startRecording()}
-        >
-          <BsRecordFill size={"20"} />
-          Record
-          <Show when={isRecording()}>
-            <RecordTooltip candidate={candidate} />
+    <div class="py-3">
+      <div class="text-sm font-medium text-foreground mb-2">{props.item.label}</div>
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <Show
+            when={buttons().length > 0}
+            fallback={<span class="text-xs text-muted-foreground">Not set</span>}
+          >
+            <div class="flex gap-1">
+              <For each={buttons()}>{(b) => <KeyboardButton key={b} size={"sm"} />}</For>
+            </div>
           </Show>
-        </Button>
+        </div>
 
-        <Show when={!defaultCut}>
+        <div class="flex items-center gap-1">
           <Button
-            variant={"ghost"}
-            size="icon"
-            onClick={() => {
-              void removeShortcut();
-            }}
+            class="relative flex items-center gap-2"
+            variant="ghost"
+            onClick={() => startRecording()}
           >
-            <BsTrash />
+            <BsRecordFill size={"20"} />
+            Record
+            <Show when={isRecording()}>
+              <RecordTooltip candidate={candidate} />
+            </Show>
           </Button>
-        </Show>
-        <Show when={defaultCut}>
-          <Button
-            variant={"ghost"}
-            size="icon"
-            onClick={() => {
-              void setStoreShortcut(defaultCut);
-            }}
-          >
-            <BsArrowCounterclockwise />
-          </Button>
-        </Show>
+
+          <Show when={!defaultCut}>
+            <Button
+              variant={"ghost"}
+              size="icon"
+              onClick={() => {
+                void removeShortcut();
+              }}
+            >
+              <BsTrash />
+            </Button>
+          </Show>
+          <Show when={defaultCut}>
+            <Button
+              variant={"ghost"}
+              size="icon"
+              onClick={() => {
+                void setStoreShortcut(defaultCut);
+              }}
+            >
+              <BsArrowCounterclockwise />
+            </Button>
+          </Show>
+        </div>
       </div>
     </div>
   );
