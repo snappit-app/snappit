@@ -40,7 +40,7 @@ export function Tools(props: toolsProps) {
       style={{ left: `${pos().x}px`, top: `${pos().y}px` }}
       {...rest}
     >
-      <ToggleGroup value={local.value} variant={"ghost"}>
+      <ToggleGroup value={local.value} color={"product"} variant={"ghost"}>
         <div use:tooltip={"Capture"}>
           <ToggleGroupItem value="capture" onClick={() => local.onValueChange("capture")}>
             <BiSolidCopy />

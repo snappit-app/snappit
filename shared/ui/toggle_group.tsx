@@ -26,7 +26,8 @@ const toggleGroupItemVariants = cva("", {
   variants: {
     color: {
       default: "",
-      product: "data-[pressed]:bg-product data-[pressed]:text-product-foreground",
+      product:
+        "data-[pressed]:bg-product data-[pressed]:text-product-foreground data-[state=on]:bg-product data-[state=on]:text-product-foreground",
     },
   },
   defaultVariants: {

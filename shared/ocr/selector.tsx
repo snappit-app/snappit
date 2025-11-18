@@ -88,7 +88,7 @@ export function RecognitionLanguageSelector() {
                 >
                   {option.label}
                 </CheckboxLabel>
-                <CheckboxControl class="absolute right-2" />
+                <CheckboxControl color={"product"} class="absolute right-2" />
               </Checkbox>
             </Show>
           </>
