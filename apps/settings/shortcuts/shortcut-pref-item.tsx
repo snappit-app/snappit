@@ -1,5 +1,4 @@
 import { BiRegularRadioCircleMarked, BiRegularReset, BiSolidTrash } from "solid-icons/bi";
-import { BsRecordFill } from "solid-icons/bs";
 import { createEffect, createMemo, For, Show } from "solid-js";
 
 import { fromGlobalShortcut, toGlobalShortcut } from "@/shared/libs/shortcut_recorder";

@@ -5,6 +5,8 @@ import { createPermissions } from "@/shared/libs/permissions";
 import { PermissionsApi } from "@/shared/tauri/permissions_api";
 import { tooltip } from "@/shared/ui/tooltip";
 
+void tooltip;
+
 const tooltipText = () => (
   <>
     <div class="whitespace-nowrap">Snappit requires Screen Recording access on macOS.</div>

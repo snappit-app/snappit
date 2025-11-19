@@ -1,8 +1,7 @@
 import { PolymorphicProps } from "@kobalte/core";
 import { Tabs as TabsPrimitive, TabsTriggerProps } from "@kobalte/core/tabs";
-import { splitProps, ValidComponent } from "solid-js";
-
 import { cn } from "@shared/libs/cn";
+import { splitProps, ValidComponent } from "solid-js";
 
 type tabsTriggerProps<T extends ValidComponent = "button"> = TabsTriggerProps<T> & {
   class?: string;
