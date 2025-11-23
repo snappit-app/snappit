@@ -1,17 +1,16 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
 import { createMemo, Show } from "solid-js";
+import { onMount } from "solid-js";
 
 import { Languages } from "@/apps/settings/languages";
 import { Shortcuts } from "@/apps/settings/shortcuts";
 import { createPermissions } from "@/shared/libs/permissions";
 import { createSettingsVisible } from "@/shared/libs/settings_visible";
+import { ensureSystemLanguagesInstalled, isInitialSetup } from "@/shared/ocr/installed_languages";
 import { Theme } from "@/shared/theme";
 
 import { PermissionsGate } from "./permissions";
 import { Preferences } from "./preferences";
-
-import { ensureSystemLanguagesInstalled, isInitialSetup } from "@/shared/ocr/installed_languages";
-import { onMount } from "solid-js";
 
 function SettingsApp() {
   Theme.create();
@@ -27,8 +26,8 @@ function SettingsApp() {
     <main class="h-full relative">
       <Show when={isInitialSetup()}>
         <div class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
-            <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mb-4"></div>
-            <p class="text-sm font-medium">Initial setup in progress...</p>
+          <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mb-4" />
+          <p class="text-sm font-medium">Initial setup in progress...</p>
         </div>
       </Show>
       <Show when={permissions.loading()}>
@@ -47,14 +46,14 @@ function SettingsApp() {
             </TabsList>
           </header>
 
-          <div class="grow-1 overflow-auto">
-            <TabsContent value="preferences">
+          <div class="grow-1 overflow-hidden flex flex-col">
+            <TabsContent value="preferences" class="h-full overflow-auto">
               <Preferences />
             </TabsContent>
-            <TabsContent value="shortcuts">
+            <TabsContent value="shortcuts" class="h-full overflow-auto">
               <Shortcuts />
             </TabsContent>
-            <TabsContent value="languages">
+            <TabsContent value="languages" class="h-full flex flex-col overflow-hidden">
               <Languages />
             </TabsContent>
           </div>
