@@ -124,13 +124,33 @@ impl SnappitTesseractOcr {
     }
 
     pub fn get_data_path(app: &tauri::AppHandle) -> SnappitResult<PathBuf> {
-        let tess_data_path = app
-            .path()
-            .resource_dir()?
-            .join("resources")
-            .join("tessdata");
+        let app_data_dir = app.path().app_data_dir()?;
+        let tess_data_path = app_data_dir.join("tessdata");
+
+        if !tess_data_path.exists() {
+            std::fs::create_dir_all(&tess_data_path)?;
+        }
 
         Ok(tess_data_path)
+    }
+
+    pub fn ensure_initialized(app: &tauri::AppHandle) -> SnappitResult<()> {
+        let data_path = Self::get_data_path(app)?;
+        let eng_path = data_path.join("eng.traineddata");
+
+        if !eng_path.exists() {
+            let resource_path = app
+                .path()
+                .resource_dir()?
+                .join("resources")
+                .join("tessdata")
+                .join("eng.traineddata");
+
+            if resource_path.exists() {
+                std::fs::copy(resource_path, eng_path)?;
+            }
+        }
+        Ok(())
     }
 
     fn get_recognition_language(app: &tauri::AppHandle) -> SnappitResult<String> {

@@ -27,6 +27,10 @@ use crate::{
     img_protocol::{handle_img_request, ImageSlot, IMAGE},
     snappit_errors::{SnappitError, SnappitResult},
     snappit_ocr::SnappitOcr,
+    snappit_ocr::{
+        commands::{delete_tess_language, download_tess_language, get_tess_languages},
+        SnappitTesseractOcr,
+    },
     snappit_overlay::SnappitOverlayTarget,
     snappit_permissions::{SnappitPermissions, SnappitPermissionsState},
     snappit_qr::SnappitQr,
@@ -219,6 +223,8 @@ pub fn run() -> tauri::Result<()> {
             app.handle()
                 .set_activation_policy(tauri::ActivationPolicy::Accessory)?;
 
+            SnappitTesseractOcr::ensure_initialized(app.handle())?;
+
             SnappitOverlay::preload(app.handle())?;
             SnappitNotifications::preload(app.handle())?;
             SnappitSettings::preload(app.handle())?;
@@ -257,6 +263,9 @@ pub fn run() -> tauri::Result<()> {
             open_screen_recording_settings,
             sync_shortcut,
             read_config,
+            get_tess_languages,
+            download_tess_language,
+            delete_tess_language,
         ])
         .run(tauri::generate_context!());
 }
