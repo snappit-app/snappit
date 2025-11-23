@@ -26,10 +26,12 @@ use tauri::{async_runtime::spawn_blocking, AppHandle};
 use crate::{
     img_protocol::{handle_img_request, ImageSlot, IMAGE},
     snappit_errors::{SnappitError, SnappitResult},
-    snappit_ocr::SnappitOcr,
     snappit_ocr::{
-        commands::{delete_tess_language, download_tess_language, get_tess_languages},
-        SnappitTesseractOcr,
+        commands::{
+            delete_tess_language, download_tess_language, get_system_tess_languages,
+            get_tess_languages,
+        },
+        SnappitOcr, SnappitTesseractOcr,
     },
     snappit_overlay::SnappitOverlayTarget,
     snappit_permissions::{SnappitPermissions, SnappitPermissionsState},
@@ -148,6 +150,11 @@ async fn scan_region_qr(
 
 #[tauri::command]
 fn show_snap_overlay(app: AppHandle, target: SnappitOverlayTarget) -> tauri::Result<()> {
+    if !SnappitTesseractOcr::are_system_languages_installed(&app).unwrap_or(false) {
+        SnappitSettings::show(&app)?;
+        return Ok(());
+    }
+
     match SnappitOverlay::show(&app, target) {
         Ok(_) => Ok(()),
         Err(SnappitError::MissingPermissions(_)) => Ok(()),
@@ -266,6 +273,7 @@ pub fn run() -> tauri::Result<()> {
             get_tess_languages,
             download_tess_language,
             delete_tess_language,
+            get_system_tess_languages,
         ])
         .run(tauri::generate_context!());
 }

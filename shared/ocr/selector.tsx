@@ -14,6 +14,7 @@ import {
   downloadLanguage,
   installedLanguages,
   refreshInstalledLanguages,
+  isSystemLanguage,
 } from "./installed_languages";
 
 const MANUAL_RECOGNITION_OPTIONS = RECOGNITION_LANGUAGE_OPTIONS.filter(
@@ -140,16 +141,25 @@ export function RecognitionLanguageSelector() {
                     </CheckboxLabel>
                     <CheckboxControl color={"product"} />
                   </Checkbox>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteLanguage(option.value);
-                    }}
-                    class="ml-2 p-1 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-                    title="Delete language"
+                  <Show
+                    when={!isSystemLanguage(option.value)}
+                    fallback={
+                        <div class="ml-2 p-1 text-muted-foreground opacity-50 cursor-not-allowed" title="System language">
+                            <span class="text-xs border px-1 rounded">System</span>
+                        </div>
+                    }
                   >
-                    <FiTrash2 size={16} />
-                  </button>
+                    <button
+                        onClick={(e) => {
+                        e.stopPropagation();
+                        deleteLanguage(option.value);
+                        }}
+                        class="ml-2 p-1 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                        title="Delete language"
+                    >
+                        <FiTrash2 size={16} />
+                    </button>
+                  </Show>
                 </Show>
               </div>
             </Show>

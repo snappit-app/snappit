@@ -47,9 +47,38 @@ pub async fn download_tess_language(app: AppHandle, lang: String) -> Result<(), 
 }
 
 #[tauri::command]
+pub fn get_system_tess_languages() -> Vec<String> {
+    crate::snappit_ocr::tesseract_ocr::get_system_languages()
+}
+
+#[tauri::command]
 pub fn delete_tess_language(app: AppHandle, lang: String) -> Result<(), String> {
+    let system_langs = crate::snappit_ocr::tesseract_ocr::get_system_languages();
+    if system_langs.contains(&lang) {
+        return Err("Cannot delete system language".to_string());
+    }
+
     let data_path = SnappitTesseractOcr::get_data_path(&app).map_err(|e| e.to_string())?;
     let file_path = data_path.join(format!("{}.traineddata", lang));
+
+    // Check if it's the last one
+    let mut count = 0;
+    if data_path.exists() {
+        let entries = std::fs::read_dir(&data_path).map_err(|e| e.to_string())?;
+        for entry in entries {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let path = entry.path();
+            if let Some(extension) = path.extension() {
+                if extension == "traineddata" {
+                    count += 1;
+                }
+            }
+        }
+    }
+
+    if count <= 1 {
+        return Err("Cannot delete the last language".to_string());
+    }
 
     if file_path.exists() {
         std::fs::remove_file(file_path).map_err(|e| e.to_string())?;

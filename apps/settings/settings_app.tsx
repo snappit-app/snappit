@@ -10,14 +10,27 @@ import { Theme } from "@/shared/theme";
 import { PermissionsGate } from "./permissions";
 import { Preferences } from "./preferences";
 
+import { ensureSystemLanguagesInstalled, isInitialSetup } from "@/shared/ocr/installed_languages";
+import { onMount } from "solid-js";
+
 function SettingsApp() {
   Theme.create();
   const [visible] = createSettingsVisible();
   const permissions = createPermissions();
   const permissionsGranted = createMemo(() => permissions.state()?.screenRecording ?? false);
 
+  onMount(() => {
+    ensureSystemLanguagesInstalled();
+  });
+
   return (
-    <main class="h-full">
+    <main class="h-full relative">
+      <Show when={isInitialSetup()}>
+        <div class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+            <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mb-4"></div>
+            <p class="text-sm font-medium">Initial setup in progress...</p>
+        </div>
+      </Show>
       <Show when={permissions.loading()}>
         <p class="text-sm text-muted-foreground">Checking permissions…</p>
       </Show>
