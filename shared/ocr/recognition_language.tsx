@@ -17,7 +17,8 @@ export const RECOGNITION_LANGUAGE_OPTIONS = [
   { label: "Thai", value: "tha" },
 ] as const;
 
-export type RecognitionLanguageValue = (typeof RECOGNITION_LANGUAGE_OPTIONS)[number]["value"];
+export type RecognitionLanguageOption = (typeof RECOGNITION_LANGUAGE_OPTIONS)[number];
+export type RecognitionLanguageValue = RecognitionLanguageOption["value"];
 
 type RecognitionLanguagePreference = readonly [
   () => RecognitionLanguageValue,
