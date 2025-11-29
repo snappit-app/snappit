@@ -1,0 +1,27 @@
+{
+  "formatter": null,
+  "file_types": {
+    "typescript": ["*.ts"],
+    "typescriptreact": ["*.tsx"]
+  },
+  "languages": {
+    "TSX": {
+      "formatter": [],
+      "format_on_save": "on",
+      "code_actions_on_format": {
+        "source.fixAll.eslint": true
+      }
+    },
+    "TypeScript": {
+      "formatter": [],
+      "format_on_save": "on",
+      "code_actions_on_format": {
+        "source.fixAll.eslint": true
+      }
+    },
+    "Rust": {
+      "format_on_save": "on",
+      "formatter": "language_server"
+    }
+  }
+}

@@ -1,99 +1,161 @@
-import { createMemo, For, Show } from "solid-js";
+import { createEffect, createSignal, For, onCleanup, onMount } from "solid-js";
 
 import { cn } from "@/shared/libs/cn";
-import {
-  DEFAULT_VALUE,
-  RECOGNITION_LANGUAGE_OPTIONS,
-  RecognitionLanguage,
-  RecognitionLanguageValue,
-} from "@/shared/ocr/recognition_language";
-import { Checkbox, CheckboxControl, CheckboxLabel } from "@/shared/ui/checkbox";
+import { DEFAULT_VALUE, RecognitionLanguageValue } from "@/shared/ocr/recognition_language";
+import { useRecognitionLanguages } from "@/shared/ocr/use_recognition_languages";
 
-const MANUAL_RECOGNITION_OPTIONS = RECOGNITION_LANGUAGE_OPTIONS.filter(
-  (option) => option.value !== DEFAULT_VALUE,
-);
-const MANUAL_RECOGNITION_OPTION_VALUES = MANUAL_RECOGNITION_OPTIONS.map((option) => option.value);
+import { LanguageItem } from "./language_item";
 
-export function RecognitionLanguageSelector() {
-  const [recognitionLanguage, setRecognitionLanguage] = RecognitionLanguage.create();
+export function RecognitionLanguageAutoOption() {
+  const { setRecognitionLanguage, isAutoLanguageSelected } = useRecognitionLanguages();
 
-  const selectedManualLanguageCodes = createMemo<RecognitionLanguageValue[]>(() => {
-    const current = recognitionLanguage();
-    if (!current || current === DEFAULT_VALUE) return [];
+  return (
+    <>
+      <button
+        type="button"
+        class={cn(
+          "flex w-full cursor-pointer items-center justify-between rounded-md p-2 text-left text-sm hover:bg-muted",
+          isAutoLanguageSelected() ? "bg-muted" : "",
+        )}
+        aria-pressed={isAutoLanguageSelected()}
+        onClick={() => setRecognitionLanguage(DEFAULT_VALUE)}
+      >
+        <span>Auto (system languages)</span>
+      </button>
+      <div class="border-t border-gray-300 my-1" />
+    </>
+  );
+}
 
-    const parts = current
-      .split("+")
-      .map((code) => code.trim() as RecognitionLanguageValue)
-      .filter(Boolean);
+export function RecognitionLanguageManualList() {
+  const {
+    sortedOptions,
+    selectedManualLanguageSet,
+    installedLanguages,
+    downloading,
+    isSystemLanguage,
+    toggleRecognitionLanguage,
+    handleDownload,
+    deleteLanguage,
+  } = useRecognitionLanguages();
 
-    return MANUAL_RECOGNITION_OPTION_VALUES.filter((code) => parts.includes(code));
-  });
+  const [activeValue, setActiveValue] = createSignal<RecognitionLanguageValue | null>(null);
+  const [typeaheadQuery, setTypeaheadQuery] = createSignal("");
+  const itemRefs = new Map<RecognitionLanguageValue, HTMLDivElement>();
+  let lastTypeAt = 0;
+  const TYPEAHEAD_RESET_MS = 1000;
 
-  const selectedManualLanguageSet = createMemo(() => new Set(selectedManualLanguageCodes()));
-
-  const isAutoLanguageSelected = createMemo(() => {
-    const current = recognitionLanguage();
-    return !current || current === DEFAULT_VALUE || selectedManualLanguageCodes().length === 0;
-  });
-
-  const toggleRecognitionLanguage = (value: RecognitionLanguageValue) => {
-    const current = new Set(selectedManualLanguageCodes());
-
-    if (current.has(value)) {
-      current.delete(value);
-    } else {
-      current.add(value);
+  const activateOption = (value: RecognitionLanguageValue) => {
+    setActiveValue(value);
+    const element = itemRefs.get(value);
+    if (element) {
+      element.focus({ preventScroll: true });
+      element.scrollIntoView({ block: "center" });
     }
+  };
 
-    if (current.size === 0) {
-      setRecognitionLanguage(DEFAULT_VALUE);
+  const findMatch = (query: string) => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) {
+      setActiveValue(null);
       return;
     }
 
-    const ordered = MANUAL_RECOGNITION_OPTION_VALUES.filter((code) => current.has(code));
-    setRecognitionLanguage(ordered.join("+") as RecognitionLanguageValue);
+    const match = sortedOptions().find((option) => {
+      const label = option.label.toLowerCase();
+      const code = option.value.toLowerCase();
+      return label.includes(normalized) || code.includes(normalized);
+    });
+
+    if (match) {
+      activateOption(match.value);
+      return;
+    }
+
+    setActiveValue(null);
   };
 
-  return (
-    <div class="flex flex-col gap-1">
-      <For each={RECOGNITION_LANGUAGE_OPTIONS}>
-        {(option) => (
-          <>
-            <Show when={option.value === DEFAULT_VALUE}>
-              <button
-                type="button"
-                class={cn(
-                  "flex w-full cursor-pointer items-center justify-between rounded-md p-2 text-left text-sm hover:bg-muted",
-                  isAutoLanguageSelected() ? "bg-muted" : "",
-                )}
-                aria-pressed={isAutoLanguageSelected()}
-                onClick={() => setRecognitionLanguage(DEFAULT_VALUE)}
-              >
-                <span>Auto (system languages)</span>
-              </button>
-              <div class="border-t border-gray-300 my-1" />
-            </Show>
+  createEffect(() => {
+    const currentActive = activeValue();
+    if (!currentActive) return;
 
-            <Show when={option.value !== DEFAULT_VALUE}>
-              <Checkbox
-                class="flex items-center w-full relative"
-                checked={selectedManualLanguageSet().has(option.value)}
-                onChange={() => toggleRecognitionLanguage(option.value)}
-              >
-                <CheckboxLabel
-                  class={cn(
-                    "text-sm grow-1 cursor-pointer rounded-md font-medium leading-none p-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 hover:bg-muted",
-                    selectedManualLanguageSet().has(option.value) ? "bg-muted" : "",
-                  )}
-                >
-                  {option.label}
-                </CheckboxLabel>
-                <CheckboxControl color={"product"} class="absolute right-2" />
-              </Checkbox>
-            </Show>
-          </>
+    if (!sortedOptions().some((option) => option.value === currentActive)) {
+      setActiveValue(null);
+    }
+  });
+
+  const handleTypeahead = (event: KeyboardEvent) => {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest("input, textarea, select, button")) return;
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+    if (event.key === "Escape") {
+      setTypeaheadQuery("");
+      setActiveValue(null);
+      return;
+    }
+
+    if (event.key === "Backspace") {
+      const nextQuery = typeaheadQuery().slice(0, -1);
+      setTypeaheadQuery(nextQuery);
+      if (!nextQuery) {
+        setActiveValue(null);
+        return;
+      }
+      findMatch(nextQuery);
+      return;
+    }
+
+    if (event.key.length === 1) {
+      const now = Date.now();
+      const baseQuery = now - lastTypeAt > TYPEAHEAD_RESET_MS ? "" : typeaheadQuery();
+      lastTypeAt = now;
+      const nextQuery = (baseQuery + event.key).toLowerCase();
+      setTypeaheadQuery(nextQuery);
+      findMatch(nextQuery);
+    }
+  };
+
+  onMount(() => {
+    window.addEventListener("keydown", handleTypeahead);
+  });
+
+  onCleanup(() => {
+    window.removeEventListener("keydown", handleTypeahead);
+  });
+
+  return (
+    <div
+      class="flex flex-col gap-1"
+      role="listbox"
+      aria-label="Manual recognition languages. Type to search."
+    >
+      <For each={sortedOptions()}>
+        {(option) => (
+          <LanguageItem
+            option={option}
+            isSelected={selectedManualLanguageSet().has(option.value)}
+            isInstalled={installedLanguages().includes(option.value)}
+            isDownloading={downloading().has(option.value)}
+            isSystem={isSystemLanguage(option.value)}
+            onToggle={() => toggleRecognitionLanguage(option.value)}
+            onDownload={() => handleDownload(option.value)}
+            onDelete={() => deleteLanguage(option.value)}
+            isActive={activeValue() === option.value}
+            itemRef={(el) => itemRefs.set(option.value, el)}
+            onFocusItem={() => setActiveValue(option.value)}
+          />
         )}
       </For>
+    </div>
+  );
+}
+
+export function RecognitionLanguageSelector() {
+  return (
+    <div class="flex flex-col gap-1">
+      <RecognitionLanguageAutoOption />
+      <RecognitionLanguageManualList />
     </div>
   );
 }

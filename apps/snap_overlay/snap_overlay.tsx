@@ -37,6 +37,7 @@ function SnapOverlay(props: snapOverlayProps) {
   const isRulerTool = createMemo(() => activeTool() === "digital_ruler");
   const isQrTool = createMemo(() => activeTool() === "qr_scanner");
   const isColorDropperTool = createMemo(() => activeTool() === "color_dropper");
+
   const showQrScanner = createMemo(() => isQrTool() && !mouseOnTools() && qrScanner.frame());
   const showColorDropper = createMemo(() => isColorDropperTool() && !mouseOnTools());
   const showRuler = createMemo(() => isRulerTool() && !mouseOnTools());

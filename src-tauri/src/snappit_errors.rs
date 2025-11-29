@@ -57,6 +57,9 @@ pub enum SnappitError {
 
     #[error("Missing permissions")]
     Other,
+
+    #[error("Reqwest error: {0}")]
+    Reqwest(#[from] reqwest::Error),
 }
 
 pub type SnappitResult<T> = Result<T, SnappitError>;

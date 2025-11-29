@@ -33,6 +33,20 @@ fn default_recognition_language() -> String {
         .unwrap_or_else(|| FALLBACK_RECOGNITION_LANGUAGE.to_string())
 }
 
+pub fn get_system_languages() -> Vec<String> {
+    let mut prioritized: Vec<&'static str> = Vec::new();
+
+    for locale in sys_locale::get_locales() {
+        if let Some(code) = map_locale_to_tesseract_code(&locale) {
+            if !prioritized.iter().any(|existing| existing == &code) {
+                prioritized.push(code);
+            }
+        }
+    }
+
+    prioritized.into_iter().map(String::from).collect()
+}
+
 fn map_locale_to_tesseract_code(locale: &str) -> Option<&'static str> {
     let normalized = locale.trim();
     if normalized.is_empty() {
@@ -124,13 +138,46 @@ impl SnappitTesseractOcr {
     }
 
     pub fn get_data_path(app: &tauri::AppHandle) -> SnappitResult<PathBuf> {
-        let tess_data_path = app
-            .path()
-            .resource_dir()?
-            .join("resources")
-            .join("tessdata");
+        let app_data_dir = app.path().app_data_dir()?;
+        let tess_data_path = app_data_dir.join("tessdata");
+
+        if !tess_data_path.exists() {
+            std::fs::create_dir_all(&tess_data_path)?;
+        }
 
         Ok(tess_data_path)
+    }
+
+    pub fn ensure_initialized(app: &tauri::AppHandle) -> SnappitResult<()> {
+        let data_path = Self::get_data_path(app)?;
+        let eng_path = data_path.join("eng.traineddata");
+
+        if !eng_path.exists() {
+            let resource_path = app
+                .path()
+                .resource_dir()?
+                .join("resources")
+                .join("tessdata")
+                .join("eng.traineddata");
+
+            if resource_path.exists() {
+                std::fs::copy(resource_path, eng_path)?;
+            }
+        }
+        Ok(())
+    }
+
+    pub fn are_system_languages_installed(app: &tauri::AppHandle) -> SnappitResult<bool> {
+        let data_path = Self::get_data_path(app)?;
+        let system_langs = crate::snappit_ocr::tesseract_ocr::get_system_languages();
+
+        for lang in system_langs {
+            let file_path = data_path.join(format!("{}.traineddata", lang));
+            if !file_path.exists() {
+                return Ok(false);
+            }
+        }
+        Ok(true)
     }
 
     fn get_recognition_language(app: &tauri::AppHandle) -> SnappitResult<String> {
