@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-use colored::Colorize;
 use once_cell::sync::Lazy;
 use serde_json::json;
 use tauri::{AppHandle, Wry};

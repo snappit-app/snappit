@@ -15,6 +15,7 @@ pub struct SnappitStoreType {
     pub keys: SnappitStoreKeys,
 }
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct SnappitStoreKeys {
     pub theme: String,
     pub hotkey_capture: String,
