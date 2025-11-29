@@ -11,6 +11,9 @@ interface LanguageItemProps {
   isDownloading: boolean;
   isSelected: boolean;
   isSystem: boolean;
+  isActive?: boolean;
+  itemRef?: (el: HTMLDivElement) => void;
+  onFocusItem?: () => void;
   onToggle: () => void;
   onDownload: () => void;
   onDelete: () => void;
@@ -19,14 +22,30 @@ interface LanguageItemProps {
 export function LanguageItem(props: LanguageItemProps) {
   return (
     <div
+      ref={props.itemRef}
+      tabIndex={0}
+      role="option"
       class={cn(
-        "flex items-center w-full relative p-2 rounded-md group cursor-pointer hover:bg-muted",
+        "flex items-center w-full relative p-2 rounded-md group cursor-pointer hover:bg-muted focus:outline-none focus:bg-muted focus-visible:bg-muted",
       )}
+      aria-selected={props.isActive}
       onClick={() => {
         if (props.isInstalled) {
           props.onToggle();
         } else if (!props.isDownloading) {
           props.onDownload();
+        }
+      }}
+      onFocus={() => props.onFocusItem?.()}
+      onKeyDown={(event) => {
+        if (event.key === " " || event.key === "Enter") {
+          event.preventDefault();
+          event.stopPropagation();
+          if (props.isInstalled) {
+            props.onToggle();
+          } else if (!props.isDownloading) {
+            props.onDownload();
+          }
         }
       }}
     >
@@ -47,8 +66,11 @@ export function LanguageItem(props: LanguageItemProps) {
         </Show>
 
         <Show when={props.isInstalled && props.isSystem}>
-          <div class="text-muted-foreground opacity-50 flex" title="System language">
-            <span class="text-[10px] border px-1 rounded uppercase">System</span>
+          <div
+            class="text-product-foreground bg-product flex rounded text-[10px] px-1 uppercase"
+            title="System language"
+          >
+            System
           </div>
         </Show>
       </div>
@@ -66,7 +88,7 @@ export function LanguageItem(props: LanguageItemProps) {
           class="flex items-center"
           checked={props.isSelected}
           onChange={props.onToggle}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e: MouseEvent) => e.stopPropagation()}
         >
           <CheckboxControl color={"product"} />
         </Checkbox>

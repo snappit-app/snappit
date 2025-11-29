@@ -48,6 +48,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-solid": "^0.14.5",
+    "eslint_d": "^14.3.0",
     "globals": "^16.3.0",
     "prettier": "^3.6.2",
     "typescript": "~5.6.2",

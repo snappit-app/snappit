@@ -11,6 +11,9 @@ export function Languages() {
             <br />
             Selecting more languages may make the search a bit slower
           </p>
+          <p class="text-xs text-muted-foreground mt-2">
+            Tip: type to search and jump to a language in the list.
+          </p>
         </div>
 
         <div class="p-5 pb-0">
