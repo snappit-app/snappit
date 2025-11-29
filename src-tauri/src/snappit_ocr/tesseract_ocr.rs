@@ -5,128 +5,28 @@ use leptess::LepTess;
 use tauri::Manager;
 
 use crate::{
-    snappit_consts::SNAPPIT_CONSTS, snappit_errors::SnappitResult, snappit_store::SnappitStore,
+    snappit_errors::SnappitResult,
+    snappit_ocr::recognition_language::{
+        default_recognition_language, get_system_recognition_languages,
+    },
 };
-
-const FALLBACK_RECOGNITION_LANGUAGE: &str = "eng";
-const VALID_RECOGNITION_LANGUAGE_CODES: &[&str] = &[
-    "eng", "rus", "chi_sim", "chi_tra", "jpn", "kor", "spa", "fra", "deu", "tha",
-];
-
-fn default_recognition_language() -> String {
-    let mut prioritized: Vec<&'static str> = Vec::new();
-
-    for locale in sys_locale::get_locales() {
-        if let Some(code) = map_locale_to_tesseract_code(&locale) {
-            if !prioritized.iter().any(|existing| existing == &code) {
-                prioritized.push(code);
-            }
-        }
-    }
-
-    if prioritized.is_empty() {
-        return FALLBACK_RECOGNITION_LANGUAGE.to_string();
-    }
-
-    let combined = prioritized.join("+");
-    sanitize_recognition_language(&combined)
-        .unwrap_or_else(|| FALLBACK_RECOGNITION_LANGUAGE.to_string())
-}
-
-pub fn get_system_languages() -> Vec<String> {
-    let mut prioritized: Vec<&'static str> = Vec::new();
-
-    for locale in sys_locale::get_locales() {
-        if let Some(code) = map_locale_to_tesseract_code(&locale) {
-            if !prioritized.iter().any(|existing| existing == &code) {
-                prioritized.push(code);
-            }
-        }
-    }
-
-    prioritized.into_iter().map(String::from).collect()
-}
-
-fn map_locale_to_tesseract_code(locale: &str) -> Option<&'static str> {
-    let normalized = locale.trim();
-    if normalized.is_empty() {
-        return None;
-    }
-
-    let normalized = normalized.replace('_', "-");
-    let segments: Vec<String> = normalized
-        .split('-')
-        .map(|segment| segment.trim().to_ascii_lowercase())
-        .filter(|segment| !segment.is_empty())
-        .collect();
-
-    let Some(language) = segments.get(0) else {
-        return None;
-    };
-
-    match language.as_str() {
-        "en" => Some("eng"),
-        "ru" => Some("rus"),
-        "zh" => {
-            let is_traditional = segments
-                .iter()
-                .skip(1)
-                .any(|segment| matches!(segment.as_str(), "hant" | "tw" | "hk" | "mo"));
-
-            if is_traditional {
-                Some("chi_tra")
-            } else {
-                Some("chi_sim")
-            }
-        }
-        "ja" => Some("jpn"),
-        "ko" => Some("kor"),
-        "es" => Some("spa"),
-        "fr" => Some("fra"),
-        "de" => Some("deu"),
-        "th" => Some("tha"),
-        _ => None,
-    }
-}
-
-fn sanitize_recognition_language(raw: &str) -> Option<String> {
-    let requested: Vec<&str> = raw
-        .split('+')
-        .map(|code| code.trim())
-        .filter(|code| !code.is_empty())
-        .collect();
-
-    if requested.is_empty() {
-        return None;
-    }
-
-    // Preserve the order defined in VALID_RECOGNITION_LANGUAGE_CODES so Tesseract
-    // receives consistent combinations regardless of input order.
-    let mut unique = Vec::new();
-    for &code in VALID_RECOGNITION_LANGUAGE_CODES {
-        if requested
-            .iter()
-            .any(|candidate| candidate.eq_ignore_ascii_case(code))
-        {
-            unique.push(code);
-        }
-    }
-
-    if unique.is_empty() {
-        None
-    } else {
-        Some(unique.join("+"))
-    }
-}
 
 pub struct SnappitTesseractOcr;
 
 impl SnappitTesseractOcr {
-    pub fn recognize(app: &tauri::AppHandle, img: &DynamicImage) -> SnappitResult<String> {
+    pub fn recognize(
+        app: &tauri::AppHandle,
+        img: &DynamicImage,
+        recognition_language: &str,
+    ) -> SnappitResult<String> {
         let mut buf: Vec<u8> = Vec::new();
         let _ = img.write_to(&mut Cursor::new(&mut buf), ImageFormat::Png);
         let data_path = Self::get_data_path(app)?;
-        let recognition_language = Self::get_recognition_language(app)?;
+        let recognition_language = if recognition_language.trim().is_empty() {
+            default_recognition_language()
+        } else {
+            recognition_language.to_string()
+        };
 
         let mut lt = LepTess::new(data_path.to_str(), recognition_language.as_str())?;
         lt.set_image_from_mem(&buf)?;
@@ -169,7 +69,7 @@ impl SnappitTesseractOcr {
 
     pub fn are_system_languages_installed(app: &tauri::AppHandle) -> SnappitResult<bool> {
         let data_path = Self::get_data_path(app)?;
-        let system_langs = crate::snappit_ocr::tesseract_ocr::get_system_languages();
+        let system_langs = get_system_recognition_languages();
 
         for lang in system_langs {
             let file_path = data_path.join(format!("{}.traineddata", lang));
@@ -178,26 +78,5 @@ impl SnappitTesseractOcr {
             }
         }
         Ok(true)
-    }
-
-    fn get_recognition_language(app: &tauri::AppHandle) -> SnappitResult<String> {
-        let key = SNAPPIT_CONSTS.store.keys.recognition_lang.as_str();
-        let value =
-            SnappitStore::get_value(app, key)?.and_then(|stored| stored.as_str().map(String::from));
-
-        let default_language = default_recognition_language();
-        let lang = match value {
-            Some(lang) => {
-                let trimmed = lang.trim();
-                if trimmed.eq_ignore_ascii_case("auto") || trimmed.is_empty() {
-                    default_language
-                } else {
-                    sanitize_recognition_language(trimmed).unwrap_or(default_language)
-                }
-            }
-            None => default_language,
-        };
-
-        Ok(lang)
     }
 }

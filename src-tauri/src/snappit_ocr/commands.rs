@@ -1,4 +1,6 @@
-use super::tesseract_ocr::SnappitTesseractOcr;
+use super::{
+    recognition_language::get_system_recognition_languages, tesseract_ocr::SnappitTesseractOcr,
+};
 use tauri::AppHandle;
 
 #[tauri::command]
@@ -48,12 +50,12 @@ pub async fn download_tess_language(app: AppHandle, lang: String) -> Result<(), 
 
 #[tauri::command]
 pub fn get_system_tess_languages() -> Vec<String> {
-    crate::snappit_ocr::tesseract_ocr::get_system_languages()
+    get_system_recognition_languages()
 }
 
 #[tauri::command]
 pub fn delete_tess_language(app: AppHandle, lang: String) -> Result<(), String> {
-    let system_langs = crate::snappit_ocr::tesseract_ocr::get_system_languages();
+    let system_langs = get_system_recognition_languages();
     if system_langs.contains(&lang) {
         return Err("Cannot delete system language".to_string());
     }

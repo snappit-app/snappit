@@ -1,10 +1,10 @@
 import { createEffect, createSignal, For, onCleanup, onMount } from "solid-js";
 
 import { cn } from "@/shared/libs/cn";
-import { DEFAULT_VALUE, RecognitionLanguageValue } from "@/shared/ocr/recognition_language";
-import { useRecognitionLanguages } from "@/shared/ocr/use_recognition_languages";
 
 import { LanguageItem } from "./language_item";
+import { DEFAULT_VALUE, RecognitionLanguageValue } from "./recognition_language";
+import { useRecognitionLanguages } from "./use_recognition_languages";
 
 export function RecognitionLanguageAutoOption() {
   const { setRecognitionLanguage, isAutoLanguageSelected } = useRecognitionLanguages();

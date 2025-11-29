@@ -58,7 +58,7 @@ export function LanguageItem(props: LanguageItemProps) {
               e.stopPropagation();
               props.onDelete();
             }}
-            class="text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 p-1"
+            class="text-muted-foreground cursor-pointer hover:text-destructive-foreground transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 p-1"
             title="Delete language"
           >
             <FiTrash2 size={14} />
