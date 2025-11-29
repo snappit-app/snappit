@@ -4,6 +4,22 @@
     "typescript": ["*.ts"],
     "typescriptreact": ["*.tsx"]
   },
+  "lsp": {
+    "rust-analyzer": {
+      "initialization_options": {
+        "checkOnSave": true,
+        "cargo": {
+          "allTargets": false
+        },
+        "check": {
+          "workspace": false
+        },
+        "rust": {
+          "analyzerTargetDir": true
+        }
+      }
+    }
+  },
   "languages": {
     "TSX": {
       "formatter": [],

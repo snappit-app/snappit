@@ -22,7 +22,7 @@ export async function onAreaSelected(selection: RegionCaptureParams) {
     case "qr":
       return onScanSuccess(res.payload);
     case "ocr":
-      return onTextRecognized(res.payload);
+      return onTextRecognized(res.payload.value);
     case "dropper":
       return onColorRecognized(res.payload);
     default:

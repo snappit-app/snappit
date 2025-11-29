@@ -5,9 +5,16 @@ export interface SnappitQrResponse {
   payload: string;
 }
 
+export type SnappitOcrEngine = "vision" | "tesseract";
+
+export interface SnappitOcrPayload {
+  value: string;
+  ocr: SnappitOcrEngine;
+}
+
 export interface SnappitOcrResponse {
   kind: "ocr";
-  payload: string;
+  payload: SnappitOcrPayload;
 }
 
 export interface SnappitDropperResponse {

@@ -10,6 +10,7 @@ use crate::{
         },
         SnappitMacOSVisionOcr, SnappitTesseractOcr,
     },
+    snappit_res::{SnappitOcrEngine, SnappitOcrResult},
     traits::IntoDynamic,
 };
 
@@ -19,21 +20,30 @@ impl SnappitOcr {
     pub fn recognize(
         app: &tauri::AppHandle,
         image: ImageBuffer<Rgba<u8>, Vec<u8>>,
-    ) -> SnappitResult<String> {
+    ) -> SnappitResult<SnappitOcrResult> {
         let dyn_img = (image.width(), image.height(), image.into_raw()).into_dynamic()?;
         let recognition_language = resolve_recognition_language(app)?;
         let language_codes = split_recognition_languages(&recognition_language);
 
         if Self::should_use_macos_vision(&language_codes) {
             match SnappitMacOSVisionOcr::recognize(app, &dyn_img, &language_codes) {
-                Ok(text) => return Ok(text),
+                Ok(text) => {
+                    return Ok(SnappitOcrResult {
+                        value: text,
+                        ocr: SnappitOcrEngine::Vision,
+                    })
+                }
                 Err(err) => {
                     warn!("macOS Vision OCR unavailable, falling back to Tesseract: {err}");
                 }
             }
         }
 
-        SnappitTesseractOcr::recognize(app, &dyn_img, &recognition_language)
+        let text = SnappitTesseractOcr::recognize(app, &dyn_img, &recognition_language)?;
+        Ok(SnappitOcrResult {
+            value: text,
+            ocr: SnappitOcrEngine::Tesseract,
+        })
     }
 
     fn should_use_macos_vision(languages: &[String]) -> bool {

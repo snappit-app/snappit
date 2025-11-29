@@ -22,7 +22,7 @@ type notificationProps = {
   data: Accessor<string | undefined>;
 };
 
-const NOTIFICATION_LIFETIME = 1500;
+const NOTIFICATION_LIFETIME = 2000;
 const ANIMATION_TIMEOUT = 200;
 
 export function NotificationItem(props: notificationProps) {
@@ -62,7 +62,7 @@ export function NotificationItem(props: notificationProps) {
       </div>
 
       <div class="text-lg font-bold text-foreground">
-        <Switch fallback={<>Content copied</>}>
+        <Switch fallback={<>Text copied</>}>
           <Match when={props.target() === "digital_ruler"}>Measurement copied</Match>
           <Match when={props.target() === "color_dropper"}>Color copied</Match>
           <Match when={props.target() === "qr_scanner"}>

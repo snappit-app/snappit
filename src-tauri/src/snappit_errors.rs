@@ -52,8 +52,8 @@ pub enum SnappitError {
     #[error("Missing models: need det, cls, rec .onnx files")]
     PaddleModelNotFound,
 
-    #[error("macOS Vision OCR is not available yet")]
-    MacOSVisionOcrUnavailable,
+    #[error("macOS Vision OCR unavailable: {0}")]
+    MacOSVisionOcrUnavailable(String),
 
     #[error("Missing permissions: {0}")]
     MissingPermissions(&'static str),
