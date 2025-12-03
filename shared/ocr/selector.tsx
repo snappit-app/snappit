@@ -1,10 +1,14 @@
+import { BsQuestionCircleFill } from "solid-icons/bs";
 import { createEffect, createSignal, For, onCleanup, onMount } from "solid-js";
 
 import { cn } from "@/shared/libs/cn";
+import { tooltip } from "@/shared/ui/tooltip";
 
 import { LanguageItem } from "./language_item";
 import { DEFAULT_VALUE, RecognitionLanguageValue } from "./recognition_language";
 import { useRecognitionLanguages } from "./use_recognition_languages";
+
+void tooltip;
 
 export function RecognitionLanguageAutoOption() {
   const { setRecognitionLanguage, isAutoLanguageSelected } = useRecognitionLanguages();
@@ -21,7 +25,11 @@ export function RecognitionLanguageAutoOption() {
         onClick={() => setRecognitionLanguage(DEFAULT_VALUE)}
       >
         <span>Auto (system languages)</span>
+        <div use:tooltip={"Type to search and jump to a language in the list"}>
+          <BsQuestionCircleFill />
+        </div>
       </button>
+
       <div class="border-t border-gray-300 my-1" />
     </>
   );

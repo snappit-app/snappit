@@ -32,7 +32,7 @@ export function Preferences() {
 
         <div class="flex flex-col gap-6">
           <div class="flex justify-between items-center">
-            <div>Theme</div>
+            <div class="text-sm">Theme</div>
             <ToggleGroup size={"sm"} color={"product"} value={theme()}>
               <ToggleGroupItem onClick={() => setTheme("light")} value="light">
                 Light
@@ -53,7 +53,7 @@ export function Preferences() {
             onChange={setAutostartEnabled}
             disabled={!autostartReady()}
           >
-            <SwitchLabel>Startup</SwitchLabel>
+            <SwitchLabel class="text-sm">Startup</SwitchLabel>
             <SwitchControl variant={"product"}>
               <SwitchThumb />
             </SwitchControl>
@@ -64,7 +64,7 @@ export function Preferences() {
             checked={notificationsEnabled()}
             onChange={(e) => setNotificationsEnabled(e)}
           >
-            <SwitchLabel>Notifications</SwitchLabel>
+            <SwitchLabel class="text-sm">Notifications</SwitchLabel>
             <SwitchControl variant={"product"}>
               <SwitchThumb />
             </SwitchControl>
@@ -75,7 +75,7 @@ export function Preferences() {
             checked={!!toolsEnabled()}
             onChange={(value) => setToolsEnabled(value)}
           >
-            <SwitchLabel>Tools panel</SwitchLabel>
+            <SwitchLabel class="text-sm">Tools panel</SwitchLabel>
             <SwitchControl variant={"product"}>
               <SwitchThumb />
             </SwitchControl>

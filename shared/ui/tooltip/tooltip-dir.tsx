@@ -35,6 +35,7 @@ export function tooltip(el: HTMLElement, accessor: Accessor<TooltipParams>) {
         {visible() && (
           <div
             ref={(el) => (tooltipRef = el)}
+            class="z-50"
             style={{
               position: "fixed",
               left: `${left()}px`,
