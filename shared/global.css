@@ -128,4 +128,8 @@
   #root {
     @apply h-full;
   }
+
+  *[data-tauri-drag-region] {
+    -webkit-app-region: drag;
+  }
 }

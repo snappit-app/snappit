@@ -46,6 +46,7 @@ impl SnappitSettings {
             .closable(true)
             .minimizable(false)
             .decorations(true)
+            .title_bar_style(tauri::TitleBarStyle::Overlay)
             .transparent(false)
             .resizable(false)
             .shadow(true)
@@ -77,7 +78,7 @@ impl SnappitSettings {
             SNAPPIT_CONSTS.windows.settings.as_str(),
             WebviewUrl::App("apps/settings/index.html".into()),
         )
-        .title("Snappit Settings")
+        .title("")
         .visible(false);
 
         builder
