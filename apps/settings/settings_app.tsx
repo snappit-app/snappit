@@ -1,6 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
-import { createResizeObserver } from "@solid-primitives/resize-observer";
-import { createEffect, createMemo, createSignal, Show } from "solid-js";
+import { createMemo, Show } from "solid-js";
 import { onMount } from "solid-js";
 
 import { Languages } from "@/apps/settings/languages";
