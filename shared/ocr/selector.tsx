@@ -1,5 +1,6 @@
+import { createEventListener } from "@solid-primitives/event-listener";
 import { BsQuestionCircleFill } from "solid-icons/bs";
-import { createEffect, createSignal, For, onCleanup, onMount } from "solid-js";
+import { createEffect, createSignal, For } from "solid-js";
 
 import { cn } from "@/shared/libs/cn";
 import { tooltip } from "@/shared/ui/tooltip";
@@ -75,8 +76,13 @@ export function RecognitionLanguageManualList() {
       return label.includes(normalized) || code.includes(normalized);
     });
 
+    const startWithMatch = sortedOptions().find((option) => {
+      const label = option.label.toLowerCase();
+      return label.startsWith(normalized);
+    });
+
     if (match) {
-      activateOption(match.value);
+      activateOption(startWithMatch?.value || match.value);
       return;
     }
 
@@ -124,13 +130,7 @@ export function RecognitionLanguageManualList() {
     }
   };
 
-  onMount(() => {
-    window.addEventListener("keydown", handleTypeahead);
-  });
-
-  onCleanup(() => {
-    window.removeEventListener("keydown", handleTypeahead);
-  });
+  createEventListener(window, "keydown", handleTypeahead);
 
   return (
     <div
@@ -155,15 +155,6 @@ export function RecognitionLanguageManualList() {
           />
         )}
       </For>
-    </div>
-  );
-}
-
-export function RecognitionLanguageSelector() {
-  return (
-    <div class="flex flex-col gap-1">
-      <RecognitionLanguageAutoOption />
-      <RecognitionLanguageManualList />
     </div>
   );
 }

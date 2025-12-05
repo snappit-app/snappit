@@ -48,7 +48,7 @@ export function Languages() {
           <RecognitionLanguageAutoOption />
         </div>
 
-        <div class="grow overflow-auto p-1 pl-5">
+        <div class="grow overflow-auto p-1 pl-5 pr-5">
           <RecognitionLanguageManualList />
         </div>
 
