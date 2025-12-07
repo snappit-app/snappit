@@ -9,7 +9,7 @@ import { createContext, createMemo, splitProps, useContext } from "solid-js";
 
 import { toggleVariants } from "./toggle";
 
-const toggleGroupRootVariants = cva("flex items-center justify-center gap-1 rounded-md p-1", {
+const toggleGroupRootVariants = cva("flex items-center justify-center gap-1 rounded-full p-[3px]", {
   variants: {
     variant: {
       default: "bg-muted",

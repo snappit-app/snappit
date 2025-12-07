@@ -30,7 +30,7 @@ export function Preferences() {
           </p>
         </div>
 
-        <div class="flex flex-col gap-6">
+        <div class="flex flex-col gap-2">
           <div class="flex justify-between items-center">
             <div class="text-sm">Theme</div>
             <ToggleGroup size={"sm"} color={"product"} value={theme()}>
@@ -48,7 +48,7 @@ export function Preferences() {
           </div>
 
           <Switch
-            class="flex justify-between"
+            class="flex justify-between items-center h-[30px]"
             checked={autostartEnabled()}
             onChange={setAutostartEnabled}
             disabled={!autostartReady()}
@@ -60,7 +60,7 @@ export function Preferences() {
           </Switch>
 
           <Switch
-            class="flex justify-between"
+            class="flex justify-between items-center h-[30px]"
             checked={notificationsEnabled()}
             onChange={(e) => setNotificationsEnabled(e)}
           >
@@ -71,7 +71,7 @@ export function Preferences() {
           </Switch>
 
           <Switch
-            class="flex justify-between"
+            class="flex justify-between items-center h-[30px]"
             checked={!!toolsEnabled()}
             onChange={(value) => setToolsEnabled(value)}
           >

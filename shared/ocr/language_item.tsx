@@ -5,6 +5,8 @@ import { cn } from "@/shared/libs/cn";
 import { RecognitionLanguageOption } from "@/shared/ocr/recognition_language";
 import { Checkbox, CheckboxControl } from "@/shared/ui/checkbox";
 
+import { Tag } from "../ui/tag";
+
 interface LanguageItemProps {
   option: RecognitionLanguageOption;
   isInstalled: boolean;
@@ -26,7 +28,7 @@ export function LanguageItem(props: LanguageItemProps) {
       tabIndex={0}
       role="option"
       class={cn(
-        "flex items-center w-full relative p-2 rounded-md group cursor-pointer hover:bg-muted focus:outline-none focus:bg-muted focus-visible:bg-muted",
+        "flex items-center w-full relative py-1 px-4 rounded-full group cursor-pointer hover:bg-muted focus:outline-none focus:bg-muted focus-visible:bg-muted",
       )}
       aria-selected={props.isActive}
       onClick={() => {
@@ -66,12 +68,7 @@ export function LanguageItem(props: LanguageItemProps) {
         </Show>
 
         <Show when={props.isInstalled && props.isSystem}>
-          <div
-            class="text-product-foreground bg-product flex rounded text-[10px] px-1 uppercase"
-            title="System language"
-          >
-            System
-          </div>
+          <Tag>SYSTEM</Tag>
         </Show>
       </div>
 

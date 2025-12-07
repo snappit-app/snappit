@@ -34,7 +34,7 @@ export function Tools(props: toolsProps) {
     <div
       ref={setEl}
       class={cn(
-        "absolute z-10 bg-card/85 rounded-lg p-1 flex items-center gap-1 select-none",
+        "absolute z-10 bg-card/85 rounded-full p-[3px] flex items-center gap-1 select-none",
         local.class,
       )}
       style={{ left: `${pos().x}px`, top: `${pos().y}px` }}
@@ -44,14 +44,6 @@ export function Tools(props: toolsProps) {
         <div use:tooltip={"Capture"}>
           <ToggleGroupItem value="capture" onClick={() => local.onValueChange("capture")}>
             <BiSolidCopy />
-          </ToggleGroupItem>
-        </div>
-        <div use:tooltip={"Ruler Tool"}>
-          <ToggleGroupItem
-            value="digital_ruler"
-            onClick={() => local.onValueChange("digital_ruler")}
-          >
-            <BiSolidRuler />
           </ToggleGroupItem>
         </div>
         <div use:tooltip={"Color Picker"}>

@@ -8,7 +8,7 @@ import type { ValidComponent } from "solid-js";
 import { splitProps } from "solid-js";
 
 export const toggleVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-medium cursor-pointer transition-[box-shadow,color,background-color] hover:text-card-foreground focus-visible:outline-none focus-visible:ring-[1.5px] focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[pressed]:bg-card data-[pressed]:text-card-foreground",
+  "inline-flex items-center justify-center rounded-full text-sm font-medium cursor-pointer transition-[box-shadow,color,background-color] hover:bg-background/40 focus-visible:outline-none focus-visible:ring-[1.5px] focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[pressed]:bg-card data-[pressed]:text-card-foreground",
   {
     variants: {
       variant: {
@@ -20,7 +20,7 @@ export const toggleVariants = cva(
       },
       size: {
         default: "h-9 px-3",
-        sm: "h-8 px-3",
+        sm: "h-6 px-3",
         lg: "h-10 px-3",
       },
     },

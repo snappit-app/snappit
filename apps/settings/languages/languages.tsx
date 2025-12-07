@@ -3,6 +3,7 @@ import { createMemo } from "solid-js";
 
 import { RecognitionLanguageAutoOption, RecognitionLanguageManualList } from "@/shared/ocr";
 import { useRecognitionLanguages } from "@/shared/ocr/use_recognition_languages";
+import { Tag } from "@/shared/ui/tag";
 import { tooltip } from "@/shared/ui/tooltip";
 
 void tooltip;
@@ -48,7 +49,7 @@ export function Languages() {
           <RecognitionLanguageAutoOption />
         </div>
 
-        <div class="grow overflow-auto p-1 pl-5 pr-5">
+        <div class="grow overflow-auto p-1 pl-5">
           <RecognitionLanguageManualList />
         </div>
 
@@ -59,10 +60,14 @@ export function Languages() {
             </span>
             <span
               use:tooltip={modelHint()}
-              class="px-2 py-[2px] flex items-center gap-1 rounded-full text-[11px] font-semibold bg-product text-product-foreground"
+              // class="px-2 py-[2px] flex items-center gap-1 rounded-full text-[11px] font-semibold bg-product text-product-foreground"
             >
-              {modelLabel()}
-              <BsQuestionCircleFill />
+              <Tag>
+                <div class="flex items-center gap-1">
+                  {modelLabel()}
+                  <BsQuestionCircleFill />
+                </div>
+              </Tag>
             </span>
           </div>
         </div>
