@@ -3,6 +3,7 @@ mod platform;
 mod region_capture;
 mod snappit_consts;
 mod snappit_errors;
+mod snappit_license;
 mod snappit_notifications;
 mod snappit_ocr;
 mod snappit_overlay;
@@ -26,6 +27,7 @@ use tauri::{async_runtime::spawn_blocking, AppHandle};
 use crate::{
     img_protocol::{handle_img_request, ImageSlot, IMAGE},
     snappit_errors::{SnappitError, SnappitResult},
+    snappit_license::{LicenseState, SnappitLicense},
     snappit_ocr::{
         commands::{
             delete_tess_language, download_tess_language, get_system_tess_languages,
@@ -48,6 +50,10 @@ async fn capture_color_at_cursor(
     x: u32,
     y: u32,
 ) -> tauri::Result<SnappitColorInfo> {
+    // Check license before color capture
+    SnappitLicense::consume_use()?;
+    let _ = SnappitTray::update_license_status(&app);
+
     let app_handle = app.clone();
 
     let color_info = spawn_blocking(move || -> SnappitResult<_> {
@@ -107,6 +113,10 @@ fn open_screen_recording_settings(app: AppHandle) -> tauri::Result<()> {
 
 #[tauri::command]
 async fn on_capture(app: AppHandle, params: RegionCaptureParams) -> tauri::Result<SnappitResponse> {
+    // Check license before capture
+    SnappitLicense::consume_use()?;
+    let _ = SnappitTray::update_license_status(&app);
+
     let app_handle = app.clone();
 
     let captured =
@@ -136,6 +146,10 @@ async fn scan_region_qr(
     app: AppHandle,
     params: RegionCaptureParams,
 ) -> tauri::Result<SnappitResponse> {
+    // Check license before QR scan
+    SnappitLicense::consume_use()?;
+    let _ = SnappitTray::update_license_status(&app);
+
     let app_handle = app.clone();
 
     let task = spawn_blocking(move || -> SnappitResult<_> {
@@ -207,6 +221,22 @@ fn read_config() -> tauri::Result<()> {
     }
 }
 
+#[tauri::command]
+fn get_license_state() -> tauri::Result<LicenseState> {
+    Ok(SnappitLicense::get_state()?)
+}
+
+#[tauri::command]
+fn consume_tool_use() -> tauri::Result<u32> {
+    Ok(SnappitLicense::consume_use()?)
+}
+
+#[tauri::command]
+fn activate_pro_license() -> tauri::Result<()> {
+    SnappitLicense::activate_pro()?;
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() -> tauri::Result<()> {
     return tauri::Builder::default()
@@ -274,6 +304,9 @@ pub fn run() -> tauri::Result<()> {
             download_tess_language,
             delete_tess_language,
             get_system_tess_languages,
+            get_license_state,
+            consume_tool_use,
+            activate_pro_license,
         ])
         .run(tauri::generate_context!());
 }

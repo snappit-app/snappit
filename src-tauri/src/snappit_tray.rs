@@ -11,6 +11,7 @@ use tauri::{
 use crate::{
     snappit_consts::SNAPPIT_CONSTS,
     snappit_errors::{SnappitError, SnappitResult},
+    snappit_license::{LicenseType, SnappitLicense},
     snappit_overlay::{SnappitOverlay, SnappitOverlayTarget},
     snappit_settings::SnappitSettings,
     snappit_shortcut_manager::SnappitShortcutManager,
@@ -275,10 +276,61 @@ impl SnappitTray {
         Ok(())
     }
 
+    /// Update the license status display in the tray menu
+    pub fn update_license_status(app: &AppHandle<Wry>) -> SnappitResult<()> {
+        let Some(menu) = MENU.get() else {
+            return Ok(());
+        };
+
+        let license_text = match SnappitLicense::get_state() {
+            Ok(state) => match state.license_type {
+                LicenseType::Pro => "⭐ Pro".to_string(),
+                LicenseType::Trial => format!("Trial — {} uses left", state.uses_remaining),
+            },
+            Err(_) => "Trial".to_string(),
+        };
+
+        let items = menu.items()?;
+        for kind in items {
+            if let MenuItemKind::MenuItem(item) = kind {
+                if item.id().as_ref() == "license_status" {
+                    item.set_text(&license_text)?;
+                    break;
+                }
+            }
+        }
+
+        // Refresh the tray menu
+        if let Some(tray) = app.tray_by_id(Self::TRAY_ID) {
+            tray.set_menu(Some(menu.clone()))?;
+        }
+
+        Ok(())
+    }
+
     pub fn init(app: &AppHandle<Wry>) -> SnappitResult<TrayIcon> {
         let menu = Menu::new(app)?;
         let _ = MENU.set(menu.clone());
         let tray_icon = Image::from_bytes(include_bytes!("../icons/tray-generated/64x64.png"))?;
+
+        // Add license status at the top
+        let license_text = match SnappitLicense::get_state() {
+            Ok(state) => match state.license_type {
+                LicenseType::Pro => "⭐ Pro".to_string(),
+                LicenseType::Trial => format!("Trial — {} uses left", state.uses_remaining),
+            },
+            Err(_) => "Trial".to_string(),
+        };
+
+        let license_item = MenuItem::with_id(
+            app,
+            "license_status",
+            &license_text,
+            false, // Disabled - just for display
+            Option::<&str>::None,
+        )?;
+        menu.append(&license_item)?;
+        menu.append(&PredefinedMenuItem::separator(app)?)?;
 
         for def in TRAY_ITEMS {
             match def {

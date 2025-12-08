@@ -3,6 +3,7 @@ import { createMemo, Show } from "solid-js";
 import { onMount } from "solid-js";
 
 import { Languages } from "@/apps/settings/languages";
+import { License } from "@/apps/settings/license";
 import { Shortcuts } from "@/apps/settings/shortcuts";
 import { createPermissions } from "@/shared/libs/permissions";
 import { createSettingsVisible } from "@/shared/libs/settings_visible";
@@ -44,6 +45,7 @@ function SettingsApp() {
                 <TabsTrigger value="preferences">Preferences</TabsTrigger>
                 <TabsTrigger value="shortcuts">Shortcuts</TabsTrigger>
                 <TabsTrigger value="languages">Languages</TabsTrigger>
+                <TabsTrigger value="license">License</TabsTrigger>
               </TabsList>
             </div>
           </Show>
@@ -73,6 +75,9 @@ function SettingsApp() {
             </TabsContent>
             <TabsContent value="languages" class="h-full flex flex-col overflow-hidden">
               <Languages />
+            </TabsContent>
+            <TabsContent value="license" class="h-full overflow-auto">
+              <License />
             </TabsContent>
           </Show>
         </main>

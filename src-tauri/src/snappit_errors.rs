@@ -63,6 +63,15 @@ pub enum SnappitError {
 
     #[error("Reqwest error: {0}")]
     Reqwest(#[from] reqwest::Error),
+
+    #[error("Trial expired: no uses remaining")]
+    TrialExpired,
+
+    #[error("License error: {0}")]
+    License(String),
+
+    #[error("License data corrupted")]
+    LicenseCorrupted,
 }
 
 pub type SnappitResult<T> = Result<T, SnappitError>;
