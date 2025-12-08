@@ -1,16 +1,13 @@
-use security_framework::passwords::{
-    delete_generic_password, get_generic_password, set_generic_password,
-};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::fs;
+use std::path::PathBuf;
 use std::process::Command;
 
 use crate::snappit_errors::{SnappitError, SnappitResult};
 
-const SERVICE_NAME: &str = "com.snappit.license";
-const USAGE_KEY: &str = "trial_uses";
-const HARDWARE_KEY: &str = "hardware_id";
-const LICENSE_KEY: &str = "license_type";
+const LICENSE_FOLDER: &str = ".snappit_data";
+const LICENSE_FILE: &str = "license.dat";
 const INITIAL_TRIAL_USES: u32 = 30;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -28,119 +25,181 @@ pub struct LicenseState {
     pub is_valid: bool,
 }
 
+/// Internal structure stored on disk (obfuscated)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct LicenseData {
+    /// Hardware signature hash for anti-copy protection
+    hw_sig: String,
+    /// Remaining uses (for trial)
+    uses: u32,
+    /// License type: "t" for trial, "p" for pro
+    lt: String,
+    /// Checksum to detect tampering
+    cs: String,
+}
+
+impl LicenseData {
+    fn new(hardware_id: &str, uses: u32, license_type: &str) -> Self {
+        let mut data = Self {
+            hw_sig: Self::hash(hardware_id),
+            uses,
+            lt: license_type.to_string(),
+            cs: String::new(),
+        };
+        data.cs = data.compute_checksum();
+        data
+    }
+
+    fn compute_checksum(&self) -> String {
+        let payload = format!("{}:{}:{}", self.hw_sig, self.uses, self.lt);
+        Self::hash(&payload)
+    }
+
+    fn is_valid(&self) -> bool {
+        self.cs == self.compute_checksum()
+    }
+
+    fn hash(input: &str) -> String {
+        let mut hasher = Sha256::new();
+        hasher.update(input.as_bytes());
+        let result = hasher.finalize();
+        hex::encode(result)
+    }
+}
+
 pub struct SnappitLicense;
 
 impl SnappitLicense {
     /// Get the current license state
     pub fn get_state() -> SnappitResult<LicenseState> {
-        let license_type = Self::get_license_type()?;
-        let uses_remaining = Self::get_uses_remaining()?;
+        let data = Self::load_or_init()?;
 
-        // Verify hardware ID matches (anti-reset protection)
-        let is_valid = Self::verify_hardware_id()?;
+        let license_type = match data.lt.as_str() {
+            "p" => LicenseType::Pro,
+            _ => LicenseType::Trial,
+        };
+
+        // Verify data integrity and hardware match
+        let current_hw_hash = LicenseData::hash(&Self::get_hardware_uuid()?);
+        let is_valid = data.is_valid() && data.hw_sig == current_hw_hash;
 
         Ok(LicenseState {
             license_type,
-            uses_remaining,
+            uses_remaining: data.uses,
             is_valid,
         })
     }
 
     /// Consume one tool use (for trial). Returns remaining uses.
     pub fn consume_use() -> SnappitResult<u32> {
-        let license_type = Self::get_license_type()?;
+        let mut data = Self::load_or_init()?;
 
         // Pro users have unlimited uses
-        if license_type == LicenseType::Pro {
+        if data.lt == "p" {
             return Ok(u32::MAX);
         }
 
-        let current_uses = Self::get_uses_remaining()?;
+        // Verify integrity
+        if !data.is_valid() {
+            return Err(SnappitError::LicenseCorrupted);
+        }
 
-        if current_uses == 0 {
+        if data.uses == 0 {
             return Err(SnappitError::TrialExpired);
         }
 
-        let new_uses = current_uses.saturating_sub(1);
-        Self::set_uses_remaining(new_uses)?;
+        data.uses = data.uses.saturating_sub(1);
+        data.cs = data.compute_checksum();
+        Self::save(&data)?;
 
-        Ok(new_uses)
-    }
-
-    /// Check if the trial is still valid (has uses remaining)
-    pub fn is_trial_valid() -> SnappitResult<bool> {
-        let license_type = Self::get_license_type()?;
-
-        if license_type == LicenseType::Pro {
-            return Ok(true);
-        }
-
-        let uses = Self::get_uses_remaining()?;
-        let hardware_valid = Self::verify_hardware_id()?;
-
-        Ok(uses > 0 && hardware_valid)
+        Ok(data.uses)
     }
 
     /// Activate pro license
     pub fn activate_pro() -> SnappitResult<()> {
-        Self::set_keychain_value(LICENSE_KEY, "pro")?;
+        let mut data = Self::load_or_init()?;
+        data.lt = "p".to_string();
+        data.cs = data.compute_checksum();
+        Self::save(&data)?;
         Ok(())
     }
 
-    /// Get remaining trial uses
-    fn get_uses_remaining() -> SnappitResult<u32> {
-        match Self::get_keychain_value(USAGE_KEY) {
-            Ok(value) => value
-                .parse::<u32>()
-                .map_err(|_| SnappitError::LicenseCorrupted),
-            Err(_) => {
-                // First time - initialize with trial uses and hardware ID
-                Self::initialize_trial()?;
-                Ok(INITIAL_TRIAL_USES)
+    /// Get the license file path in ~/Library/Application Support/.snappit_data/
+    fn get_license_path() -> SnappitResult<PathBuf> {
+        let home = std::env::var("HOME")
+            .map_err(|_| SnappitError::License("Cannot determine home directory".to_string()))?;
+
+        // Use ~/Library/Application Support/ which persists across reinstalls
+        let app_support = PathBuf::from(&home)
+            .join("Library")
+            .join("Application Support")
+            .join(LICENSE_FOLDER);
+
+        // Create directory if it doesn't exist
+        if !app_support.exists() {
+            fs::create_dir_all(&app_support)
+                .map_err(|e| SnappitError::License(format!("Cannot create license dir: {}", e)))?;
+        }
+
+        Ok(app_support.join(LICENSE_FILE))
+    }
+
+    /// Load license data from file or initialize if not exists
+    fn load_or_init() -> SnappitResult<LicenseData> {
+        let path = Self::get_license_path()?;
+
+        if path.exists() {
+            let contents = fs::read(&path)
+                .map_err(|e| SnappitError::License(format!("Cannot read license file: {}", e)))?;
+
+            // Decode base64
+            let decoded =
+                base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &contents)
+                    .map_err(|_| SnappitError::LicenseCorrupted)?;
+
+            let data: LicenseData =
+                serde_json::from_slice(&decoded).map_err(|_| SnappitError::LicenseCorrupted)?;
+
+            // Verify checksum
+            if !data.is_valid() {
+                // Tampered - reinitialize
+                return Self::initialize();
             }
+
+            // Verify hardware signature
+            let current_hw_hash = LicenseData::hash(&Self::get_hardware_uuid()?);
+            if data.hw_sig != current_hw_hash {
+                // Different machine - reinitialize (trial reset not allowed)
+                return Self::initialize();
+            }
+
+            Ok(data)
+        } else {
+            Self::initialize()
         }
     }
 
-    /// Set remaining trial uses
-    fn set_uses_remaining(uses: u32) -> SnappitResult<()> {
-        Self::set_keychain_value(USAGE_KEY, &uses.to_string())?;
-        Ok(())
-    }
-
-    /// Get current license type
-    fn get_license_type() -> SnappitResult<LicenseType> {
-        match Self::get_keychain_value(LICENSE_KEY) {
-            Ok(value) => match value.as_str() {
-                "pro" => Ok(LicenseType::Pro),
-                _ => Ok(LicenseType::Trial),
-            },
-            Err(_) => Ok(LicenseType::Trial),
-        }
-    }
-
-    /// Initialize trial for first-time users
-    fn initialize_trial() -> SnappitResult<()> {
+    /// Initialize new trial license
+    fn initialize() -> SnappitResult<LicenseData> {
         let hardware_id = Self::get_hardware_uuid()?;
-        let hashed_id = Self::hash_string(&hardware_id);
-
-        Self::set_keychain_value(HARDWARE_KEY, &hashed_id)?;
-        Self::set_keychain_value(USAGE_KEY, &INITIAL_TRIAL_USES.to_string())?;
-        Self::set_keychain_value(LICENSE_KEY, "trial")?;
-
-        Ok(())
+        let data = LicenseData::new(&hardware_id, INITIAL_TRIAL_USES, "t");
+        Self::save(&data)?;
+        Ok(data)
     }
 
-    /// Verify the stored hardware ID matches current hardware
-    fn verify_hardware_id() -> SnappitResult<bool> {
-        let stored_id = match Self::get_keychain_value(HARDWARE_KEY) {
-            Ok(id) => id,
-            Err(_) => return Ok(true), // No stored ID yet, valid
-        };
+    /// Save license data to file (base64 encoded for obfuscation)
+    fn save(data: &LicenseData) -> SnappitResult<()> {
+        let path = Self::get_license_path()?;
 
-        let current_id = Self::get_hardware_uuid()?;
-        let hashed_current = Self::hash_string(&current_id);
+        let json = serde_json::to_vec(data)
+            .map_err(|e| SnappitError::License(format!("Cannot serialize license: {}", e)))?;
 
-        Ok(stored_id == hashed_current)
+        let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &json);
+
+        fs::write(&path, encoded.as_bytes())
+            .map_err(|e| SnappitError::License(format!("Cannot write license file: {}", e)))?;
+
+        Ok(())
     }
 
     /// Get the hardware UUID (IOPlatformUUID) from macOS
@@ -165,33 +224,6 @@ impl SnappitLicense {
             "Failed to parse hardware UUID".to_string(),
         ))
     }
-
-    /// Hash a string using SHA256
-    fn hash_string(input: &str) -> String {
-        let mut hasher = Sha256::new();
-        hasher.update(input.as_bytes());
-        let result = hasher.finalize();
-        hex::encode(result)
-    }
-
-    /// Get value from Keychain
-    fn get_keychain_value(key: &str) -> SnappitResult<String> {
-        let password = get_generic_password(SERVICE_NAME, key)
-            .map_err(|e| SnappitError::License(format!("Keychain read error: {}", e)))?;
-
-        String::from_utf8(password.to_vec()).map_err(|_| SnappitError::LicenseCorrupted)
-    }
-
-    /// Set value in Keychain
-    fn set_keychain_value(key: &str, value: &str) -> SnappitResult<()> {
-        // Delete existing entry first (update pattern)
-        let _ = delete_generic_password(SERVICE_NAME, key);
-
-        set_generic_password(SERVICE_NAME, key, value.as_bytes())
-            .map_err(|e| SnappitError::License(format!("Keychain write error: {}", e)))?;
-
-        Ok(())
-    }
 }
 
 #[cfg(test)]
@@ -199,9 +231,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_hash_string() {
-        let hash = SnappitLicense::hash_string("test");
-        assert!(!hash.is_empty());
-        assert_eq!(hash.len(), 64); // SHA256 = 32 bytes = 64 hex chars
+    fn test_license_data_checksum() {
+        let data = LicenseData::new("test-hw-id", 30, "t");
+        assert!(data.is_valid());
+    }
+
+    #[test]
+    fn test_license_data_tamper_detection() {
+        let mut data = LicenseData::new("test-hw-id", 30, "t");
+        data.uses = 999; // Tamper with uses
+        assert!(!data.is_valid()); // Should detect tampering
     }
 }

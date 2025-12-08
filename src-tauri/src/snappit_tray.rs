@@ -276,7 +276,6 @@ impl SnappitTray {
         Ok(())
     }
 
-    /// Update the license status display in the tray menu
     pub fn update_license_status(app: &AppHandle<Wry>) -> SnappitResult<()> {
         let Some(menu) = MENU.get() else {
             return Ok(());
@@ -300,7 +299,6 @@ impl SnappitTray {
             }
         }
 
-        // Refresh the tray menu
         if let Some(tray) = app.tray_by_id(Self::TRAY_ID) {
             tray.set_menu(Some(menu.clone()))?;
         }

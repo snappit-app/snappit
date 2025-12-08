@@ -50,7 +50,6 @@ async fn capture_color_at_cursor(
     x: u32,
     y: u32,
 ) -> tauri::Result<SnappitColorInfo> {
-    // Check license before color capture
     SnappitLicense::consume_use()?;
     let _ = SnappitTray::update_license_status(&app);
 
@@ -113,7 +112,6 @@ fn open_screen_recording_settings(app: AppHandle) -> tauri::Result<()> {
 
 #[tauri::command]
 async fn on_capture(app: AppHandle, params: RegionCaptureParams) -> tauri::Result<SnappitResponse> {
-    // Check license before capture
     SnappitLicense::consume_use()?;
     let _ = SnappitTray::update_license_status(&app);
 
