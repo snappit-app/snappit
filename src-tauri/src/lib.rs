@@ -221,9 +221,14 @@ fn consume_tool_use() -> tauri::Result<u32> {
 }
 
 #[tauri::command]
-fn activate_pro_license() -> tauri::Result<()> {
-    SnappitLicense::activate_pro()?;
+fn activate_pro_license(license_key: String) -> tauri::Result<()> {
+    SnappitLicense::activate_pro(license_key)?;
     Ok(())
+}
+
+#[tauri::command]
+fn get_license_key() -> tauri::Result<Option<String>> {
+    Ok(SnappitLicense::get_license_key()?)
 }
 
 #[tauri::command]
@@ -301,6 +306,7 @@ pub fn run() -> tauri::Result<()> {
             get_license_state,
             consume_tool_use,
             activate_pro_license,
+            get_license_key,
             update_tray_license_status,
         ])
         .run(tauri::generate_context!());

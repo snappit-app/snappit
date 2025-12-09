@@ -49,6 +49,9 @@ struct LicenseData {
     /// Version field for future migrations
     #[serde(default)]
     v: u8,
+    /// License key for Pro users
+    #[serde(default)]
+    license_key: Option<String>,
 }
 
 impl LicenseData {
@@ -59,15 +62,17 @@ impl LicenseData {
             lt: license_type.to_string(),
             cs: String::new(),
             v: 2, // Current version with salt
+            license_key: None,
         };
         data.cs = data.compute_checksum();
         data
     }
 
     fn compute_checksum(&self) -> String {
+        let key_part = self.license_key.as_deref().unwrap_or("");
         let payload = format!(
-            "{}:{}:{}:{}",
-            CHECKSUM_SALT, self.hw_sig, self.uses, self.lt
+            "{}:{}:{}:{}:{}",
+            CHECKSUM_SALT, self.hw_sig, self.uses, self.lt, key_part
         );
         Self::hash(&payload)
     }
@@ -173,9 +178,10 @@ impl SnappitLicense {
         Ok(data.uses)
     }
 
-    pub fn activate_pro() -> SnappitResult<()> {
+    pub fn activate_pro(license_key: String) -> SnappitResult<()> {
         let mut data = Self::load_or_init()?;
         data.lt = "p".to_string();
+        data.license_key = Some(license_key);
         data.cs = data.compute_checksum();
         Self::save(&data)?;
 
@@ -183,6 +189,11 @@ impl SnappitLicense {
         Self::invalidate_cache();
 
         Ok(())
+    }
+
+    pub fn get_license_key() -> SnappitResult<Option<String>> {
+        let data = Self::load_or_init()?;
+        Ok(data.license_key)
     }
 
     fn invalidate_cache() {

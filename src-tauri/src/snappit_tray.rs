@@ -272,7 +272,7 @@ impl SnappitTray {
 
         let license_text = match SnappitLicense::get_state() {
             Ok(state) => match state.license_type {
-                LicenseType::Pro => "⭐ Pro".to_string(),
+                LicenseType::Pro => "Pro".to_string(),
                 LicenseType::Trial => format!("Trial — {} uses left", state.uses_remaining),
             },
             Err(_) => "Trial".to_string(),
@@ -300,10 +300,9 @@ impl SnappitTray {
         let _ = MENU.set(menu.clone());
         let tray_icon = Image::from_bytes(include_bytes!("../icons/tray-generated/64x64.png"))?;
 
-        // Add license status at the top
         let license_text = match SnappitLicense::get_state() {
             Ok(state) => match state.license_type {
-                LicenseType::Pro => "⭐ Pro".to_string(),
+                LicenseType::Pro => "Pro".to_string(),
                 LicenseType::Trial => format!("Trial — {} uses left", state.uses_remaining),
             },
             Err(_) => "Trial".to_string(),
