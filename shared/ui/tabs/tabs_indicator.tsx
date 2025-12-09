@@ -1,9 +1,8 @@
 import { PolymorphicProps } from "@kobalte/core";
 import { Tabs as TabsPrimitive, TabsIndicatorProps } from "@kobalte/core/tabs";
+import { cn } from "@shared/libs/cn";
 import { cva, VariantProps } from "class-variance-authority";
 import { splitProps, ValidComponent, VoidProps } from "solid-js";
-
-import { cn } from "@shared/libs/cn";
 
 const tabsIndicatorVariants = cva("absolute transition-all duration-200 outline-none", {
   variants: {

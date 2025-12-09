@@ -17,4 +17,9 @@ export abstract class SettingsApi {
     const overlay = await this.get();
     return overlay?.listen("settings:hidden", handler);
   }
+
+  static async onOpenTab(handler: EventCallback<string>) {
+    const window = await this.get();
+    return window?.listen("settings:open_tab", handler);
+  }
 }

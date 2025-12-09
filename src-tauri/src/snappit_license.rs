@@ -83,6 +83,11 @@ impl SnappitLicense {
         })
     }
 
+    pub fn is_trial_expired() -> SnappitResult<bool> {
+        let state = Self::get_state()?;
+        Ok(state.license_type == LicenseType::Trial && state.uses_remaining == 0)
+    }
+
     pub fn consume_use() -> SnappitResult<u32> {
         let mut data = Self::load_or_init()?;
 

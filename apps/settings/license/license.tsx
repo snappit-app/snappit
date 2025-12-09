@@ -14,9 +14,7 @@ export function License() {
       <div class="border rounded-lg p-5">
         <div class="mb-4">
           <h2 class="font-bold text-lg">About Your License</h2>
-          <p class="text-sm text-muted-foreground">
-            Manage your Snappit subscription
-          </p>
+          <p class="text-sm text-muted-foreground">Manage your Snappit subscription</p>
         </div>
 
         <div class="flex flex-col gap-3 text-sm">
@@ -30,7 +28,7 @@ export function License() {
             <span class="font-medium">
               {licenseState()?.licenseType === "pro"
                 ? "Unlimited"
-                : licenseState()?.usesRemaining ?? "—"}
+                : (licenseState()?.usesRemaining ?? "—")}
             </span>
           </div>
         </div>

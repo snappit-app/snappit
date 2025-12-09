@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
-import { createMemo, Show } from "solid-js";
-import { onMount } from "solid-js";
+import { createMemo, createSignal, Show } from "solid-js";
+import { onCleanup, onMount } from "solid-js";
 
 import { Languages } from "@/apps/settings/languages";
 import { License } from "@/apps/settings/license";
@@ -8,6 +8,7 @@ import { Shortcuts } from "@/apps/settings/shortcuts";
 import { createPermissions } from "@/shared/libs/permissions";
 import { createSettingsVisible } from "@/shared/libs/settings_visible";
 import { ensureSystemLanguagesInstalled, isInitialSetup } from "@/shared/ocr/installed_languages";
+import { SettingsApi } from "@/shared/tauri/settings_api";
 import { Theme } from "@/shared/theme";
 
 import { PermissionsGate } from "./permissions";
@@ -20,13 +21,29 @@ function SettingsApp() {
   const permissionsGranted = createMemo(() => permissions.state()?.screenRecording ?? false);
   const canLoadApp = createMemo(() => !permissions.loading() && permissionsGranted() && visible());
 
-  onMount(() => {
+  const [activeTab, setActiveTab] = createSignal("preferences");
+
+  onMount(async () => {
     ensureSystemLanguagesInstalled();
+
+    const unlistenOpenTab = await SettingsApi.onOpenTab((event) => {
+      if (event.payload) {
+        setActiveTab(event.payload);
+      }
+    });
+
+    onCleanup(() => {
+      unlistenOpenTab?.();
+    });
   });
 
   return (
     <>
-      <Tabs class="h-screen flex flex-col overflow-hidden" defaultValue="preferences">
+      <Tabs
+        class="h-screen flex flex-col overflow-hidden"
+        value={activeTab()}
+        onChange={setActiveTab}
+      >
         <header data-tauri-drag-region class="border-b b-1 bg-sidebar">
           <div
             data-tauri-drag-region

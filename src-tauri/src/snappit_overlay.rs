@@ -3,7 +3,8 @@ use std::sync::Mutex;
 use std::thread::{self};
 use std::time::Duration;
 
-use crate::snappit_errors::{SnappitResult, SnappitResultExt};
+use crate::snappit_errors::{SnappitError, SnappitResult, SnappitResultExt};
+use crate::snappit_license::SnappitLicense;
 use crate::snappit_settings::SnappitSettings;
 use crate::snappit_shortcut_manager::SnappitShortcutManager;
 use crate::{
@@ -78,6 +79,16 @@ impl SnappitOverlay {
         app: &AppHandle<Wry>,
         target: SnappitOverlayTarget,
     ) -> SnappitResult<WebviewWindow> {
+        // Check if trial is expired - redirect to settings license tab
+        if SnappitLicense::is_trial_expired()? {
+            log::info!(
+                "{}",
+                "Trial expired, redirecting to license settings".yellow()
+            );
+            SnappitSettings::show_tab(app, "license")?;
+            return Err(SnappitError::TrialExpired);
+        }
+
         Self::subscribe_monitor_changes(app);
         Self::actual_show(app, target)
     }

@@ -37,6 +37,17 @@ impl SnappitSettings {
         Ok(window)
     }
 
+    pub fn show_tab(app: &AppHandle<Wry>, tab: &str) -> SnappitResult<WebviewWindow> {
+        let window = Self::get_window(app)?;
+
+        window.show()?;
+        window.emit("settings:open_tab", tab)?;
+        window.emit("settings:shown", true)?;
+        window.set_focus()?;
+
+        Ok(window)
+    }
+
     pub fn preload(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
         let window = Self::builder(app)
             .fullscreen(false)
