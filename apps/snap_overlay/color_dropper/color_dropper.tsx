@@ -26,10 +26,13 @@ export function ColorDropper() {
     event.stopPropagation();
 
     if (colorInfo()) {
-      // Consume license use only when actually copying color
-      await consumeToolUse().catch(() => {});
-      onColorRecognized(colorInfo()!);
-      await SnapOverlayApi.hide();
+      try {
+        await consumeToolUse();
+        onColorRecognized(colorInfo()!);
+        await SnapOverlayApi.hide();
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
