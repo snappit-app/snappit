@@ -5295,6 +5295,8 @@ version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
  "colored",
+ "core-foundation 0.10.1",
+ "core-foundation-sys",
  "fs_extra",
  "hex",
  "image",

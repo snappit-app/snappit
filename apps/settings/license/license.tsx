@@ -4,7 +4,6 @@ import { LicenseStatus } from "@/shared/ui/license_status";
 export function License() {
   const [licenseState, refetch] = SnappitLicense.create();
 
-  // Refetch on mount
   refetch();
 
   return (

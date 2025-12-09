@@ -17,3 +17,7 @@ export async function consumeToolUse(): Promise<number> {
 export async function activateProLicense(): Promise<void> {
   return await invoke<void>("activate_pro_license");
 }
+
+export async function updateTrayLicenseStatus(): Promise<void> {
+  return await invoke<void>("update_tray_license_status");
+}

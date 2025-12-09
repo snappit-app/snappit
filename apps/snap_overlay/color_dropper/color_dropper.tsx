@@ -5,7 +5,7 @@ import { createSignal, Show } from "solid-js";
 import { onColorRecognized } from "@/apps/snap_overlay/color_dropper/on_recognized";
 import { createScreenMagnifier, ScreenMagnifier } from "@/apps/snap_overlay/screen_magnifier";
 import { SNAPPIT_CONSTS } from "@/shared/constants";
-import { consumeToolUse } from "@/shared/tauri/license_api";
+import { consumeToolUse, updateTrayLicenseStatus } from "@/shared/tauri/license_api";
 import { ColorDropperApi, ColorInfo } from "@/shared/tauri/screen_capture_api";
 import { SnapOverlayApi } from "@/shared/tauri/snap_overlay_api";
 
@@ -28,6 +28,7 @@ export function ColorDropper() {
     if (colorInfo()) {
       try {
         await consumeToolUse();
+        await updateTrayLicenseStatus();
         onColorRecognized(colorInfo()!);
         await SnapOverlayApi.hide();
       } catch (err) {

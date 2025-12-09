@@ -141,10 +141,6 @@ async fn scan_region_qr(
     app: AppHandle,
     params: RegionCaptureParams,
 ) -> tauri::Result<SnappitResponse> {
-    // Check license before QR scan
-    SnappitLicense::consume_use()?;
-    let _ = SnappitTray::update_license_status(&app);
-
     let app_handle = app.clone();
 
     let task = spawn_blocking(move || -> SnappitResult<_> {
@@ -153,6 +149,12 @@ async fn scan_region_qr(
     });
 
     let qr_result = task.await??;
+
+    // Only consume license use on successful QR scan
+    if qr_result.is_some() {
+        SnappitLicense::consume_use()?;
+        let _ = SnappitTray::update_license_status(&app);
+    }
 
     Ok(SnappitResponse::Qr(qr_result))
 }
@@ -221,6 +223,12 @@ fn consume_tool_use() -> tauri::Result<u32> {
 #[tauri::command]
 fn activate_pro_license() -> tauri::Result<()> {
     SnappitLicense::activate_pro()?;
+    Ok(())
+}
+
+#[tauri::command]
+fn update_tray_license_status(app: AppHandle) -> tauri::Result<()> {
+    let _ = SnappitTray::update_license_status(&app);
     Ok(())
 }
 
@@ -293,6 +301,7 @@ pub fn run() -> tauri::Result<()> {
             get_license_state,
             consume_tool_use,
             activate_pro_license,
+            update_tray_license_status,
         ])
         .run(tauri::generate_context!());
 }

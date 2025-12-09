@@ -8,10 +8,7 @@ export interface LicenseStatusProps {
 }
 
 export function LicenseStatus(props: LicenseStatusProps) {
-  const [licenseState, refetch] = SnappitLicense.create();
-
-  // Refetch on mount to ensure we have fresh data
-  refetch();
+  const [licenseState] = SnappitLicense.create();
 
   const isPro = () => SnappitLicense.isPro(licenseState());
   const usesRemaining = () => SnappitLicense.getUsesRemaining(licenseState());
@@ -28,7 +25,6 @@ export function LicenseStatus(props: LicenseStatusProps) {
         props.class,
       )}
     >
-      {/* License Badge */}
       <div
         class={cn(
           "px-2 py-1 rounded text-xs font-bold uppercase tracking-wider",
@@ -38,7 +34,6 @@ export function LicenseStatus(props: LicenseStatusProps) {
         {isPro() ? "Pro" : "Trial"}
       </div>
 
-      {/* Status Text */}
       <div class="flex-1">
         <Show when={isPro()}>
           <span class="text-sm font-medium text-foreground">Unlimited access</span>
