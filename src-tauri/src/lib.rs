@@ -50,9 +50,6 @@ async fn capture_color_at_cursor(
     x: u32,
     y: u32,
 ) -> tauri::Result<SnappitColorInfo> {
-    SnappitLicense::consume_use()?;
-    let _ = SnappitTray::update_license_status(&app);
-
     let app_handle = app.clone();
 
     let color_info = spawn_blocking(move || -> SnappitResult<_> {
@@ -212,14 +209,6 @@ fn sync_shortcut(app: AppHandle, target: SnappitOverlayTarget) -> tauri::Result<
 }
 
 #[tauri::command]
-fn read_config() -> tauri::Result<()> {
-    match std::fs::read_to_string("asdasdasd.json") {
-        Ok(_) => Ok(()),
-        Err(err) => Err(err.into()),
-    }
-}
-
-#[tauri::command]
 fn get_license_state() -> tauri::Result<LicenseState> {
     Ok(SnappitLicense::get_state()?)
 }
@@ -297,7 +286,6 @@ pub fn run() -> tauri::Result<()> {
             request_screen_recording_permission,
             open_screen_recording_settings,
             sync_shortcut,
-            read_config,
             get_tess_languages,
             download_tess_language,
             delete_tess_language,

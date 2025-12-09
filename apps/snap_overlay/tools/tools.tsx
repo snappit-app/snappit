@@ -33,10 +33,7 @@ export function Tools(props: toolsProps) {
   return (
     <div
       ref={setEl}
-      class={cn(
-        "absolute z-10 bg-card/85 rounded-full p-[3px] flex items-center gap-1 select-none",
-        local.class,
-      )}
+      class={cn("absolute z-10 bg-card/85 rounded-full flex items-center select-none", local.class)}
       style={{ left: `${pos().x}px`, top: `${pos().y}px` }}
       {...rest}
     >

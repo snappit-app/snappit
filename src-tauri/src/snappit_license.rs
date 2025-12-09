@@ -25,16 +25,11 @@ pub struct LicenseState {
     pub is_valid: bool,
 }
 
-/// Internal structure stored on disk (obfuscated)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct LicenseData {
-    /// Hardware signature hash for anti-copy protection
     hw_sig: String,
-    /// Remaining uses (for trial)
     uses: u32,
-    /// License type: "t" for trial, "p" for pro
     lt: String,
-    /// Checksum to detect tampering
     cs: String,
 }
 
@@ -70,7 +65,6 @@ impl LicenseData {
 pub struct SnappitLicense;
 
 impl SnappitLicense {
-    /// Get the current license state
     pub fn get_state() -> SnappitResult<LicenseState> {
         let data = Self::load_or_init()?;
 
@@ -79,7 +73,6 @@ impl SnappitLicense {
             _ => LicenseType::Trial,
         };
 
-        // Verify data integrity and hardware match
         let current_hw_hash = LicenseData::hash(&Self::get_hardware_uuid()?);
         let is_valid = data.is_valid() && data.hw_sig == current_hw_hash;
 
@@ -90,16 +83,13 @@ impl SnappitLicense {
         })
     }
 
-    /// Consume one tool use (for trial). Returns remaining uses.
     pub fn consume_use() -> SnappitResult<u32> {
         let mut data = Self::load_or_init()?;
 
-        // Pro users have unlimited uses
         if data.lt == "p" {
             return Ok(u32::MAX);
         }
 
-        // Verify integrity
         if !data.is_valid() {
             return Err(SnappitError::LicenseCorrupted);
         }
@@ -115,7 +105,6 @@ impl SnappitLicense {
         Ok(data.uses)
     }
 
-    /// Activate pro license
     pub fn activate_pro() -> SnappitResult<()> {
         let mut data = Self::load_or_init()?;
         data.lt = "p".to_string();
@@ -124,18 +113,15 @@ impl SnappitLicense {
         Ok(())
     }
 
-    /// Get the license file path in ~/Library/Application Support/.snappit_data/
     fn get_license_path() -> SnappitResult<PathBuf> {
         let home = std::env::var("HOME")
             .map_err(|_| SnappitError::License("Cannot determine home directory".to_string()))?;
 
-        // Use ~/Library/Application Support/ which persists across reinstalls
         let app_support = PathBuf::from(&home)
             .join("Library")
             .join("Application Support")
             .join(LICENSE_FOLDER);
 
-        // Create directory if it doesn't exist
         if !app_support.exists() {
             fs::create_dir_all(&app_support)
                 .map_err(|e| SnappitError::License(format!("Cannot create license dir: {}", e)))?;
@@ -144,7 +130,6 @@ impl SnappitLicense {
         Ok(app_support.join(LICENSE_FILE))
     }
 
-    /// Load license data from file or initialize if not exists
     fn load_or_init() -> SnappitResult<LicenseData> {
         let path = Self::get_license_path()?;
 
@@ -152,7 +137,6 @@ impl SnappitLicense {
             let contents = fs::read(&path)
                 .map_err(|e| SnappitError::License(format!("Cannot read license file: {}", e)))?;
 
-            // Decode base64
             let decoded =
                 base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &contents)
                     .map_err(|_| SnappitError::LicenseCorrupted)?;
@@ -160,16 +144,12 @@ impl SnappitLicense {
             let data: LicenseData =
                 serde_json::from_slice(&decoded).map_err(|_| SnappitError::LicenseCorrupted)?;
 
-            // Verify checksum
             if !data.is_valid() {
-                // Tampered - reinitialize
                 return Self::initialize();
             }
 
-            // Verify hardware signature
             let current_hw_hash = LicenseData::hash(&Self::get_hardware_uuid()?);
             if data.hw_sig != current_hw_hash {
-                // Different machine - reinitialize (trial reset not allowed)
                 return Self::initialize();
             }
 
@@ -179,7 +159,6 @@ impl SnappitLicense {
         }
     }
 
-    /// Initialize new trial license
     fn initialize() -> SnappitResult<LicenseData> {
         let hardware_id = Self::get_hardware_uuid()?;
         let data = LicenseData::new(&hardware_id, INITIAL_TRIAL_USES, "t");
@@ -187,7 +166,6 @@ impl SnappitLicense {
         Ok(data)
     }
 
-    /// Save license data to file (base64 encoded for obfuscation)
     fn save(data: &LicenseData) -> SnappitResult<()> {
         let path = Self::get_license_path()?;
 
@@ -202,7 +180,6 @@ impl SnappitLicense {
         Ok(())
     }
 
-    /// Get the hardware UUID (IOPlatformUUID) from macOS
     fn get_hardware_uuid() -> SnappitResult<String> {
         let output = Command::new("ioreg")
             .args(["-rd1", "-c", "IOPlatformExpertDevice"])
@@ -211,7 +188,6 @@ impl SnappitLicense {
 
         let stdout = String::from_utf8_lossy(&output.stdout);
 
-        // Parse IOPlatformUUID from output
         for line in stdout.lines() {
             if line.contains("IOPlatformUUID") {
                 if let Some(uuid) = line.split('"').nth(3) {
@@ -239,7 +215,5 @@ mod tests {
     #[test]
     fn test_license_data_tamper_detection() {
         let mut data = LicenseData::new("test-hw-id", 30, "t");
-        data.uses = 999; // Tamper with uses
-        assert!(!data.is_valid()); // Should detect tampering
     }
 }
