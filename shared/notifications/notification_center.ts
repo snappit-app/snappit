@@ -24,9 +24,9 @@ export abstract class NotificationCenter {
     }
   }
 
-  static async notifyDropper(body: string) {
+  static async notifyDropper(body: string, hexColor: string) {
     if (await this.canNotify()) {
-      return await NotificationApi.show({ value: body, target: "color_dropper" });
+      return await NotificationApi.show({ value: body, data: hexColor, target: "color_dropper" });
     }
   }
 

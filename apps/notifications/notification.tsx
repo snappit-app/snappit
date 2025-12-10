@@ -57,7 +57,7 @@ export function NotificationItem(props: notificationProps) {
         animationState() === "exit" && "animate-out duration-200 fade-out-0 zoom-out-95",
       )}
     >
-      <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+      <div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 text-primary">
         <Dynamic component={IconComponent()} size={38} />
       </div>
 
@@ -71,14 +71,14 @@ export function NotificationItem(props: notificationProps) {
         </Switch>
       </div>
 
-      <div class="text-sm w-[200px] text-foreground opacity-90 truncate">
+      <div class="text-sm w-[240px] text-foreground opacity-90 truncate">
         <Switch fallback={<>{props.payload()}</>}>
           <Match when={props.target() === "color_dropper"}>
-            <div class="flex items-center justify-center gap-2">
+            <div class="flex items-center justify-center flex-wrap gap-2">
               <div
                 class="w-4 h-4 rounded border border-primary"
                 style={{
-                  "background-color": props.payload(),
+                  "background-color": props.data() || props.payload(),
                 }}
               />
               <span class="text-sm font-mono text-foreground">{props.payload()}</span>

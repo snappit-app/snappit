@@ -2,9 +2,15 @@ import { onMount } from "solid-js";
 
 import { AutostartSettings } from "@/shared/autostart";
 import { SNAPPIT_CONSTS } from "@/shared/constants";
+import {
+  COLOR_FORMAT_OPTIONS,
+  ColorFormat,
+  DEFAULT_COLOR_FORMAT,
+} from "@/shared/libs/color_format";
 import { NotificationSettings } from "@/shared/notifications/settings";
 import { SnappitStore } from "@/shared/store";
 import { Theme } from "@/shared/theme";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { Switch, SwitchControl, SwitchLabel, SwitchThumb } from "@/shared/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle_group";
 
@@ -14,6 +20,9 @@ export function Preferences() {
   const [autostartEnabled, setAutostartEnabled, autostartReady] = AutostartSettings.create();
   const [toolsEnabled, setToolsEnabled] = SnappitStore.createValue<boolean>(
     SNAPPIT_CONSTS.store.keys.tools_panel,
+  );
+  const [colorFormat, setColorFormat] = SnappitStore.createValue<ColorFormat>(
+    SNAPPIT_CONSTS.store.keys.preferred_color_format,
   );
 
   onMount(async () => {
@@ -80,6 +89,29 @@ export function Preferences() {
               <SwitchThumb />
             </SwitchControl>
           </Switch>
+
+          <div class="flex justify-between items-center h-[30px]">
+            <div class="text-sm">Color format</div>
+            <Select
+              value={colorFormat() ?? DEFAULT_COLOR_FORMAT}
+              onChange={(value) => value && setColorFormat(value)}
+              options={COLOR_FORMAT_OPTIONS.map((o) => o.value)}
+              itemComponent={(props) => (
+                <SelectItem item={props.item}>
+                  {COLOR_FORMAT_OPTIONS.find((o) => o.value === props.item.rawValue)?.label}
+                </SelectItem>
+              )}
+            >
+              <SelectTrigger class="w-[100px]">
+                <SelectValue<ColorFormat>>
+                  {(state) =>
+                    COLOR_FORMAT_OPTIONS.find((o) => o.value === state.selectedOption())?.label
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent />
+            </Select>
+          </div>
         </div>
       </div>
     </div>

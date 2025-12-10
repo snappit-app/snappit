@@ -1,10 +1,12 @@
 import { createEventListener } from "@solid-primitives/event-listener";
 import { throttle } from "@solid-primitives/scheduled";
-import { createSignal, Show } from "solid-js";
+import { createMemo, createSignal, Show } from "solid-js";
 
 import { onColorRecognized } from "@/apps/snap_overlay/color_dropper/on_recognized";
 import { createScreenMagnifier, ScreenMagnifier } from "@/apps/snap_overlay/screen_magnifier";
 import { SNAPPIT_CONSTS } from "@/shared/constants";
+import { ColorFormat, DEFAULT_COLOR_FORMAT, formatColor } from "@/shared/libs/color_format";
+import { SnappitStore } from "@/shared/store";
 import { consumeToolUse, updateTrayLicenseStatus } from "@/shared/tauri/license_api";
 import { ColorDropperApi, ColorInfo } from "@/shared/tauri/screen_capture_api";
 import { SnapOverlayApi } from "@/shared/tauri/snap_overlay_api";
@@ -14,6 +16,15 @@ const ratio = SNAPPIT_CONSTS.defaults.color_dropper.magnify_ratio;
 export function ColorDropper() {
   const magnifierSrc = createScreenMagnifier();
   const [colorInfo, setColorInfo] = createSignal<ColorInfo | null>(null);
+  const [colorFormat] = SnappitStore.createValue<ColorFormat>(
+    SNAPPIT_CONSTS.store.keys.preferred_color_format,
+  );
+
+  const formattedColor = createMemo(() => {
+    const info = colorInfo();
+    if (!info) return null;
+    return formatColor(info.rgb, info.hex, colorFormat() ?? DEFAULT_COLOR_FORMAT);
+  });
 
   const captureColorAndMagnifiedView = throttle(async (x: number, y: number) => {
     const color = await ColorDropperApi.captureColorAtCursor(x, y);
@@ -25,11 +36,11 @@ export function ColorDropper() {
     event.preventDefault();
     event.stopPropagation();
 
-    if (colorInfo()) {
+    if (colorInfo() && formattedColor()) {
       try {
         await consumeToolUse();
         await updateTrayLicenseStatus();
-        onColorRecognized(colorInfo()!);
+        onColorRecognized(colorInfo()!, formattedColor()!);
         await SnapOverlayApi.hide();
       } catch (err) {
         console.error(err);
@@ -61,16 +72,15 @@ export function ColorDropper() {
             <Show when={colorInfo()}>
               {(info) => (
                 <div class="space-y-1">
-                  <div class="flex items-center gap-2">
+                  <div class="flex flex-wrap items-center gap-2">
                     <div
                       class="w-4 h-4 rounded border border-border"
                       style={{
                         "background-color": info().hex,
                       }}
                     />
-                    <span class="text-sm font-mono text-foreground">{info().hex}</span>
+                    <span class="text-sm font-mono text-foreground">{formattedColor()}</span>
                   </div>
-                  <div class="text-xs text-muted-foreground">RGB: {info().rgb.join(", ")}</div>
                   <div class="text-xs text-muted-foreground">Click to copy</div>
                 </div>
               )}

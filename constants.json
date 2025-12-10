@@ -12,7 +12,8 @@
       "autostart": "settings.autostart",
       "tools_panel": "settings.tools_panel",
       "settings_initialized": "settings.initialized",
-      "recognition_lang": "settings.recognition_lang"
+      "recognition_lang": "settings.recognition_lang",
+      "preferred_color_format": "settings.preferred_color_format"
     }
   },
   "windows": {
@@ -29,8 +30,8 @@
       "hotkey.qr_scanner": ""
     },
     "color_dropper": {
-      "magnify_ratio": 15,
-      "magnify_radius": 6
+      "magnify_ratio": 16,
+      "magnify_radius": 7
     }
   }
 }
