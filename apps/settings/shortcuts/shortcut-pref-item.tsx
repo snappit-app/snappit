@@ -8,7 +8,6 @@ import {
   CAPTURE_SHORTCUT_KEY,
   COLOR_DROPPER_SHORTCUT_KEY,
   DEFAULT_SHORTCUTS,
-  DIGITAL_RULER_SHORTCUT_KEY,
   QR_SHORTCUT_KEY,
   ShortcutKeys,
   ShortcutsApi,
@@ -29,11 +28,11 @@ export const TOOL_SHORTCUTS: ShortcutPreferenceItem[] = [
     storeKey: CAPTURE_SHORTCUT_KEY,
     target: "capture",
   },
-  {
-    label: "Digital Ruler",
-    storeKey: DIGITAL_RULER_SHORTCUT_KEY,
-    target: "digital_ruler",
-  },
+  // {
+  //   label: "Digital Ruler",
+  //   storeKey: DIGITAL_RULER_SHORTCUT_KEY,
+  //   target: "digital_ruler",
+  // },
   {
     label: "Color Dropper",
     storeKey: COLOR_DROPPER_SHORTCUT_KEY,
@@ -91,7 +90,7 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
           </Show>
         </div>
 
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1 py-[2px]">
           <Button
             class="relative flex items-center gap-2"
             variant="ghost"
