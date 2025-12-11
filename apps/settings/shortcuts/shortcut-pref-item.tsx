@@ -97,22 +97,25 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
         </div>
 
         <div class="flex items-center gap-1 py-[2px]">
-          <Button
-            class="relative flex items-center gap-2"
-            variant="ghost"
-            onClick={() => startRecording()}
+          <div
+            use:tooltip={{
+              content: () => (
+                <div use:clickOutside={() => stopRecording()}>
+                  <RecordTooltip candidate={candidate} />
+                </div>
+              ),
+              show: isRecording,
+            }}
           >
-            <BiRegularRadioCircleMarked size={"20"} />
-            Record
-            <Show when={isRecording()}>
-              <div
-                class="absolute left-1/2 -top-13 -translate-x-1/2 -translate-y-1/2 "
-                use:clickOutside={() => stopRecording()}
-              >
-                <RecordTooltip candidate={candidate} />
-              </div>
-            </Show>
-          </Button>
+            <Button
+              class="relative flex items-center gap-2"
+              variant="ghost"
+              onClick={() => startRecording()}
+            >
+              <BiRegularRadioCircleMarked size={"20"} />
+              Record
+            </Button>
+          </div>
 
           <Show when={!defaultCut}>
             <Button
