@@ -1,6 +1,7 @@
 import { BiRegularRadioCircleMarked, BiRegularReset, BiSolidTrash } from "solid-icons/bi";
 import { createEffect, createMemo, For, Show } from "solid-js";
 
+import { clickOutside } from "@/shared/libs/click_outside_dir";
 import { fromGlobalShortcut, toGlobalShortcut } from "@/shared/libs/shortcut_recorder";
 import { RecordTooltip } from "@/shared/libs/shortcut_recorder";
 import createShortcutRecorder from "@/shared/libs/shortcut_recorder/shortcut_recorder";
@@ -15,6 +16,10 @@ import {
 import { SnappitOverlayTarget } from "@/shared/tauri/snap_overlay_target";
 import { Button } from "@/shared/ui/button";
 import { KeyboardButton } from "@/shared/ui/keyboard_button";
+import { tooltip } from "@/shared/ui/tooltip";
+
+void clickOutside;
+void tooltip;
 
 type ShortcutPreferenceItem = {
   label: string;
@@ -56,9 +61,10 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
     props.item.target,
   );
 
-  const { candidate, savedShortcut, isRecording, startRecording } = createShortcutRecorder({
-    minModKeys: 1,
-  });
+  const { candidate, savedShortcut, isRecording, startRecording, stopRecording } =
+    createShortcutRecorder({
+      minModKeys: 1,
+    });
 
   const buttons = createMemo<string[]>(() => {
     const stored = storeShortcut();
@@ -99,7 +105,12 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
             <BiRegularRadioCircleMarked size={"20"} />
             Record
             <Show when={isRecording()}>
-              <RecordTooltip candidate={candidate} />
+              <div
+                class="absolute left-1/2 -top-13 -translate-x-1/2 -translate-y-1/2 "
+                use:clickOutside={() => stopRecording()}
+              >
+                <RecordTooltip candidate={candidate} />
+              </div>
             </Show>
           </Button>
 

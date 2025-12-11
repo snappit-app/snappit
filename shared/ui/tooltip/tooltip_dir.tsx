@@ -14,6 +14,7 @@ export function tooltip(el: HTMLElement, accessor: Accessor<TooltipParams>) {
   const [left, setLeft] = createSignal(0);
   const [top, setTop] = createSignal(0);
   const [appeared, setAppeared] = createSignal(false);
+
   let tooltipRef: HTMLDivElement | undefined;
   let showTimer: number | undefined;
 
