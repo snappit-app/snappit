@@ -82,7 +82,7 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
   });
 
   return (
-    <div class="py-3">
+    <div class="py-3 first:pt-0 last:pb-0">
       <div class="text-sm font-medium text-foreground mb-2">{props.item.label}</div>
       <div class="flex items-center justify-between gap-4">
         <div>

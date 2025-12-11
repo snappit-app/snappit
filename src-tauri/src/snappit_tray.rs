@@ -272,7 +272,7 @@ impl SnappitTray {
 
         let license_text = match SnappitLicense::get_state() {
             Ok(state) => match state.license_type {
-                LicenseType::Pro => "Pro".to_string(),
+                LicenseType::Full => "Activated".to_string(),
                 LicenseType::Trial => format!("Trial — {} uses left", state.uses_remaining),
             },
             Err(_) => "Trial".to_string(),
@@ -302,7 +302,7 @@ impl SnappitTray {
 
         let license_text = match SnappitLicense::get_state() {
             Ok(state) => match state.license_type {
-                LicenseType::Pro => "Pro".to_string(),
+                LicenseType::Full => "Activated".to_string(),
                 LicenseType::Trial => format!("Trial — {} uses left", state.uses_remaining),
             },
             Err(_) => "Trial".to_string(),

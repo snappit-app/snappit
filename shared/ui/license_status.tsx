@@ -10,10 +10,10 @@ export interface LicenseStatusProps {
 export function LicenseStatus(props: LicenseStatusProps) {
   const [licenseState] = SnappitLicense.create();
 
-  const isPro = () => SnappitLicense.isPro(licenseState());
+  const isFull = () => SnappitLicense.isFull(licenseState());
   const usesRemaining = () => SnappitLicense.getUsesRemaining(licenseState());
   const isExpired = () => SnappitLicense.isTrialExpired(licenseState());
-  const isLowUses = () => !isPro() && usesRemaining() <= 5 && usesRemaining() > 0;
+  const isLowUses = () => !isFull() && usesRemaining() <= 5 && usesRemaining() > 0;
 
   return (
     <div
@@ -28,18 +28,18 @@ export function LicenseStatus(props: LicenseStatusProps) {
       <div
         class={cn(
           "px-2 py-1 rounded text-xs font-bold uppercase tracking-wider",
-          isPro() ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+          isFull() ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
         )}
       >
-        {isPro() ? "Pro" : "Trial"}
+        {isFull() ? "Full" : "Trial"}
       </div>
 
       <div class="flex-1">
-        <Show when={isPro()}>
-          <span class="text-sm font-medium text-foreground">Unlimited access</span>
+        <Show when={isFull()}>
+          <span class="text-sm font-medium text-foreground">Product activated</span>
         </Show>
 
-        <Show when={!isPro() && !isExpired()}>
+        <Show when={!isFull() && !isExpired()}>
           <span
             class={cn(
               "text-sm font-medium",

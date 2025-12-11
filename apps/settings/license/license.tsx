@@ -4,7 +4,7 @@ import { createSignal, onMount, Show } from "solid-js";
 import { cn } from "@/shared/libs/cn";
 import { SnappitLicense } from "@/shared/libs/license";
 import {
-  activateProLicense,
+  activateFullLicense,
   getLicenseKey,
   updateTrayLicenseStatus,
 } from "@/shared/tauri/license_api";
@@ -19,8 +19,6 @@ export function License() {
   const [isActivating, setIsActivating] = createSignal(false);
   const [activationError, setActivationError] = createSignal<string | null>(null);
 
-  refetch();
-
   onMount(async () => {
     try {
       const key = await getLicenseKey();
@@ -30,7 +28,7 @@ export function License() {
     }
   });
 
-  const isPro = () => SnappitLicense.isPro(licenseState());
+  const isFull = () => SnappitLicense.isFull(licenseState());
 
   const maskLicenseKey = (key: string) => {
     if (key.length <= 4) return "*".repeat(key.length);
@@ -48,7 +46,7 @@ export function License() {
     setActivationError(null);
 
     try {
-      await activateProLicense(key);
+      await activateFullLicense(key);
       await updateTrayLicenseStatus();
       setStoredLicenseKey(key);
       setLicenseKey("");
@@ -68,7 +66,6 @@ export function License() {
       <div class="border rounded-lg p-5">
         <div class="mb-4">
           <h2 class="font-bold text-lg">About Your License</h2>
-          <p class="text-sm text-muted-foreground">Manage your Snappit subscription</p>
         </div>
 
         <div class="flex flex-col gap-3 text-sm">
@@ -80,13 +77,13 @@ export function License() {
           <div class="flex justify-between items-center">
             <span class="text-muted-foreground">Uses Remaining</span>
             <span class="font-medium">
-              {licenseState()?.licenseType === "pro"
+              {licenseState()?.licenseType === "full"
                 ? "Unlimited"
                 : (licenseState()?.usesRemaining ?? "—")}
             </span>
           </div>
 
-          <Show when={isPro() && storedLicenseKey()}>
+          <Show when={isFull() && storedLicenseKey()}>
             <div class="flex justify-between items-center">
               <span class="text-muted-foreground">License Key</span>
               <div class="flex items-center gap-2">
@@ -112,10 +109,10 @@ export function License() {
         </div>
       </div>
 
-      <Show when={!isPro()}>
+      <Show when={!isFull()}>
         <div class="border rounded-lg p-5">
           <div class="mb-4">
-            <h2 class="font-bold text-lg">Activate Pro License</h2>
+            <h2 class="font-bold text-lg">Activate Full License</h2>
             <p class="text-sm text-muted-foreground">
               Enter your license key to unlock unlimited access
             </p>
@@ -152,9 +149,9 @@ export function License() {
         </div>
       </Show>
 
-      <Show when={!isPro()}>
+      <Show when={!isFull()}>
         <div class="text-center text-xs text-muted-foreground">
-          <p>Need more uses? Upgrade to Pro for unlimited access.</p>
+          <p>Need more uses? Upgrade to Full for unlimited access.</p>
         </div>
       </Show>
     </div>

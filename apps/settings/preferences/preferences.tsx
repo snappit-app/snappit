@@ -30,88 +30,79 @@ export function Preferences() {
   });
 
   return (
-    <div class="p-6">
-      <div class="border rounded-lg p-5">
-        <div class="mb-4">
-          <h2 class="font-bold text-lg">Preferences</h2>
-          <p class="text-sm text-muted-foreground">
-            Manage app appearance, launch settings, and notifications
-          </p>
+    <div class="rounded-lg p-3 border">
+      <div class="flex flex-col gap-2">
+        <div class="flex justify-between items-center">
+          <div class="text-sm">Theme</div>
+          <ToggleGroup size={"sm"} color={"product"} value={theme()}>
+            <ToggleGroupItem onClick={() => setTheme("light")} value="light">
+              Light
+            </ToggleGroupItem>
+            <ToggleGroupItem onClick={() => setTheme("dark")} value="dark">
+              Dark
+            </ToggleGroupItem>
+
+            <ToggleGroupItem onClick={() => setTheme("system")} value="system">
+              System
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
 
-        <div class="flex flex-col gap-2">
-          <div class="flex justify-between items-center">
-            <div class="text-sm">Theme</div>
-            <ToggleGroup size={"sm"} color={"product"} value={theme()}>
-              <ToggleGroupItem onClick={() => setTheme("light")} value="light">
-                Light
-              </ToggleGroupItem>
-              <ToggleGroupItem onClick={() => setTheme("dark")} value="dark">
-                Dark
-              </ToggleGroupItem>
+        <Switch
+          class="flex justify-between items-center h-[30px]"
+          checked={autostartEnabled()}
+          onChange={setAutostartEnabled}
+          disabled={!autostartReady()}
+        >
+          <SwitchLabel class="text-sm">Startup</SwitchLabel>
+          <SwitchControl variant={"product"}>
+            <SwitchThumb />
+          </SwitchControl>
+        </Switch>
 
-              <ToggleGroupItem onClick={() => setTheme("system")} value="system">
-                System
-              </ToggleGroupItem>
-            </ToggleGroup>
-          </div>
+        <Switch
+          class="flex justify-between items-center h-[30px]"
+          checked={notificationsEnabled()}
+          onChange={(e) => setNotificationsEnabled(e)}
+        >
+          <SwitchLabel class="text-sm">Notifications</SwitchLabel>
+          <SwitchControl variant={"product"}>
+            <SwitchThumb />
+          </SwitchControl>
+        </Switch>
 
-          <Switch
-            class="flex justify-between items-center h-[30px]"
-            checked={autostartEnabled()}
-            onChange={setAutostartEnabled}
-            disabled={!autostartReady()}
+        <Switch
+          class="flex justify-between items-center h-[30px]"
+          checked={!!toolsEnabled()}
+          onChange={(value) => setToolsEnabled(value)}
+        >
+          <SwitchLabel class="text-sm">Tools panel</SwitchLabel>
+          <SwitchControl variant={"product"}>
+            <SwitchThumb />
+          </SwitchControl>
+        </Switch>
+
+        <div class="flex justify-between items-center h-[30px]">
+          <div class="text-sm">Color format</div>
+          <Select
+            value={colorFormat() ?? DEFAULT_COLOR_FORMAT}
+            onChange={(value) => value && setColorFormat(value)}
+            options={COLOR_FORMAT_OPTIONS.map((o) => o.value)}
+            itemComponent={(props) => (
+              <SelectItem item={props.item}>
+                {COLOR_FORMAT_OPTIONS.find((o) => o.value === props.item.rawValue)?.label}
+              </SelectItem>
+            )}
           >
-            <SwitchLabel class="text-sm">Startup</SwitchLabel>
-            <SwitchControl variant={"product"}>
-              <SwitchThumb />
-            </SwitchControl>
-          </Switch>
-
-          <Switch
-            class="flex justify-between items-center h-[30px]"
-            checked={notificationsEnabled()}
-            onChange={(e) => setNotificationsEnabled(e)}
-          >
-            <SwitchLabel class="text-sm">Notifications</SwitchLabel>
-            <SwitchControl variant={"product"}>
-              <SwitchThumb />
-            </SwitchControl>
-          </Switch>
-
-          <Switch
-            class="flex justify-between items-center h-[30px]"
-            checked={!!toolsEnabled()}
-            onChange={(value) => setToolsEnabled(value)}
-          >
-            <SwitchLabel class="text-sm">Tools panel</SwitchLabel>
-            <SwitchControl variant={"product"}>
-              <SwitchThumb />
-            </SwitchControl>
-          </Switch>
-
-          <div class="flex justify-between items-center h-[30px]">
-            <div class="text-sm">Color format</div>
-            <Select
-              value={colorFormat() ?? DEFAULT_COLOR_FORMAT}
-              onChange={(value) => value && setColorFormat(value)}
-              options={COLOR_FORMAT_OPTIONS.map((o) => o.value)}
-              itemComponent={(props) => (
-                <SelectItem item={props.item}>
-                  {COLOR_FORMAT_OPTIONS.find((o) => o.value === props.item.rawValue)?.label}
-                </SelectItem>
-              )}
-            >
-              <SelectTrigger class="w-[100px]">
-                <SelectValue<ColorFormat>>
-                  {(state) =>
-                    COLOR_FORMAT_OPTIONS.find((o) => o.value === state.selectedOption())?.label
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent />
-            </Select>
-          </div>
+            <SelectTrigger class="w-[100px]">
+              <SelectValue<ColorFormat>>
+                {(state) =>
+                  COLOR_FORMAT_OPTIONS.find((o) => o.value === state.selectedOption())?.label
+                }
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent />
+          </Select>
         </div>
       </div>
     </div>

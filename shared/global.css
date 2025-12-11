@@ -132,7 +132,7 @@
   body,
   html,
   #root {
-    @apply h-full;
+    overflow: hidden;
   }
 
   *[data-tauri-drag-region] {

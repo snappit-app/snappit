@@ -29,7 +29,7 @@ static CACHED_STATE: std::sync::OnceLock<std::sync::Mutex<Option<LicenseState>>>
 #[serde(rename_all = "lowercase")]
 pub enum LicenseType {
     Trial,
-    Pro,
+    Full,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -125,7 +125,7 @@ impl SnappitLicense {
         let data = Self::load_or_init()?;
 
         let license_type = match data.lt.as_str() {
-            "p" => LicenseType::Pro,
+            "p" => LicenseType::Full,
             _ => LicenseType::Trial,
         };
 

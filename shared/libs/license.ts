@@ -39,9 +39,9 @@ export abstract class SnappitLicense {
     return state.licenseType === "trial" && state.usesRemaining === 0;
   }
 
-  static isPro(state: LicenseState | null | undefined): boolean {
+  static isFull(state: LicenseState | null | undefined): boolean {
     if (!state) return false;
-    return state.licenseType === "pro";
+    return state.licenseType === "full";
   }
 
   static getUsesRemaining(state: LicenseState | null | undefined): number {
