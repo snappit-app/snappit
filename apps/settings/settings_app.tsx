@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
+import { UnlistenFn } from "@tauri-apps/api/event";
 import { createEffect, createMemo, createSignal, Show } from "solid-js";
 import { onCleanup, onMount } from "solid-js";
 
@@ -25,6 +26,7 @@ function SettingsApp() {
   const [refetch] = SnappitLicense.create();
   const [container, setContainer] = createSignal<HTMLDivElement | null>(null);
   const [activeTab, setActiveTab] = createSignal("preferences");
+  let unlistenOpenTab: UnlistenFn | undefined;
 
   autoResizeWindow(container);
 
@@ -33,15 +35,15 @@ function SettingsApp() {
   onMount(async () => {
     ensureSystemLanguagesInstalled();
 
-    const unlistenOpenTab = await SettingsApi.onOpenTab((event) => {
+    unlistenOpenTab = await SettingsApi.onOpenTab((event) => {
       if (event.payload) {
         setActiveTab(event.payload);
       }
     });
+  });
 
-    onCleanup(() => {
-      unlistenOpenTab?.();
-    });
+  onCleanup(() => {
+    unlistenOpenTab?.();
   });
 
   return (

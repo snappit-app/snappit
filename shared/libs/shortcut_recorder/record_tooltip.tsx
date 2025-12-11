@@ -25,9 +25,3 @@ export function RecordTooltip(props: recordTooltipProps) {
     </div>
   );
 }
-
-// class="rounded-lg shadow z-1 cursor-default before:content-[''] before:absolute
-//       before:-bottom-1 before:left-1/2 before:-translate-x-1/2
-//       before:w-3 before:h-3 before:bg-popover before:rotate-45 before:-z-1
-//       before:shadow"
-// >
