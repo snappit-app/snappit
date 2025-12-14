@@ -1,18 +1,5 @@
 import { createEventListener } from "@solid-primitives/event-listener";
-import { BsQuestionCircleFill } from "solid-icons/bs";
-import {
-  Accessor,
-  createContext,
-  createEffect,
-  createSignal,
-  JSX,
-  Show,
-  useContext,
-} from "solid-js";
-
-import { tooltip } from "@/shared/ui/tooltip";
-
-void tooltip;
+import { Accessor, createContext, createEffect, createSignal, JSX, useContext } from "solid-js";
 
 export interface InlineSelectListContextValue {
   activeValue: Accessor<string | null>;
@@ -38,7 +25,6 @@ export interface InlineSelectListProps {
   class?: string;
   "aria-label"?: string;
   typeaheadResetMs?: number;
-  hint?: string;
   onSelectDefault?: () => void;
 }
 
@@ -159,17 +145,10 @@ export function InlineSelectList(props: InlineSelectListProps) {
   return (
     <InlineSelectListContext.Provider value={contextValue}>
       <div
-        class={props.class ?? "flex flex-col gap-1"}
+        class={props.class ?? "flex flex-col gap-1 h-full"}
         role="listbox"
         aria-label={props["aria-label"] ?? "Select list. Type to search."}
       >
-        <Show when={props.hint}>
-          <div class="flex justify-end px-4 pb-1">
-            <div use:tooltip={props.hint} class="text-muted-foreground">
-              <BsQuestionCircleFill size={14} />
-            </div>
-          </div>
-        </Show>
         {props.children}
       </div>
     </InlineSelectListContext.Provider>

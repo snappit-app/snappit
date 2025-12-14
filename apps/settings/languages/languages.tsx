@@ -33,10 +33,8 @@ export function Languages() {
 
   return (
     <>
-      <div class="h-full flex flex-col rounded-lg bg-card overflow-hidden pt-3 mb-3 relative">
-        <div class="grow overflow-auto px-3 pr-1 pb-3">
-          <RecognitionLanguageSelector />
-        </div>
+      <div class="h-full flex flex-col rounded-lg bg-card overflow-hidden p-3 mb-3 relative">
+        <RecognitionLanguageSelector />
       </div>
 
       <footer class="flex items-center justify-between p-3 rounded-lg bg-card mb-3">

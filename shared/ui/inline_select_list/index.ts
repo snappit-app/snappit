@@ -1,6 +1,10 @@
 export type { InlineSelectListContextValue, InlineSelectListProps } from "./inline_select_list";
 export { InlineSelectList, useInlineSelectList } from "./inline_select_list";
-export type { InlineSelectListDefaultItemProps } from "./inline_select_list_default";
-export { InlineSelectListDefault as InlineSelectListDefaultItem } from "./inline_select_list_default";
+export type { InlineSelectListContentProps } from "./inline_select_list_content";
+export { InlineSelectListContent } from "./inline_select_list_content";
+export type { InlineSelectListDefaultItemProps } from "./inline_select_list_default_item";
+export { InlineSelectListDefaultItem } from "./inline_select_list_default_item";
+export type { InlineSelectListHeaderProps } from "./inline_select_list_header";
+export { InlineSelectListHeader } from "./inline_select_list_header";
 export type { InlineSelectListItemProps } from "./inline_select_list_item";
 export { InlineSelectListItem } from "./inline_select_list_item";

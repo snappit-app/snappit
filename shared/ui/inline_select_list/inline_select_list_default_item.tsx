@@ -10,7 +10,7 @@ export interface InlineSelectListDefaultItemProps {
   selected?: boolean;
 }
 
-export function InlineSelectListDefault(props: InlineSelectListDefaultItemProps) {
+export function InlineSelectListDefaultItem(props: InlineSelectListDefaultItemProps) {
   const context = useInlineSelectList();
 
   const handleClick = () => {
