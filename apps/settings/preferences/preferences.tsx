@@ -1,3 +1,18 @@
+import {
+  BiRegularFontColor,
+  BiRegularSun,
+  BiSolidCloudLightning,
+  BiSolidColor,
+  BiSolidDockBottom,
+  BiSolidEyedropper,
+  BiSolidMoon,
+  BiSolidNotification,
+  BiSolidPalette,
+  BiSolidSprayCan,
+  BiSolidThermometer,
+  BiSolidUser,
+} from "solid-icons/bi";
+import { BsSignStopLightsFill } from "solid-icons/bs";
 import { onMount } from "solid-js";
 
 import { AutostartSettings } from "@/shared/autostart";
@@ -35,7 +50,10 @@ export function Preferences() {
 
       <div class="rounded-lg p-3 bg-card mb-3">
         <div class="flex justify-between items-center">
-          <div class="text-sm font-light">Theme</div>
+          <div class="text-sm font-light flex gap-2 items-center">
+            <BiRegularSun />
+            Theme
+          </div>
           <ToggleGroup size={"sm"} color={"product"} value={theme()}>
             <ToggleGroupItem onClick={() => setTheme("light")} value="light">
               Light
@@ -58,7 +76,10 @@ export function Preferences() {
           onChange={setAutostartEnabled}
           disabled={!autostartReady()}
         >
-          <SwitchLabel class="text-sm font-light">Launch at startup</SwitchLabel>
+          <SwitchLabel class="text-sm font-light  flex gap-2 items-center">
+            <BiSolidUser />
+            Launch at startup
+          </SwitchLabel>
           <SwitchControl variant={"product"}>
             <SwitchThumb />
           </SwitchControl>
@@ -69,7 +90,10 @@ export function Preferences() {
           checked={notificationsEnabled()}
           onChange={(e) => setNotificationsEnabled(e)}
         >
-          <SwitchLabel class="text-sm font-light">Notifications</SwitchLabel>
+          <SwitchLabel class="text-sm font-light flex gap-2 items-center">
+            <BiSolidNotification />
+            Notifications
+          </SwitchLabel>
           <SwitchControl variant={"product"}>
             <SwitchThumb />
           </SwitchControl>
@@ -80,7 +104,9 @@ export function Preferences() {
           checked={!!toolsEnabled()}
           onChange={(value) => setToolsEnabled(value)}
         >
-          <SwitchLabel class="text-sm font-light">Tools panel</SwitchLabel>
+          <SwitchLabel class="text-sm font-light flex gap-2 items-center">
+            <BiSolidDockBottom /> Tools panel
+          </SwitchLabel>
           <SwitchControl variant={"product"}>
             <SwitchThumb />
           </SwitchControl>
@@ -90,7 +116,9 @@ export function Preferences() {
       <div class="rounded-lg p-3 bg-card">
         <div class="flex flex-col gap-2">
           <div class="flex justify-between items-center h-[30px]">
-            <div class="text-sm font-light">Color format</div>
+            <div class="text-sm font-light flex gap-2 items-center">
+              <BiSolidPalette /> Color format
+            </div>
             <Select
               value={colorFormat() ?? DEFAULT_COLOR_FORMAT}
               onChange={(value) => value && setColorFormat(value)}

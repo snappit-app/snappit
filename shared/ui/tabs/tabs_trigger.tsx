@@ -15,7 +15,7 @@ export const TabsTrigger = <T extends ValidComponent = "button">(
   return (
     <TabsPrimitive.Trigger
       class={cn(
-        "peer text-foreground relative z-10 inline-flex gap-2 h-7 font-extralight w-full items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm outline-none transition-colors disabled:pointer-events-none disabled:opacity-50 data-[selected]:text-product data-[selected]:bg-muted data-[orientation=vertical]:justify-start",
+        "peer text-foreground relative z-10 inline-flex gap-2 h-7 font-extralight w-full items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm outline-none transition-colors disabled:pointer-events-none disabled:opacity-50 data-[selected]:text-product-foreground data-[selected]:bg-product data-[orientation=vertical]:justify-start",
         local.class,
       )}
       {...rest}

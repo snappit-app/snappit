@@ -46,72 +46,66 @@ function SettingsApp() {
   return (
     <Tabs
       orientation="vertical"
-      class="flex flex-col overflow-hidden h-screen"
+      class="flex relateive overflow-hidden h-screen"
       value={activeTab()}
       onChange={setActiveTab}
     >
-      <div class="flex h-full relateive">
-        <div data-tauri-drag-region class="h-[56px] w-full absolute left-0 top-0 z-55" />
-        <aside class="p-1 w-[200px] pr-0">
-          <div class="bg-sidebar h-full w-full rounded-xl border border-border px-2 pb-7 pt-[56px] flex flex-col justify-between">
-            <div class="pt-0 w-full">
-              <Show when={canLoadApp()}>
-                <TabsList>
-                  <TabsTrigger value="preferences">
-                    <BiSolidCog /> Preferences
-                  </TabsTrigger>
-                  <TabsTrigger value="shortcuts">
-                    <BiRegularCommand /> Shortcuts
-                  </TabsTrigger>
-                  <TabsTrigger value="languages">
-                    <BiRegularGlobe /> Languages
-                  </TabsTrigger>
-                  <TabsTrigger value="license">
-                    <BiSolidShield />
-                    License
-                  </TabsTrigger>
-                </TabsList>
-              </Show>
-            </div>
+      <header data-tauri-drag-region class="h-[56px] w-full absolute left-0 top-0 z-55" />
+      <aside class="w-[200px] h-full px-2 pb-7 pt-[56px] flex flex-col justify-between">
+        <Show when={canLoadApp()}>
+          <TabsList>
+            <TabsTrigger value="preferences">
+              <BiSolidCog /> Preferences
+            </TabsTrigger>
+            <TabsTrigger value="shortcuts">
+              <BiRegularCommand /> Shortcuts
+            </TabsTrigger>
+            <TabsTrigger value="languages">
+              <BiRegularGlobe /> Languages
+            </TabsTrigger>
+            <TabsTrigger value="license">
+              <BiSolidShield />
+              License
+            </TabsTrigger>
+          </TabsList>
+        </Show>
 
-            <div class="flex flex-col items-center justify-center gap-4">
-              <img src="/favicon.png" alt="Snappit Logo" class=" w-[32px] h-[32px]" />
-              <span class="text-xs">Snappit</span>
-            </div>
+        <div class="flex flex-col items-center justify-center gap-4">
+          <img src="/favicon.png" alt="Snappit Logo" class=" w-[32px] h-[32px]" />
+          <span class="text-xs">Snappit</span>
+        </div>
+      </aside>
+      <main class="relative grow-1 min-h-0 p-4 pt-[56px] bg-background">
+        <Show when={isInitialSetup()}>
+          <div class="h-full flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+            <div class="animate-spin h-8 w-8 border-4 border-prima ary border-t-transparent rounded-full mb-4" />
+            <p class="text-sm font-medium">Initial setup in progress...</p>
           </div>
-        </aside>
-        <main class="relative grow-1 min-h-0 p-4 pt-[56px]">
-          <Show when={isInitialSetup()}>
-            <div class="h-full flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
-              <div class="animate-spin h-8 w-8 border-4 border-prima ary border-t-transparent rounded-full mb-4" />
-              <p class="text-sm font-medium">Initial setup in progress...</p>
-            </div>
-          </Show>
-          <Show when={permissions.loading()}>
-            <div class="h-full flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
-              <div class="animate-spin h-8 w-8 border-4 border-prima ary border-t-transparent rounded-full mb-4" />
-              <p class="text-sm font-medium">Checking permissions…</p>
-            </div>
-          </Show>
-          <Show when={!permissions.loading() && !permissionsGranted()}>
-            <PermissionsGate />
-          </Show>
-          <Show when={canLoadApp()}>
-            <TabsContent value="preferences" class="h-full overflow-auto">
-              <Preferences />
-            </TabsContent>
-            <TabsContent value="shortcuts" class="h-full overflow-auto">
-              <Shortcuts />
-            </TabsContent>
-            <TabsContent value="languages" class="h-full flex flex-col overflow-hidden">
-              <Languages />
-            </TabsContent>
-            <TabsContent value="license" class="h-full overflow-auto">
-              <License />
-            </TabsContent>
-          </Show>
-        </main>
-      </div>
+        </Show>
+        <Show when={permissions.loading()}>
+          <div class="h-full flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+            <div class="animate-spin h-8 w-8 border-4 border-prima ary border-t-transparent rounded-full mb-4" />
+            <p class="text-sm font-medium">Checking permissions…</p>
+          </div>
+        </Show>
+        <Show when={!permissions.loading() && !permissionsGranted()}>
+          <PermissionsGate />
+        </Show>
+        <Show when={canLoadApp()}>
+          <TabsContent value="preferences" class="h-full overflow-auto">
+            <Preferences />
+          </TabsContent>
+          <TabsContent value="shortcuts" class="h-full overflow-auto">
+            <Shortcuts />
+          </TabsContent>
+          <TabsContent value="languages" class="h-full flex flex-col overflow-hidden">
+            <Languages />
+          </TabsContent>
+          <TabsContent value="license" class="h-full overflow-auto">
+            <License />
+          </TabsContent>
+        </Show>
+      </main>
     </Tabs>
   );
 }
