@@ -1,18 +1,10 @@
 import {
-  BiRegularFontColor,
   BiRegularSun,
-  BiSolidCloudLightning,
-  BiSolidColor,
   BiSolidDockBottom,
-  BiSolidEyedropper,
-  BiSolidMoon,
   BiSolidNotification,
   BiSolidPalette,
-  BiSolidSprayCan,
-  BiSolidThermometer,
   BiSolidUser,
 } from "solid-icons/bi";
-import { BsSignStopLightsFill } from "solid-icons/bs";
 import { onMount } from "solid-js";
 
 import { AutostartSettings } from "@/shared/autostart";

@@ -2,13 +2,11 @@
   "rust-analyzer.cargo.targetDir": true,
   "editor.formatOnSave": false,
   "[typescript]": {
-    "editor.formatOnSave": false,
+    "editor.formatOnSave": false
   },
   "[rust]": {
     "editor.defaultFormatter": "rust-lang.rust-analyzer",
     "editor.formatOnSave": true
   },
-  "cSpell.words": [
-    "xcap"
-  ]
+  "cSpell.words": ["xcap"]
 }

@@ -1,3 +1,4 @@
+import { getAllWindows, Theme as TauriTheme } from "@tauri-apps/api/window";
 import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
 
 import { SNAPPIT_CONSTS } from "@/shared/constants";
@@ -12,7 +13,6 @@ export abstract class Theme {
 
   static create() {
     if (this._themeSingleton) return this._themeSingleton;
-
     const THEME_KEY = SNAPPIT_CONSTS.store.keys.theme;
     const [storeTheme, setStoreTheme] = SnappitStore.createValue<themeOptions>(THEME_KEY);
 
@@ -49,6 +49,18 @@ export abstract class Theme {
         root.classList.toggle("dark", !!effectiveDark);
         root.setAttribute("data-kb-theme", effectiveDark ? "dark" : "light");
       }
+
+      // Set theme for all Tauri windows
+      const tauriTheme: TauriTheme | null =
+        pref === "light" ? "light" : pref === "dark" ? "dark" : null;
+
+      getAllWindows().then((windows) => {
+        console.log(windows);
+
+        windows.forEach((win) => {
+          win.setTheme(tauriTheme);
+        });
+      });
     });
 
     function setTheme(t: themeOptions) {

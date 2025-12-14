@@ -22,7 +22,7 @@ use snappit_notifications::{SnappitNotificationPayload, SnappitNotifications};
 use snappit_overlay::SnappitOverlay;
 use snappit_shortcut_manager::SnappitShortcutManager;
 use snappit_tray::SnappitTray;
-use tauri::{async_runtime::spawn_blocking, AppHandle, Emitter};
+use tauri::{async_runtime::spawn_blocking, AppHandle};
 
 use crate::{
     img_protocol::{handle_img_request, ImageSlot, IMAGE},

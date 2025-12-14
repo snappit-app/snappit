@@ -13,6 +13,7 @@
     "core:window:allow-hide",
     "core:window:allow-minimize",
     "core:window:allow-set-size",
+    "core:window:allow-set-theme",
     "global-shortcut:allow-is-registered",
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister",
