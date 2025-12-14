@@ -15,8 +15,6 @@ export async function consumeToolUse(): Promise<number> {
 }
 
 export async function activateFullLicense(licenseKey: string): Promise<void> {
-  // TODO: In the future, this will validate the license key with the backend
-  // For now, simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 1500));
   return await invoke<void>("activate_pro_license", { licenseKey });
 }
@@ -27,4 +25,8 @@ export async function updateTrayLicenseStatus(): Promise<void> {
 
 export async function getLicenseKey(): Promise<string | null> {
   return await invoke<string | null>("get_license_key");
+}
+
+export async function deactivateLicense(): Promise<void> {
+  return await invoke<void>("deactivate_license");
 }

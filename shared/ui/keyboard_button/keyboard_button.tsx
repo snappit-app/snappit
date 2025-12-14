@@ -4,7 +4,7 @@ import { platform } from "@tauri-apps/plugin-os";
 import { cva, VariantProps } from "class-variance-authority";
 import { splitProps } from "solid-js";
 
-export const buttonVariants = cva("bg-accent flex justify-center items-center", {
+export const buttonVariants = cva("bg-muted flex justify-center items-center", {
   variants: {
     size: {
       sm: "min-w-[30px] p-1 rounded",

@@ -39,7 +39,7 @@ export function Languages() {
         <RecognitionLanguageSelector />
       </div>
 
-      <footer class="flex items-center justify-between p-3 rounded-lg bg-card mb-3">
+      <footer class="flex items-center justify-between p-3 rounded-lg bg-card">
         <span class="tracking-wide text-[10px] text-muted-foreground text-xs">
           recognition model
         </span>

@@ -1,15 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
 import { UnlistenFn } from "@tauri-apps/api/event";
-import {
-  BiRegularCommand,
-  BiRegularGlobe,
-  BiRegularShield,
-  BiSolidCog,
-  BiSolidKey,
-  BiSolidKeyboard,
-  BiSolidShield,
-} from "solid-icons/bi";
-import { createEffect, createMemo, createSignal, Show } from "solid-js";
+import { BiRegularCommand, BiRegularGlobe, BiSolidCog, BiSolidShield } from "solid-icons/bi";
+import { createMemo, createSignal, Show } from "solid-js";
 import { onCleanup, onMount } from "solid-js";
 
 import { Languages } from "@/apps/settings/languages";
@@ -19,7 +11,6 @@ import { SnappitLicense } from "@/shared/libs/license";
 import { createPermissions } from "@/shared/libs/permissions";
 import { createSettingsVisible } from "@/shared/libs/settings_visible";
 import { ensureSystemLanguagesInstalled, isInitialSetup } from "@/shared/ocr/installed_languages";
-import { autoResizeWindow } from "@/shared/tauri/resize-window";
 import { SettingsApi } from "@/shared/tauri/settings_api";
 import { Theme } from "@/shared/theme";
 
@@ -33,11 +24,8 @@ function SettingsApp() {
   const permissionsGranted = createMemo(() => permissions.state()?.screenRecording ?? false);
   const canLoadApp = createMemo(() => !permissions.loading() && permissionsGranted() && visible());
   const [refetch] = SnappitLicense.create();
-  const [container, setContainer] = createSignal<HTMLDivElement | null>(null);
   const [activeTab, setActiveTab] = createSignal("preferences");
   let unlistenOpenTab: UnlistenFn | undefined;
-
-  // autoResizeWindow(container);
 
   refetch();
 
@@ -65,9 +53,9 @@ function SettingsApp() {
       <div class="flex h-full relateive">
         <div data-tauri-drag-region class="h-[56px] w-full absolute left-0 top-0 z-55" />
         <aside class="p-1 w-[200px] pr-0">
-          <div class="bg-sidebar h-full w-full rounded-xl border border-border px-2 pt-[56px]">
-            <Show when={canLoadApp()}>
-              <div class="pt-0 w-full">
+          <div class="bg-sidebar h-full w-full rounded-xl border border-border px-2 pb-7 pt-[56px] flex flex-col justify-between">
+            <div class="pt-0 w-full">
+              <Show when={canLoadApp()}>
                 <TabsList>
                   <TabsTrigger value="preferences">
                     <BiSolidCog /> Preferences
@@ -83,8 +71,13 @@ function SettingsApp() {
                     License
                   </TabsTrigger>
                 </TabsList>
-              </div>
-            </Show>
+              </Show>
+            </div>
+
+            <div class="flex flex-col items-center justify-center gap-4">
+              <img src="/favicon.png" alt="Snappit Logo" class=" w-[32px] h-[32px]" />
+              <span class="text-xs">Snappit</span>
+            </div>
           </div>
         </aside>
         <main class="relative grow-1 min-h-0 p-4 pt-[56px]">
