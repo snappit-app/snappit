@@ -63,7 +63,7 @@ export function License() {
     <div class="flex flex-col gap-4">
       <LicenseStatus />
 
-      <div class="border rounded-lg p-3">
+      <div class="bg-card rounded-lg p-3">
         <div class="mb-4">
           <h2 class="font-bold text-lg">About Your License</h2>
         </div>

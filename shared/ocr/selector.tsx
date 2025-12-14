@@ -19,7 +19,7 @@ export function RecognitionLanguageAutoOption() {
       <button
         type="button"
         class={cn(
-          "flex w-full cursor-pointer items-center justify-between rounded-full py-1 px-4 text-left text-sm hover:bg-muted",
+          "flex w-full cursor-pointer items-center justify-between rounded-lg py-1 px-4 text-left text-sm hover:bg-muted",
           isAutoLanguageSelected() ? "bg-muted" : "",
         )}
         aria-pressed={isAutoLanguageSelected()}
@@ -30,8 +30,6 @@ export function RecognitionLanguageAutoOption() {
           <BsQuestionCircleFill />
         </div>
       </button>
-
-      <div class="border-t border-gray-300 my-1" />
     </>
   );
 }

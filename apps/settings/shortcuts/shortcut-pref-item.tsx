@@ -1,5 +1,13 @@
-import { BiRegularRadioCircleMarked, BiRegularReset, BiSolidTrash } from "solid-icons/bi";
-import { createEffect, createMemo, For, Show } from "solid-js";
+import {
+  BiRegularQrScan,
+  BiRegularRadioCircleMarked,
+  BiRegularReset,
+  BiSolidCopy,
+  BiSolidEyedropper,
+  BiSolidRuler,
+  BiSolidTrash,
+} from "solid-icons/bi";
+import { Component, createEffect, createMemo, For, Show } from "solid-js";
 
 import { clickOutside } from "@/shared/libs/click_outside_dir";
 import { fromGlobalShortcut, toGlobalShortcut } from "@/shared/libs/shortcut_recorder";
@@ -9,6 +17,7 @@ import {
   CAPTURE_SHORTCUT_KEY,
   COLOR_DROPPER_SHORTCUT_KEY,
   DEFAULT_SHORTCUTS,
+  DIGITAL_RULER_SHORTCUT_KEY,
   QR_SHORTCUT_KEY,
   ShortcutKeys,
   ShortcutsApi,
@@ -25,6 +34,7 @@ type ShortcutPreferenceItem = {
   label: string;
   storeKey: ShortcutKeys;
   target: SnappitOverlayTarget;
+  Icon: Component;
 };
 
 export const TOOL_SHORTCUTS: ShortcutPreferenceItem[] = [
@@ -32,21 +42,25 @@ export const TOOL_SHORTCUTS: ShortcutPreferenceItem[] = [
     label: "Capture",
     storeKey: CAPTURE_SHORTCUT_KEY,
     target: "capture",
+    Icon: BiSolidCopy,
   },
-  // {
-  //   label: "Digital Ruler",
-  //   storeKey: DIGITAL_RULER_SHORTCUT_KEY,
-  //   target: "digital_ruler",
-  // },
+  {
+    label: "Digital Ruler",
+    storeKey: DIGITAL_RULER_SHORTCUT_KEY,
+    target: "digital_ruler",
+    Icon: BiSolidRuler,
+  },
   {
     label: "Color Dropper",
     storeKey: COLOR_DROPPER_SHORTCUT_KEY,
     target: "color_dropper",
+    Icon: BiSolidEyedropper,
   },
   {
     label: "QR Scanner",
     storeKey: QR_SHORTCUT_KEY,
     target: "qr_scanner",
+    Icon: BiRegularQrScan,
   },
 ];
 
@@ -83,7 +97,9 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
 
   return (
     <div class="py-3 first:pt-0 last:pb-0">
-      <div class="text-sm font-medium text-foreground mb-2">{props.item.label}</div>
+      <div class="text-sm font-extralight text-foreground mb-2 border-b pb-1 flex gap-3 items-center ">
+        <props.item.Icon /> {props.item.label}
+      </div>
       <div class="flex items-center justify-between gap-4">
         <div>
           <Show

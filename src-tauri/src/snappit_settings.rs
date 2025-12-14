@@ -1,6 +1,6 @@
 use tauri::{
-    AppHandle, Emitter, Error as TauriError, Manager, WebviewUrl, WebviewWindow,
-    WebviewWindowBuilder, WindowEvent, Wry,
+    utils::config::LogicalPosition, AppHandle, Emitter, Error as TauriError, Manager,
+    PhysicalPosition, WebviewUrl, WebviewWindow, WebviewWindowBuilder, WindowEvent, Wry,
 };
 
 use crate::{
@@ -58,10 +58,11 @@ impl SnappitSettings {
             .minimizable(false)
             .decorations(true)
             .title_bar_style(tauri::TitleBarStyle::Overlay)
+            .traffic_light_position(PhysicalPosition { x: 32, y: 42 })
             .transparent(false)
             .resizable(false)
             .shadow(true)
-            .inner_size(430.0, 500.0)
+            .inner_size(630.0, 600.0)
             .build()?;
 
         let app_clone = app.clone();
@@ -72,11 +73,11 @@ impl SnappitSettings {
                     .log_on_err_with("Fail to hide settings window on CloseRequested");
             }
 
-            #[cfg(not(debug_assertions))]
-            WindowEvent::Focused(false) => {
-                SnappitSettings::hide(&app_clone)
-                    .log_on_err_with("Fail to hide settings window on focus change");
-            }
+            // #[cfg(not(debug_assertions))]
+            // WindowEvent::Focused(false) => {
+            //     SnappitSettings::hide(&app_clone)
+            //         .log_on_err_with("Fail to hide settings window on focus change");
+            // }
             _ => {}
         });
 

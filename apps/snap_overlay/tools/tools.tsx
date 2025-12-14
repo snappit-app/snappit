@@ -43,6 +43,14 @@ export function Tools(props: toolsProps) {
             <BiSolidCopy />
           </ToggleGroupItem>
         </div>
+        <div use:tooltip={"Digital ruller"}>
+          <ToggleGroupItem
+            value="digital_ruler"
+            onClick={() => local.onValueChange("digital_ruler")}
+          >
+            <BiSolidRuler />
+          </ToggleGroupItem>
+        </div>
         <div use:tooltip={"Color Picker"}>
           <ToggleGroupItem
             value="color_dropper"

@@ -30,10 +30,10 @@ export function Preferences() {
   });
 
   return (
-    <div class="rounded-lg p-3 border">
-      <div class="flex flex-col gap-2">
+    <>
+      <div class="rounded-lg p-3 bg-card mb-3">
         <div class="flex justify-between items-center">
-          <div class="text-sm">Theme</div>
+          <div class="text-sm font-light">Theme</div>
           <ToggleGroup size={"sm"} color={"product"} value={theme()}>
             <ToggleGroupItem onClick={() => setTheme("light")} value="light">
               Light
@@ -47,14 +47,16 @@ export function Preferences() {
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
+      </div>
 
+      <div class="rounded-lg p-3 bg-card mb-3">
         <Switch
           class="flex justify-between items-center h-[30px]"
           checked={autostartEnabled()}
           onChange={setAutostartEnabled}
           disabled={!autostartReady()}
         >
-          <SwitchLabel class="text-sm">Startup</SwitchLabel>
+          <SwitchLabel class="text-sm font-light">Launch at startup</SwitchLabel>
           <SwitchControl variant={"product"}>
             <SwitchThumb />
           </SwitchControl>
@@ -65,7 +67,7 @@ export function Preferences() {
           checked={notificationsEnabled()}
           onChange={(e) => setNotificationsEnabled(e)}
         >
-          <SwitchLabel class="text-sm">Notifications</SwitchLabel>
+          <SwitchLabel class="text-sm font-light">Notifications</SwitchLabel>
           <SwitchControl variant={"product"}>
             <SwitchThumb />
           </SwitchControl>
@@ -76,35 +78,39 @@ export function Preferences() {
           checked={!!toolsEnabled()}
           onChange={(value) => setToolsEnabled(value)}
         >
-          <SwitchLabel class="text-sm">Tools panel</SwitchLabel>
+          <SwitchLabel class="text-sm font-light">Tools panel</SwitchLabel>
           <SwitchControl variant={"product"}>
             <SwitchThumb />
           </SwitchControl>
         </Switch>
+      </div>
 
-        <div class="flex justify-between items-center h-[30px]">
-          <div class="text-sm">Color format</div>
-          <Select
-            value={colorFormat() ?? DEFAULT_COLOR_FORMAT}
-            onChange={(value) => value && setColorFormat(value)}
-            options={COLOR_FORMAT_OPTIONS.map((o) => o.value)}
-            itemComponent={(props) => (
-              <SelectItem item={props.item}>
-                {COLOR_FORMAT_OPTIONS.find((o) => o.value === props.item.rawValue)?.label}
-              </SelectItem>
-            )}
-          >
-            <SelectTrigger class="w-[100px]">
-              <SelectValue<ColorFormat>>
-                {(state) =>
-                  COLOR_FORMAT_OPTIONS.find((o) => o.value === state.selectedOption())?.label
-                }
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent />
-          </Select>
+      <div class="rounded-lg p-3 bg-card">
+        <div class="flex flex-col gap-2">
+          <div class="flex justify-between items-center h-[30px]">
+            <div class="text-sm font-light">Color format</div>
+            <Select
+              value={colorFormat() ?? DEFAULT_COLOR_FORMAT}
+              onChange={(value) => value && setColorFormat(value)}
+              options={COLOR_FORMAT_OPTIONS.map((o) => o.value)}
+              itemComponent={(props) => (
+                <SelectItem item={props.item}>
+                  {COLOR_FORMAT_OPTIONS.find((o) => o.value === props.item.rawValue)?.label}
+                </SelectItem>
+              )}
+            >
+              <SelectTrigger class="w-[100px]">
+                <SelectValue<ColorFormat>>
+                  {(state) =>
+                    COLOR_FORMAT_OPTIONS.find((o) => o.value === state.selectedOption())?.label
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent />
+            </Select>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -28,7 +28,7 @@ export function LanguageItem(props: LanguageItemProps) {
       tabIndex={0}
       role="option"
       class={cn(
-        "flex items-center w-full relative py-1 px-4 rounded-full group cursor-pointer hover:bg-muted focus:outline-none focus:bg-muted focus-visible:bg-muted",
+        "flex items-center w-full relative py-1 px-4 rounded-sm group cursor-pointer hover:bg-muted focus:outline-none focus:bg-muted focus-visible:bg-muted",
       )}
       aria-selected={props.isActive}
       onClick={() => {

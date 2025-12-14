@@ -4,10 +4,14 @@ import { ShortcutPreferenceItem, TOOL_SHORTCUTS } from "@/apps/settings/preferen
 
 export function Shortcuts() {
   return (
-    <div class="border rounded-lg p-3">
-      <div class="divide-y">
-        <For each={TOOL_SHORTCUTS}>{(item) => <ShortcutPreferenceItem item={item} />}</For>
-      </div>
-    </div>
+    <>
+      <For each={TOOL_SHORTCUTS}>
+        {(item) => (
+          <div class="rounded-lg p-3 bg-card mb-3">
+            <ShortcutPreferenceItem item={item} />
+          </div>
+        )}
+      </For>
+    </>
   );
 }

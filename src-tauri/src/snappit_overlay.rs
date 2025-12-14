@@ -117,9 +117,9 @@ impl SnappitOverlay {
         overlay.set_size(physical_size)?;
         overlay.set_position(monitor.position().clone())?;
 
-        if SnappitSettings::get_window(app)?.is_visible()? {
-            SnappitSettings::hide(app)?;
-        }
+        // if SnappitSettings::get_window(app)?.is_visible()? {
+        //     SnappitSettings::hide(app)?;
+        // }
 
         overlay.show()?;
         panel.show_and_make_key();

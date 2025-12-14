@@ -126,6 +126,17 @@ pub const TRAY_ITEMS: &[SnappitTrayItem] = &[
         },
     ),
     SnappitTrayItem::item_with_accelerator(
+        SnappitTrayItemId::DigitalRuler,
+        "Digital Ruller",
+        true,
+        hotkey_digital_ruler_key,
+        |app| match SnappitOverlay::show(app, SnappitOverlayTarget::DigitalRuler) {
+            Ok(_) => Ok(()),
+            Err(SnappitError::MissingPermissions(_)) => Ok(()),
+            Err(err) => Err(err),
+        },
+    ),
+    SnappitTrayItem::item_with_accelerator(
         SnappitTrayItemId::ColorDropper,
         "Color Dropper",
         true,

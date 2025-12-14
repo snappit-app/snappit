@@ -18,7 +18,7 @@ export function LicenseStatus(props: LicenseStatusProps) {
   return (
     <div
       class={cn(
-        "flex items-center gap-3 p-4 rounded-lg border",
+        "flex items-center gap-3 p-3 rounded-lg",
         isExpired() && "border-destructive bg-destructive/10",
         isLowUses() && "border-warning bg-warning/10",
         !isExpired() && !isLowUses() && "border-border bg-card",
@@ -28,7 +28,7 @@ export function LicenseStatus(props: LicenseStatusProps) {
       <div
         class={cn(
           "px-2 py-1 rounded text-xs font-bold uppercase tracking-wider",
-          isFull() ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+          isFull() ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground",
         )}
       >
         {isFull() ? "Full" : "Trial"}

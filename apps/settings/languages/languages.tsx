@@ -3,6 +3,7 @@ import { createMemo } from "solid-js";
 
 import { RecognitionLanguageAutoOption, RecognitionLanguageManualList } from "@/shared/ocr";
 import { useRecognitionLanguages } from "@/shared/ocr/use_recognition_languages";
+import { Switch, SwitchControl, SwitchLabel, SwitchThumb } from "@/shared/ui/switch";
 import { Tag } from "@/shared/ui/tag";
 import { tooltip } from "@/shared/ui/tooltip";
 
@@ -32,56 +33,42 @@ export function Languages() {
   );
 
   return (
-    <div class="h-full flex flex-col border rounded-lg overflow-hidden pt-3">
-      <div class="px-3 pr-5">
+    <>
+      <div class="p-3 mb-3 rounded-lg bg-card">
         <RecognitionLanguageAutoOption />
+        {/*<Switch class="flex justify-between items-center h-[30px]">
+          <SwitchLabel class="text-sm font-light">Auto (system languages)</SwitchLabel>
+          <SwitchControl variant={"product"}>
+            <SwitchThumb />
+          </SwitchControl>
+        </Switch>*/}
       </div>
 
-      <div class="grow overflow-auto px-3 pr-1 max-h-[300px]">
-        <RecognitionLanguageManualList />
-      </div>
+      <div class="h-full flex flex-col rounded-lg bg-card overflow-hidden pt-3 mb-3 relative">
+        {/*<div class="flex justify-end mb-3 text-xs pr-4 absolute right-4 -top-1">
+          <div use:tooltip={"Type to search and jump to a language in the list"}>
+            <BsQuestionCircleFill />
+          </div>
+        </div>*/}
 
-      <footer class="flex justify-end border-t px-3 py-2 text-xs space-y-1">
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="uppercase tracking-wide text-[10px] text-muted-foreground">
-            Recognition model
-          </span>
-          <span use:tooltip={modelHint()}>
-            <Tag>
-              <div class="flex items-center gap-1">
-                {modelLabel()}
-                <BsQuestionCircleFill />
-              </div>
-            </Tag>
-          </span>
+        <div class="grow overflow-auto px-3 pr-1">
+          <RecognitionLanguageManualList />
         </div>
+      </div>
+
+      <footer class="flex justify-between border-t px-3 py-2 text-xs space-y-1 p-3 rounded-lg bg-card mb-3">
+        <span class="tracking-wide text-[10px] text-muted-foreground text-xs">
+          recognition model
+        </span>
+        <span use:tooltip={modelHint()}>
+          <Tag>
+            <div class="flex items-center gap-1">
+              {modelLabel()}
+              <BsQuestionCircleFill />
+            </div>
+          </Tag>
+        </span>
       </footer>
-    </div>
-
-    // <div class="h-full flex flex-col border rounded-lg overflow-hidden p-3">
-    //   <div class="pb-0">
-    //     <RecognitionLanguageAutoOption />
-    //   </div>
-
-    //   <div class="grow overflow-auto">
-    //     <RecognitionLanguageManualList />
-    //   </div>
-
-    //   <footer class="flex justify-end border px-3 py-2 text-xs space-y-1">
-    //     <div class="flex flex-wrap items-center gap-2">
-    //       <span class="uppercase tracking-wide text-[10px] text-muted-foreground">
-    //         Recognition model
-    //       </span>
-    //       <span use:tooltip={modelHint()}>
-    //         <Tag>
-    //           <div class="flex items-center gap-1">
-    //             {modelLabel()}
-    //             <BsQuestionCircleFill />
-    //           </div>
-    //         </Tag>
-    //       </span>
-    //     </div>
-    //   </footer>
-    // </div>
+    </>
   );
 }

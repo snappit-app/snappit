@@ -1,5 +1,14 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
 import { UnlistenFn } from "@tauri-apps/api/event";
+import {
+  BiRegularCommand,
+  BiRegularGlobe,
+  BiRegularShield,
+  BiSolidCog,
+  BiSolidKey,
+  BiSolidKeyboard,
+  BiSolidShield,
+} from "solid-icons/bi";
 import { createEffect, createMemo, createSignal, Show } from "solid-js";
 import { onCleanup, onMount } from "solid-js";
 
@@ -28,7 +37,7 @@ function SettingsApp() {
   const [activeTab, setActiveTab] = createSignal("preferences");
   let unlistenOpenTab: UnlistenFn | undefined;
 
-  autoResizeWindow(container);
+  // autoResizeWindow(container);
 
   refetch();
 
@@ -47,34 +56,41 @@ function SettingsApp() {
   });
 
   return (
-    <div class="overflow-hidden" ref={setContainer}>
-      <Tabs class="flex flex-col overflow-hidden" value={activeTab()} onChange={setActiveTab}>
-        <header data-tauri-drag-region class="border-b b-1 bg-sidebar">
-          <div
-            data-tauri-drag-region
-            class="flex text-sm justify-center px-2 items-center h-[32px] capitalize relative cursor-default"
-          >
-            <div class="absolute flex left-[9px] top-[9px] gap-[9px]">
-              <div class="w-[14px] h-[14px] rounded-lg bg-tansparent" />
-              <div class="w-[14px] h-[14px] rounded-lg bg-tansparent" />
-              <div class="w-[14px] h-[14px] rounded-lg bg-tansparent" />
-            </div>
+    <Tabs
+      orientation="vertical"
+      class="flex flex-col overflow-hidden h-screen"
+      value={activeTab()}
+      onChange={setActiveTab}
+    >
+      <div class="flex h-full relateive">
+        <div data-tauri-drag-region class="h-[56px] w-full absolute left-0 top-0 z-55" />
+        <aside class="p-1 w-[200px] pr-0">
+          <div class="bg-sidebar h-full w-full rounded-xl border border-border px-2 pt-[56px]">
+            <Show when={canLoadApp()}>
+              <div class="pt-0 w-full">
+                <TabsList>
+                  <TabsTrigger value="preferences">
+                    <BiSolidCog /> Preferences
+                  </TabsTrigger>
+                  <TabsTrigger value="shortcuts">
+                    <BiRegularCommand /> Shortcuts
+                  </TabsTrigger>
+                  <TabsTrigger value="languages">
+                    <BiRegularGlobe /> Languages
+                  </TabsTrigger>
+                  <TabsTrigger value="license">
+                    <BiSolidShield />
+                    License
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+            </Show>
           </div>
-          <Show when={canLoadApp()}>
-            <div data-tauri-drag-region class="p-2 pt-0">
-              <TabsList>
-                <TabsTrigger value="preferences">Preferences</TabsTrigger>
-                <TabsTrigger value="shortcuts">Shortcuts</TabsTrigger>
-                <TabsTrigger value="languages">Languages</TabsTrigger>
-                <TabsTrigger value="license">License</TabsTrigger>
-              </TabsList>
-            </div>
-          </Show>
-        </header>
-        <main class="relative grow-1 min-h-0 p-2">
+        </aside>
+        <main class="relative grow-1 min-h-0 p-4 pt-[56px]">
           <Show when={isInitialSetup()}>
             <div class="h-full flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
-              <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mb-4" />
+              <div class="animate-spin h-8 w-8 border-4 border-prima ary border-t-transparent rounded-full mb-4" />
               <p class="text-sm font-medium">Initial setup in progress...</p>
             </div>
           </Show>
@@ -102,8 +118,8 @@ function SettingsApp() {
             </TabsContent>
           </Show>
         </main>
-      </Tabs>
-    </div>
+      </div>
+    </Tabs>
   );
 }
 
