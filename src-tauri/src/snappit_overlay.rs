@@ -284,10 +284,46 @@ impl SnappitOverlay {
             if monitor.position() != last.position() {
                 let app_clone = app.clone();
                 app.run_on_main_thread(move || {
-                    Self::actual_show(&app_clone, SnappitOverlayTarget::None).log_on_err();
+                    Self::switch_monitor(&app_clone, monitor).log_on_err();
                 })?;
             }
         }
+
+        Ok(())
+    }
+
+    fn switch_monitor(app: &AppHandle<Wry>, monitor: Monitor) -> SnappitResult<()> {
+        let (panel, overlay) = Self::get_overlay_handles(app)?;
+
+        // Hide the panel to prevent visual glitch during resize
+        panel.set_alpha_value(0.0);
+
+        // Update last monitor
+        {
+            let mut last = OVERLAY_LAST_MONITOR.lock().unwrap();
+            *last = Some(monitor.clone());
+        }
+
+        // Update size and position
+        let physical_size = monitor.size().clone();
+        overlay.set_size(physical_size)?;
+        overlay.set_position(monitor.position().clone())?;
+
+        // Emit event so frontend can prepare, then show after a brief delay
+        overlay.emit("snap_overlay:monitor_changed", true)?;
+
+        // Show panel after a short delay to allow webview to re-layout
+        let app_clone = app.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(50));
+            let app_inner = app_clone.clone();
+            let _ = app_clone.run_on_main_thread(move || {
+                if let Ok((panel, overlay)) = Self::get_overlay_handles(&app_inner) {
+                    panel.set_alpha_value(1.0);
+                    let _ = overlay.set_focus();
+                }
+            });
+        });
 
         Ok(())
     }
