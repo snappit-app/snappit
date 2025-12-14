@@ -35,27 +35,25 @@ export function PermissionsGate() {
   }
 
   return (
-    <div class="h-full flex flex-col p-6">
-      <div class="space-y-2 flex items-center gap-4 mb-4">
-        <h2 class="text-2xl font-bold mb-0">Screen access required</h2>
+    <>
+      <div class="text-center text-bold mb-3 font-bold text-xl flex items-center gap-2 justify-center">
+        <h2>Screen access required</h2>
         <div use:tooltip={{ content: tooltipText() }}>
-          <BiSolidHelpCircle />
+          <BiSolidHelpCircle class="text-xs" />
         </div>
       </div>
 
-      <div class="rounded-lg border p-6 space-y-4">
-        <div class="space-y-2">
-          <h2 class="text-lg font-semibold">How to enable Screen Recording</h2>
-          <ol class="list-decimal space-y-2 pl-5 text-sm">
-            <li>Open macOS Screen Recording preferences.</li>
-            <li>
-              Enable <strong>Snappit</strong> and confirm.
-            </li>
-            <li>Restart the app.</li>
-          </ol>
-        </div>
+      <div class="rounded-lg p-3 bg-card mb-3">
+        <h4 class="mb-3">How to enable Screen Recording</h4>
+        <ol class="list-decimal space-y-2 pl-5 text-sm mb-2">
+          <li>Open macOS Screen Recording preferences.</li>
+          <li>
+            Enable <strong>Snappit</strong> and confirm.
+          </li>
+          <li>Restart the app.</li>
+        </ol>
 
-        <div class="flex flex-wrap gap-3">
+        <div class="flex gap-2">
           <Button variant="outline" onClick={handleRequest} size={"sm"}>
             Ask macOS for access
           </Button>
@@ -64,6 +62,6 @@ export function PermissionsGate() {
           </Button>
         </div>
       </div>
-    </div>
+    </>
   );
 }

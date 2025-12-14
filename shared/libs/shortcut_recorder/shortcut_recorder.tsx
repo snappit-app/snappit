@@ -272,6 +272,7 @@ const createShortcutRecorder = ({
 
   createEventListener(window, "keyup", (e: KeyboardEvent) => isRecording() && handleKeyUp(e));
   createEventListener(window, "keydown", (e: KeyboardEvent) => isRecording() && handleKeyDown(e));
+  createEventListener(window, "blur", () => isRecording() && stopRecording());
 
   return {
     shortcut,

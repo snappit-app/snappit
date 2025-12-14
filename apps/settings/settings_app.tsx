@@ -96,7 +96,7 @@ function SettingsApp() {
           </Show>
           <Show when={permissions.loading()}>
             <div class="h-full flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
-              <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mb-4" />
+              <div class="animate-spin h-8 w-8 border-4 border-prima ary border-t-transparent rounded-full mb-4" />
               <p class="text-sm font-medium">Checking permissions…</p>
             </div>
           </Show>

@@ -123,13 +123,11 @@ export function ShortcutPreferenceItem(props: ShortcutPreferenceItemProps) {
               show: isRecording,
             }}
           >
-            <Button
-              class="relative flex items-center gap-2"
-              variant="ghost"
-              onClick={() => startRecording()}
-            >
-              <BiRegularRadioCircleMarked size={"20"} />
-              Record
+            <Button class="relative1" variant="ghost" onClick={() => startRecording()}>
+              <div class="pr-1  flex items-center gap-1">
+                <BiRegularRadioCircleMarked size={"16"} />
+                Record
+              </div>
             </Button>
           </div>
 

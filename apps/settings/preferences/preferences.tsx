@@ -31,6 +31,8 @@ export function Preferences() {
 
   return (
     <>
+      <h2 class="text-center text-bold mb-3 font-bold text-xl">Preferences</h2>
+
       <div class="rounded-lg p-3 bg-card mb-3">
         <div class="flex justify-between items-center">
           <div class="text-sm font-light">Theme</div>

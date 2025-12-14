@@ -33,6 +33,8 @@ export function Languages() {
 
   return (
     <>
+      <h2 class="text-center text-bold mb-3 font-bold text-xl">Languages</h2>
+
       <div class="h-full flex flex-col rounded-lg bg-card overflow-hidden p-3 mb-3 relative">
         <RecognitionLanguageSelector />
       </div>

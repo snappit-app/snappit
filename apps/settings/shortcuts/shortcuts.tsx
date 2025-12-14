@@ -5,6 +5,8 @@ import { ShortcutPreferenceItem, TOOL_SHORTCUTS } from "@/apps/settings/preferen
 export function Shortcuts() {
   return (
     <>
+      <h2 class="text-center text-bold mb-3 font-bold text-xl">Shortcuts</h2>
+
       <For each={TOOL_SHORTCUTS}>
         {(item) => (
           <div class="rounded-lg p-3 bg-card mb-3">
