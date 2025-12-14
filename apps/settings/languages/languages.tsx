@@ -12,16 +12,7 @@ export function Languages() {
   const recognition = useRecognitionLanguages();
 
   const usesVision = createMemo(() => {
-    if (recognition.isAutoLanguageSelected()) return true;
-
-    const selected = recognition.selectedManualLanguageSet();
-    if (selected.size === 0) return true;
-
-    for (const code of selected) {
-      if (!recognition.isSystemLanguage(code)) return false;
-    }
-
-    return true;
+    return recognition.isAutoLanguageSelected();
   });
 
   const modelLabel = createMemo(() => (usesVision() ? "macOS Vision" : "Tesseract"));

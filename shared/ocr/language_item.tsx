@@ -13,6 +13,7 @@ interface LanguageItemProps {
   isDownloading: boolean;
   isSelected: boolean;
   isSystem: boolean;
+  canDelete: boolean;
   isActive?: boolean;
   itemRef?: (el: HTMLDivElement) => void;
   onFocusItem?: () => void;
@@ -54,7 +55,7 @@ export function LanguageItem(props: LanguageItemProps) {
       <div class="flex items-center grow gap-2">
         <span class="text-sm font-medium leading-none py-1">{props.option.label}</span>
 
-        <Show when={props.isInstalled && !props.isSystem}>
+        <Show when={props.isInstalled && props.canDelete}>
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -67,7 +68,7 @@ export function LanguageItem(props: LanguageItemProps) {
           </button>
         </Show>
 
-        <Show when={props.isInstalled && props.isSystem}>
+        <Show when={props.isInstalled && props.isSystem && !props.canDelete}>
           <Tag>SYSTEM</Tag>
         </Show>
       </div>

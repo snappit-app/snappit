@@ -8,6 +8,7 @@ import {
 } from "@/shared/ocr/recognition_language";
 
 import {
+  canDeleteLanguage,
   deleteLanguage,
   downloadLanguage,
   installedLanguages,
@@ -122,5 +123,6 @@ export function useRecognitionLanguages() {
     deleteLanguage: deleteLang,
     installedLanguages,
     isSystemLanguage,
+    canDeleteLanguage,
   };
 }

@@ -1,6 +1,6 @@
 import { BsQuestionCircleFill } from "solid-icons/bs";
 import { FiDownload, FiTrash2 } from "solid-icons/fi";
-import { For, Show } from "solid-js";
+import { createMemo, For, Show } from "solid-js";
 
 import { Checkbox, CheckboxControl } from "@/shared/ui/checkbox";
 import {
@@ -13,6 +13,7 @@ import {
 import { Tag } from "@/shared/ui/tag";
 import { tooltip } from "@/shared/ui/tooltip";
 
+import { isMacOS, systemLanguagesInfo } from "./installed_languages";
 import { DEFAULT_VALUE } from "./recognition_language";
 import { useRecognitionLanguages } from "./use_recognition_languages";
 
@@ -30,11 +31,27 @@ export function RecognitionLanguageSelector() {
     toggleRecognitionLanguage,
     handleDownload,
     deleteLanguage,
+    canDeleteLanguage,
   } = useRecognitionLanguages();
 
   const handleSelectDefault = () => {
     setRecognitionLanguage(DEFAULT_VALUE);
   };
+
+  const autoModeHint = createMemo(() => {
+    const info = systemLanguagesInfo();
+    if (info.length === 0) {
+      return "Type to search and jump to a language in the list";
+    }
+
+    const languageNames = info.map((l) => l.name).join(", ");
+
+    if (isMacOS()) {
+      return `Uses macOS Vision with: ${languageNames}`;
+    }
+
+    return `Uses system languages: ${languageNames}`;
+  });
 
   return (
     <InlineSelectList
@@ -48,10 +65,7 @@ export function RecognitionLanguageSelector() {
         >
           <span class="text-sm">Auto (system languages)</span>
 
-          <div
-            use:tooltip="Type to search and jump to a language in the list"
-            class="text-muted-foreground text-xs"
-          >
+          <div use:tooltip={autoModeHint()} class="text-muted-foreground text-xs">
             <BsQuestionCircleFill />
           </div>
         </InlineSelectListDefaultItem>
@@ -97,7 +111,7 @@ export function RecognitionLanguageSelector() {
 
                   <span class="text-sm font-medium leading-none py-1">{option.label}</span>
 
-                  <Show when={isInstalled() && !isSystem()}>
+                  <Show when={isInstalled() && canDeleteLanguage(option.value)}>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -110,7 +124,7 @@ export function RecognitionLanguageSelector() {
                     </button>
                   </Show>
 
-                  <Show when={isInstalled() && isSystem()}>
+                  <Show when={isInstalled() && isSystem() && !isMacOS()}>
                     <Tag>system</Tag>
                   </Show>
                 </div>

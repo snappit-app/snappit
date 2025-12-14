@@ -30,8 +30,8 @@ use crate::{
     snappit_license::{LicenseState, SnappitLicense},
     snappit_ocr::{
         commands::{
-            delete_tess_language, download_tess_language, get_system_tess_languages,
-            get_tess_languages,
+            delete_tess_language, download_tess_language, get_system_languages_info,
+            get_system_tess_languages, get_tess_languages, is_macos,
         },
         SnappitOcr, SnappitTesseractOcr,
     },
@@ -310,6 +310,8 @@ pub fn run() -> tauri::Result<()> {
             download_tess_language,
             delete_tess_language,
             get_system_tess_languages,
+            get_system_languages_info,
+            is_macos,
             get_license_state,
             consume_tool_use,
             activate_pro_license,
