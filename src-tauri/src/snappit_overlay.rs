@@ -114,12 +114,11 @@ impl SnappitOverlay {
         #[cfg(target_os = "macos")]
         Self::remember_previous_app(overlay_was_visible);
 
+        // Hide panel before resizing to prevent visual glitch
+        panel.set_alpha_value(0.0);
+
         overlay.set_size(physical_size)?;
         overlay.set_position(monitor.position().clone())?;
-
-        // if SnappitSettings::get_window(app)?.is_visible()? {
-        //     SnappitSettings::hide(app)?;
-        // }
 
         overlay.show()?;
         panel.show_and_make_key();
@@ -128,6 +127,18 @@ impl SnappitOverlay {
         overlay.emit("snap_overlay:shown", target)?;
         overlay.set_focus()?;
         SnappitShortcutManager::register_hide(app)?;
+
+        // Show panel after a short delay to allow webview to re-layout
+        let app_clone = app.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(50));
+            let app_inner = app_clone.clone();
+            let _ = app_clone.run_on_main_thread(move || {
+                if let Ok((panel, _)) = Self::get_overlay_handles(&app_inner) {
+                    panel.set_alpha_value(1.0);
+                }
+            });
+        });
 
         Ok(overlay)
     }
