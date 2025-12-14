@@ -14,7 +14,7 @@ export const CheckboxErrorMessage = CheckboxPrimitive.ErrorMessage;
 export const CheckboxDescription = CheckboxPrimitive.Description;
 
 const checkboxControlVariants = cva(
-  "h-4 w-4 shrink-0 rounded-sm border border-primary shadow transition-shadow focus-visible:outline-none focus-visible:ring-[1.5px] focus-visible:ring-ring data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
+  "h-4 w-4 shrink-0 rounded-sm shadow bg-muted transition-shadow focus-visible:outline-none focus-visible:ring-[1.5px] focus-visible:ring-ring data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
   {
     variants: {
       color: {
@@ -55,14 +55,13 @@ export const CheckboxControl = <T extends ValidComponent = "div">(
         <CheckboxPrimitive.Indicator class="flex items-center justify-center text-current">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4">
             <path
+              d="M6.5 12.5 L10.2 16.2 L17.8 8.8"
               fill="none"
               stroke="currentColor"
               stroke-linecap="round"
               stroke-linejoin="round"
-              stroke-width="2"
-              d="m5 12l5 5L20 7"
+              stroke-width="3"
             />
-            <title>Checkbox</title>
           </svg>
         </CheckboxPrimitive.Indicator>
       </CheckboxPrimitive.Control>

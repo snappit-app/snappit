@@ -28,7 +28,7 @@ export function LanguageItem(props: LanguageItemProps) {
       tabIndex={0}
       role="option"
       class={cn(
-        "flex items-center w-full relative py-1 px-4 rounded-sm group cursor-pointer hover:bg-muted focus:outline-none focus:bg-muted focus-visible:bg-muted",
+        "flex items-center w-full relative py-1 px-4 rounded-sm group  hover:bg-muted focus:outline-none focus:bg-muted focus-visible:bg-muted",
       )}
       aria-selected={props.isActive}
       onClick={() => {
@@ -60,7 +60,7 @@ export function LanguageItem(props: LanguageItemProps) {
               e.stopPropagation();
               props.onDelete();
             }}
-            class="text-muted-foreground cursor-pointer hover:text-destructive-foreground transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 p-1"
+            class="text-muted-foreground  hover:text-destructive-foreground transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 p-1"
             title="Delete language"
           >
             <FiTrash2 size={14} />

@@ -45,6 +45,15 @@ export function useRecognitionLanguages() {
     }
   };
 
+  const deleteLang = async (lang: RecognitionLanguageValue) => {
+    if (selectedManualLanguageSet().has(lang)) {
+      selectedManualLanguageSet().delete(lang);
+      toggleRecognitionLanguage(lang);
+    }
+
+    return deleteLanguage(lang);
+  };
+
   const selectedManualLanguageCodes = createMemo<RecognitionLanguageValue[]>(() => {
     const current = recognitionLanguage();
     if (!current || current === DEFAULT_VALUE) return [];
@@ -110,7 +119,7 @@ export function useRecognitionLanguages() {
     isAutoLanguageSelected,
     toggleRecognitionLanguage,
     sortedOptions,
-    deleteLanguage,
+    deleteLanguage: deleteLang,
     installedLanguages,
     isSystemLanguage,
   };

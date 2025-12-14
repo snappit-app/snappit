@@ -1,158 +1,105 @@
-import { createEventListener } from "@solid-primitives/event-listener";
-import { BsQuestionCircleFill } from "solid-icons/bs";
-import { createEffect, createSignal, For } from "solid-js";
+import { FiDownload, FiTrash2 } from "solid-icons/fi";
+import { For, Show } from "solid-js";
 
-import { cn } from "@/shared/libs/cn";
-import { tooltip } from "@/shared/ui/tooltip";
+import { Checkbox, CheckboxControl } from "@/shared/ui/checkbox";
+import {
+  InlineSelectList,
+  InlineSelectListDefaultItem,
+  InlineSelectListItem,
+} from "@/shared/ui/inline_select_list";
+import { Tag } from "@/shared/ui/tag";
 
-import { LanguageItem } from "./language_item";
-import { DEFAULT_VALUE, RecognitionLanguageValue } from "./recognition_language";
+import { DEFAULT_VALUE } from "./recognition_language";
 import { useRecognitionLanguages } from "./use_recognition_languages";
 
-void tooltip;
-
-export function RecognitionLanguageAutoOption() {
-  const { setRecognitionLanguage, isAutoLanguageSelected } = useRecognitionLanguages();
-
-  return (
-    <>
-      <button
-        type="button"
-        class={cn(
-          "flex w-full cursor-pointer items-center justify-between rounded-lg py-1 px-4 text-left text-sm hover:bg-muted",
-          isAutoLanguageSelected() ? "bg-muted" : "",
-        )}
-        aria-pressed={isAutoLanguageSelected()}
-        onClick={() => setRecognitionLanguage(DEFAULT_VALUE)}
-      >
-        <span>Auto (system languages)</span>
-        <div use:tooltip={"Type to search and jump to a language in the list"}>
-          <BsQuestionCircleFill />
-        </div>
-      </button>
-    </>
-  );
-}
-
-export function RecognitionLanguageManualList() {
+export function RecognitionLanguageSelector() {
   const {
     sortedOptions,
     selectedManualLanguageSet,
     installedLanguages,
     downloading,
     isSystemLanguage,
+    isAutoLanguageSelected,
+    setRecognitionLanguage,
     toggleRecognitionLanguage,
     handleDownload,
     deleteLanguage,
   } = useRecognitionLanguages();
 
-  const [activeValue, setActiveValue] = createSignal<RecognitionLanguageValue | null>(null);
-  const [typeaheadQuery, setTypeaheadQuery] = createSignal("");
-  const itemRefs = new Map<RecognitionLanguageValue, HTMLDivElement>();
-  let lastTypeAt = 0;
-  const TYPEAHEAD_RESET_MS = 1000;
-
-  const activateOption = (value: RecognitionLanguageValue) => {
-    setActiveValue(value);
-    const element = itemRefs.get(value);
-    if (element) {
-      element.focus({ preventScroll: true });
-      element.scrollIntoView({ block: "center" });
-    }
+  const handleSelectDefault = () => {
+    setRecognitionLanguage(DEFAULT_VALUE);
   };
-
-  const findMatch = (query: string) => {
-    const normalized = query.trim().toLowerCase();
-    if (!normalized) {
-      setActiveValue(null);
-      return;
-    }
-
-    const match = sortedOptions().find((option) => {
-      const label = option.label.toLowerCase();
-      const code = option.value.toLowerCase();
-      return label.includes(normalized) || code.includes(normalized);
-    });
-
-    const startWithMatch = sortedOptions().find((option) => {
-      const label = option.label.toLowerCase();
-      return label.startsWith(normalized);
-    });
-
-    if (match) {
-      activateOption(startWithMatch?.value || match.value);
-      return;
-    }
-
-    setActiveValue(null);
-  };
-
-  createEffect(() => {
-    const currentActive = activeValue();
-    if (!currentActive) return;
-
-    if (!sortedOptions().some((option) => option.value === currentActive)) {
-      setActiveValue(null);
-    }
-  });
-
-  const handleTypeahead = (event: KeyboardEvent) => {
-    const target = event.target as HTMLElement | null;
-    if (target?.closest("input, textarea, select, button")) return;
-    if (event.metaKey || event.ctrlKey || event.altKey) return;
-
-    if (event.key === "Escape") {
-      setTypeaheadQuery("");
-      setActiveValue(null);
-      return;
-    }
-
-    if (event.key === "Backspace") {
-      const nextQuery = typeaheadQuery().slice(0, -1);
-      setTypeaheadQuery(nextQuery);
-      if (!nextQuery) {
-        setActiveValue(null);
-        return;
-      }
-      findMatch(nextQuery);
-      return;
-    }
-
-    if (event.key.length === 1) {
-      const now = Date.now();
-      const baseQuery = now - lastTypeAt > TYPEAHEAD_RESET_MS ? "" : typeaheadQuery();
-      lastTypeAt = now;
-      const nextQuery = (baseQuery + event.key).toLowerCase();
-      setTypeaheadQuery(nextQuery);
-      findMatch(nextQuery);
-    }
-  };
-
-  createEventListener(window, "keydown", handleTypeahead);
 
   return (
-    <div
-      class="flex flex-col gap-1"
-      role="listbox"
-      aria-label="Manual recognition languages. Type to search."
+    <InlineSelectList
+      aria-label="Recognition languages. Type to search."
+      hint="Type to search and jump to a language in the list"
+      onSelectDefault={handleSelectDefault}
     >
+      <InlineSelectListDefaultItem selected={isAutoLanguageSelected()}>
+        <span class="text-sm">Auto (system languages)</span>
+      </InlineSelectListDefaultItem>
+
       <For each={sortedOptions()}>
-        {(option) => (
-          <LanguageItem
-            option={option}
-            isSelected={selectedManualLanguageSet().has(option.value)}
-            isInstalled={installedLanguages().includes(option.value)}
-            isDownloading={downloading().has(option.value)}
-            isSystem={isSystemLanguage(option.value)}
-            onToggle={() => toggleRecognitionLanguage(option.value)}
-            onDownload={() => handleDownload(option.value)}
-            onDelete={() => deleteLanguage(option.value)}
-            isActive={activeValue() === option.value}
-            itemRef={(el) => itemRefs.set(option.value, el)}
-            onFocusItem={() => setActiveValue(option.value)}
-          />
-        )}
+        {(option) => {
+          const isInstalled = () => installedLanguages().includes(option.value);
+          const isDownloading = () => downloading().has(option.value);
+          const isSelected = () => selectedManualLanguageSet().has(option.value);
+          const isSystem = () => isSystemLanguage(option.value);
+
+          const handleClick = () => {
+            if (isInstalled()) {
+              toggleRecognitionLanguage(option.value);
+            } else if (!isDownloading()) {
+              handleDownload(option.value);
+            }
+          };
+
+          return (
+            <InlineSelectListItem value={option.value} label={option.label} onClick={handleClick}>
+              <div class="flex items-center grow gap-2 cursor-default">
+                <Show when={isInstalled()}>
+                  <Checkbox
+                    class="flex items-center"
+                    checked={isSelected()}
+                    onChange={() => toggleRecognitionLanguage(option.value)}
+                    onClick={(e: MouseEvent) => e.stopPropagation()}
+                  >
+                    <CheckboxControl color={"product"} />
+                  </Checkbox>
+                </Show>
+
+                <Show when={!isInstalled() && !isDownloading()}>
+                  <FiDownload size={16} />
+                </Show>
+
+                <Show when={isDownloading()}>
+                  <div class="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                </Show>
+
+                <span class="text-sm font-medium leading-none py-1">{option.label}</span>
+
+                <Show when={isInstalled() && !isSystem()}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteLanguage(option.value);
+                    }}
+                    class="text-muted-foreground  hover:text-destructive-foreground transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 p-1"
+                    title="Delete language"
+                  >
+                    <FiTrash2 size={14} />
+                  </button>
+                </Show>
+
+                <Show when={isInstalled() && isSystem()}>
+                  <Tag>system</Tag>
+                </Show>
+              </div>
+            </InlineSelectListItem>
+          );
+        }}
       </For>
-    </div>
+    </InlineSelectList>
   );
 }

@@ -13,7 +13,7 @@ export const SwitchErrorMessage = SwitchPrimitive.ErrorMessage;
 export const SwitchDescription = SwitchPrimitive.Description;
 
 const switchControlVariants = cva(
-  "inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent bg-input shadow-sm transition-[color,background-color,box-shadow] data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
+  "inline-flex h-5 w-9 shrink-0  items-center rounded-full border-2 border-transparent bg-input shadow-sm transition-[color,background-color,box-shadow] data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
   {
     variants: {
       variant: {
