@@ -1,5 +1,6 @@
+import { createEventListener } from "@solid-primitives/event-listener";
 import { getAllWindows, Theme as TauriTheme } from "@tauri-apps/api/window";
-import { createEffect, createMemo, createSignal, onCleanup } from "solid-js";
+import { createEffect, createMemo, createSignal } from "solid-js";
 
 import { SNAPPIT_CONSTS } from "@/shared/constants";
 import { SnappitStore } from "@/shared/store";
@@ -31,13 +32,11 @@ export abstract class Theme {
         : false;
     const [systemDark, setSystemDark] = createSignal<boolean>(initialSystemDark);
 
-    let mql: MediaQueryList | null = null;
     if (typeof window !== "undefined" && window.matchMedia) {
-      mql = window.matchMedia("(prefers-color-scheme: dark)");
+      const mql: MediaQueryList = window.matchMedia("(prefers-color-scheme: dark)");
       const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
       setSystemDark(mql!.matches);
-      mql.addEventListener("change", handler);
-      onCleanup(() => mql?.removeEventListener("change", handler));
+      createEventListener(mql, "change", handler);
     }
 
     createEffect(() => {
@@ -50,13 +49,9 @@ export abstract class Theme {
         root.setAttribute("data-kb-theme", effectiveDark ? "dark" : "light");
       }
 
-      // Set theme for all Tauri windows
-      const tauriTheme: TauriTheme | null =
-        pref === "light" ? "light" : pref === "dark" ? "dark" : null;
+      const tauriTheme: TauriTheme | null = pref === "system" ? null : pref;
 
       getAllWindows().then((windows) => {
-        console.log(windows);
-
         windows.forEach((win) => {
           win.setTheme(tauriTheme);
         });

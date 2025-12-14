@@ -1,11 +1,14 @@
 use std::cmp;
 
+#[cfg(target_os = "macos")]
 use serde::{Deserialize, Serialize};
 use tauri::Error as TauriError;
 use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, WebviewUrl, WebviewWindow, Wry};
 use tauri_nspanel::{
     tauri_panel, CollectionBehavior, ManagerExt, PanelBuilder, PanelHandle, PanelLevel, StyleMask,
 };
+#[cfg(target_os = "macos")]
+use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectState};
 
 use crate::{
     platform::Platform, snappit_consts::SNAPPIT_CONSTS, snappit_errors::SnappitResult,
@@ -97,6 +100,15 @@ impl SnappitNotifications {
         let window = app
             .get_webview_window(label)
             .ok_or_else(|| TauriError::WebviewNotFound)?;
+
+        #[cfg(target_os = "macos")]
+        apply_vibrancy(
+            &window,
+            NSVisualEffectMaterial::HudWindow,
+            Some(NSVisualEffectState::Active),
+            Some(30.0),
+        )
+        .expect("Failed to apply vibrancy");
 
         Ok((panel, window))
     }

@@ -98,17 +98,14 @@ export function useRecognitionLanguages() {
 
     const options = RECOGNITION_LANGUAGE_OPTIONS.filter((o) => o.value !== DEFAULT_VALUE);
 
-    const system = options.filter((o) => isSystemLanguage(o.value));
     const downloaded = options.filter(
-      (o) =>
-        !isSystemLanguage(o.value) && (installed.includes(o.value) || downloadingSet.has(o.value)),
+      (o) => installed.includes(o.value) || downloadingSet.has(o.value),
     );
     const others = options.filter(
-      (o) =>
-        !isSystemLanguage(o.value) && !installed.includes(o.value) && !downloadingSet.has(o.value),
+      (o) => !installed.includes(o.value) && !downloadingSet.has(o.value),
     );
 
-    return [...system, ...downloaded, ...others];
+    return [...downloaded, ...others];
   });
 
   return {

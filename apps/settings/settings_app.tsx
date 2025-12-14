@@ -52,7 +52,7 @@ function SettingsApp() {
     >
       <header data-tauri-drag-region class="h-[56px] w-full absolute left-0 top-0 z-55" />
       <aside class="w-[200px] h-full px-2 pb-7 pt-[56px] flex flex-col justify-between">
-        <Show when={canLoadApp()}>
+        <Show when={canLoadApp()} fallback={<div />}>
           <TabsList>
             <TabsTrigger value="preferences">
               <BiSolidCog /> Preferences
