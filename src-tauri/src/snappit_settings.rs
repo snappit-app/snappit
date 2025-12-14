@@ -1,6 +1,6 @@
 use tauri::{
-    utils::config::LogicalPosition, AppHandle, Emitter, Error as TauriError, Manager,
-    PhysicalPosition, WebviewUrl, WebviewWindow, WebviewWindowBuilder, WindowEvent, Wry,
+    AppHandle, Emitter, Error as TauriError, Manager, PhysicalPosition, WebviewUrl, WebviewWindow,
+    WebviewWindowBuilder, WindowEvent, Wry,
 };
 
 use crate::{

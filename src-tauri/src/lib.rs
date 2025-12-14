@@ -22,7 +22,7 @@ use snappit_notifications::{SnappitNotificationPayload, SnappitNotifications};
 use snappit_overlay::SnappitOverlay;
 use snappit_shortcut_manager::SnappitShortcutManager;
 use snappit_tray::SnappitTray;
-use tauri::{async_runtime::spawn_blocking, AppHandle};
+use tauri::{async_runtime::spawn_blocking, AppHandle, Emitter};
 
 use crate::{
     img_protocol::{handle_img_request, ImageSlot, IMAGE},
@@ -109,7 +109,7 @@ fn open_screen_recording_settings(app: AppHandle) -> tauri::Result<()> {
 
 #[tauri::command]
 async fn on_capture(app: AppHandle, params: RegionCaptureParams) -> tauri::Result<SnappitResponse> {
-    SnappitLicense::consume_use()?;
+    SnappitLicense::consume_use(&app)?;
     let _ = SnappitTray::update_license_status(&app);
 
     let app_handle = app.clone();
@@ -150,9 +150,8 @@ async fn scan_region_qr(
 
     let qr_result = task.await??;
 
-    // Only consume license use on successful QR scan
     if qr_result.is_some() {
-        SnappitLicense::consume_use()?;
+        SnappitLicense::consume_use(&app)?;
         let _ = SnappitTray::update_license_status(&app);
     }
 
@@ -216,8 +215,10 @@ fn get_license_state() -> tauri::Result<LicenseState> {
 }
 
 #[tauri::command]
-fn consume_tool_use() -> tauri::Result<u32> {
-    Ok(SnappitLicense::consume_use()?)
+fn consume_tool_use(app: tauri::AppHandle) -> tauri::Result<u32> {
+    let remaining = SnappitLicense::consume_use(&app)?;
+
+    Ok(remaining)
 }
 
 #[tauri::command]
@@ -229,6 +230,12 @@ fn activate_pro_license(license_key: String) -> tauri::Result<()> {
 #[tauri::command]
 fn get_license_key() -> tauri::Result<Option<String>> {
     Ok(SnappitLicense::get_license_key()?)
+}
+
+#[tauri::command]
+fn deactivate_license() -> tauri::Result<()> {
+    SnappitLicense::deactivate()?;
+    Ok(())
 }
 
 #[tauri::command]
@@ -307,6 +314,7 @@ pub fn run() -> tauri::Result<()> {
             consume_tool_use,
             activate_pro_license,
             get_license_key,
+            deactivate_license,
             update_tray_license_status,
         ])
         .run(tauri::generate_context!());

@@ -7,8 +7,10 @@ use std::fs;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
+use tauri::{AppHandle, Emitter, Wry};
 
 use crate::snappit_errors::{SnappitError, SnappitResult};
+use crate::snappit_settings::SnappitSettings;
 
 const LICENSE_FOLDER: &str = ".snappit_data";
 const LICENSE_FILE: &str = "license.dat";
@@ -153,7 +155,7 @@ impl SnappitLicense {
         Ok(state.license_type == LicenseType::Trial && state.uses_remaining == 0)
     }
 
-    pub fn consume_use() -> SnappitResult<u32> {
+    pub fn consume_use(app: &AppHandle<Wry>) -> SnappitResult<u32> {
         let mut data = Self::load_or_init()?;
 
         if data.lt == "p" {
@@ -172,8 +174,10 @@ impl SnappitLicense {
         data.cs = data.compute_checksum();
         Self::save(&data)?;
 
-        // Invalidate cache
         Self::invalidate_cache();
+
+        let settings = SnappitSettings::get_window(&app)?;
+        settings.emit("license:uses_consumed", data.uses)?;
 
         Ok(data.uses)
     }
@@ -194,6 +198,14 @@ impl SnappitLicense {
     pub fn get_license_key() -> SnappitResult<Option<String>> {
         let data = Self::load_or_init()?;
         Ok(data.license_key)
+    }
+
+    pub fn deactivate() -> SnappitResult<()> {
+        let hardware_id = Self::get_hardware_uuid()?;
+        let data = LicenseData::new(&hardware_id, INITIAL_TRIAL_USES, "t");
+        Self::save(&data)?;
+        Self::invalidate_cache();
+        Ok(())
     }
 
     fn invalidate_cache() {
