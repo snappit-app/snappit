@@ -83,7 +83,7 @@ impl SnappitNotifications {
     }
 
     pub fn animate_out(app: &AppHandle<Wry>) -> SnappitResult<()> {
-        let (_, window) = Self::ensure_handles(app)?;
+        let window = Self::get_existing_window(app)?;
 
         #[cfg(target_os = "macos")]
         Self::animate_window_alpha(&window, 0.0, ANIMATION_DURATION);
@@ -188,19 +188,6 @@ impl SnappitNotifications {
             .get_webview_window(label)
             .ok_or_else(|| TauriError::WebviewNotFound)?;
 
-        let monitor = Platform::monitor_from_cursor(app)?;
-        let width = WINDOW_WIDTH as i32;
-        let height = WINDOW_HEIGHT as i32;
-        let available_width = monitor.size().width as i32;
-        let available_height = monitor.size().height as i32;
-        let x_offset = cmp::max((available_width - width) / 2, 0);
-        let y_offset = cmp::max(available_height - height - WINDOW_BOTTOM_MARGIN, 0);
-
-        let x = monitor.position().x + x_offset;
-        let y = monitor.position().y + y_offset;
-
-        window.set_position(PhysicalPosition::new(x, y))?;
-
         #[cfg(target_os = "macos")]
         if is_new {
             apply_vibrancy(
@@ -213,6 +200,12 @@ impl SnappitNotifications {
         }
 
         Ok((panel, window))
+    }
+
+    fn get_existing_window(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
+        let label = SNAPPIT_CONSTS.windows.notification.as_str();
+        app.get_webview_window(label)
+            .ok_or_else(|| TauriError::WebviewNotFound.into())
     }
 
     fn builder<'a>(app: &'a AppHandle<Wry>) -> PanelBuilder<'a, Wry, SnappitNotificationPanel> {
