@@ -1,9 +1,19 @@
-import { createTimer } from "@solid-primitives/timer";
 import { BiRegularQrScan, BiSolidCopy, BiSolidEyedropper, BiSolidRuler } from "solid-icons/bi";
-import { Accessor, Component, createMemo, createSignal, Match, onMount, Switch } from "solid-js";
+import {
+  Accessor,
+  Component,
+  createEffect,
+  createMemo,
+  createSignal,
+  Match,
+  on,
+  onCleanup,
+  Switch,
+} from "solid-js";
 import { Dynamic } from "solid-js/web";
 
 import { cn } from "@/shared/libs/cn";
+import { NotificationDurationSettings } from "@/shared/notifications/duration";
 import { SnappitStore } from "@/shared/store";
 import { NotificationApi } from "@/shared/tauri/notification_api";
 import { SnappitOverlayTarget } from "@/shared/tauri/snap_overlay_target";
@@ -16,37 +26,69 @@ const ICON_MAP: Record<SnappitOverlayTarget, Component<{ size?: number }>> = {
   none: BiSolidCopy,
 };
 
-type notificationProps = {
+type NotificationProps = {
   payload: Accessor<string>;
   target: Accessor<SnappitOverlayTarget>;
   data: Accessor<string | undefined>;
+  notificationId: Accessor<number>;
 };
 
-const NOTIFICATION_LIFETIME = 2000;
 const ANIMATION_TIMEOUT = 200;
 
-export function NotificationItem(props: notificationProps) {
+export function NotificationItem(props: NotificationProps) {
   const IconComponent = createMemo(() => ICON_MAP[props.target() ?? "none"]);
   const [animationState, setAnimationState] = createSignal<"enter" | "exit">("enter");
+  const [progress, setProgress] = createSignal(100);
 
-  onMount(async () => {
-    await SnappitStore.sync();
-  });
+  createEffect(
+    on(props.notificationId, (currentId) => {
+      setAnimationState("enter");
+      setProgress(100);
 
-  createTimer(
-    async () => {
-      setAnimationState("exit");
-    },
-    NOTIFICATION_LIFETIME - ANIMATION_TIMEOUT,
-    setTimeout,
-  );
+      let progressInterval: ReturnType<typeof setInterval> | undefined;
+      let exitTimeout: ReturnType<typeof setTimeout> | undefined;
+      let hideTimeout: ReturnType<typeof setTimeout> | undefined;
 
-  createTimer(
-    async () => {
-      await NotificationApi.hide();
-    },
-    NOTIFICATION_LIFETIME,
-    setTimeout,
+      const cleanup = () => {
+        if (progressInterval) clearInterval(progressInterval);
+        if (exitTimeout) clearTimeout(exitTimeout);
+        if (hideTimeout) clearTimeout(hideTimeout);
+      };
+
+      onCleanup(cleanup);
+
+      (async () => {
+        await SnappitStore.sync();
+        const durationMs = 2000 ?? (await NotificationDurationSettings.getDurationMs());
+
+        const startTime = Date.now();
+        progressInterval = setInterval(() => {
+          if (props.notificationId() !== currentId) {
+            cleanup();
+            return;
+          }
+          const elapsed = Date.now() - startTime;
+          const remaining = Math.max(0, 100 - (elapsed / durationMs) * 100);
+          setProgress(remaining);
+          if (remaining <= 0) {
+            clearInterval(progressInterval);
+          }
+        }, 16);
+
+        exitTimeout = setTimeout(() => {
+          if (props.notificationId() === currentId) {
+            setAnimationState("exit");
+          }
+        }, durationMs - ANIMATION_TIMEOUT);
+
+        hideTimeout = setTimeout(async () => {
+          if (props.notificationId() === currentId) {
+            cleanup();
+            await NotificationApi.hide();
+          }
+        }, durationMs);
+      })();
+    }),
   );
 
   return (
@@ -85,6 +127,12 @@ export function NotificationItem(props: notificationProps) {
             </div>
           </Match>
         </Switch>
+      </div>
+
+      <div class="w-[200px]">
+        <div class="h-1 w-full rounded-full bg-primary/20 overflow-hidden">
+          <div class="h-full bg-primary transition-none" style={{ width: `${progress()}%` }} />
+        </div>
       </div>
     </div>
   );

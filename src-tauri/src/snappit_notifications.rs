@@ -1,5 +1,11 @@
 use std::cmp;
+use std::thread;
+use std::time::Duration;
 
+#[cfg(target_os = "macos")]
+use objc2_app_kit::NSSound;
+#[cfg(target_os = "macos")]
+use objc2_foundation::NSString;
 #[cfg(target_os = "macos")]
 use serde::{Deserialize, Serialize};
 use tauri::Error as TauriError;
@@ -9,6 +15,10 @@ use tauri_nspanel::{
 };
 #[cfg(target_os = "macos")]
 use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectState};
+
+const EMIT_RETRY_ATTEMPTS: u32 = 3;
+const EMIT_RETRY_DELAY_MS: u64 = 50;
+const NOTIFICATION_SOUND: &str = "Blow";
 
 use crate::{
     platform::Platform, snappit_consts::SNAPPIT_CONSTS, snappit_errors::SnappitResult,
@@ -60,12 +70,53 @@ impl SnappitNotifications {
         let y = monitor.position().y + y_offset;
 
         window.set_position(PhysicalPosition::new(x, y))?;
-        window.show()?;
         panel.show();
-        window.emit("notification:shown", payload.clone())?;
+
+        Self::emit_with_retry(&window, "notification:shown", payload)?;
+        Self::play_sound();
         log::info!("shown");
 
         Ok(window)
+    }
+
+    #[cfg(target_os = "macos")]
+    fn play_sound() {
+        let name = NSString::from_str(NOTIFICATION_SOUND);
+        if let Some(sound) = unsafe { NSSound::soundNamed(&name) } {
+            unsafe { sound.play() };
+        }
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    fn play_sound() {
+        // Sound not supported on this platform
+    }
+
+    fn emit_with_retry<S: serde::Serialize + Clone>(
+        window: &WebviewWindow,
+        event: &str,
+        payload: S,
+    ) -> SnappitResult<()> {
+        for attempt in 0..EMIT_RETRY_ATTEMPTS {
+            match window.emit(event, payload.clone()) {
+                Ok(_) => return Ok(()),
+                Err(e) => {
+                    if attempt < EMIT_RETRY_ATTEMPTS - 1 {
+                        log::warn!(
+                            "Emit attempt {} failed for {}: {:?}, retrying...",
+                            attempt + 1,
+                            event,
+                            e
+                        );
+                        thread::sleep(Duration::from_millis(EMIT_RETRY_DELAY_MS));
+                    } else {
+                        log::error!("All emit attempts failed for {}: {:?}", event, e);
+                        return Err(e.into());
+                    }
+                }
+            }
+        }
+        Ok(())
     }
 
     pub fn hide(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
@@ -92,9 +143,9 @@ impl SnappitNotifications {
     fn ensure_handles(app: &AppHandle<Wry>) -> SnappitResult<(PanelHandle<Wry>, WebviewWindow)> {
         let label = SNAPPIT_CONSTS.windows.notification.as_str();
 
-        let panel = match app.get_webview_panel(label) {
-            Ok(panel) => panel,
-            Err(_) => Self::builder(app).build()?,
+        let (panel, is_new) = match app.get_webview_panel(label) {
+            Ok(panel) => (panel, false),
+            Err(_) => (Self::builder(app).build()?, true),
         };
 
         let window = app
@@ -102,13 +153,15 @@ impl SnappitNotifications {
             .ok_or_else(|| TauriError::WebviewNotFound)?;
 
         #[cfg(target_os = "macos")]
-        apply_vibrancy(
-            &window,
-            NSVisualEffectMaterial::HudWindow,
-            Some(NSVisualEffectState::Active),
-            Some(30.0),
-        )
-        .expect("Failed to apply vibrancy");
+        if is_new {
+            apply_vibrancy(
+                &window,
+                NSVisualEffectMaterial::HudWindow,
+                Some(NSVisualEffectState::Active),
+                Some(30.0),
+            )
+            .expect("Failed to apply vibrancy");
+        }
 
         Ok((panel, window))
     }

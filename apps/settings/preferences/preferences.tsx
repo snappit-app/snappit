@@ -1,11 +1,12 @@
 import {
   BiRegularSun,
+  BiRegularTimer,
   BiSolidDockBottom,
   BiSolidNotification,
   BiSolidPalette,
   BiSolidUser,
 } from "solid-icons/bi";
-import { onMount } from "solid-js";
+import { onMount, Show } from "solid-js";
 
 import { AutostartSettings } from "@/shared/autostart";
 import { SNAPPIT_CONSTS } from "@/shared/constants";
@@ -14,6 +15,12 @@ import {
   ColorFormat,
   DEFAULT_COLOR_FORMAT,
 } from "@/shared/libs/color_format";
+import {
+  DEFAULT_NOTIFICATION_DURATION,
+  NOTIFICATION_DURATION_OPTIONS,
+  NotificationDuration,
+  NotificationDurationSettings,
+} from "@/shared/notifications/duration";
 import { NotificationSettings } from "@/shared/notifications/settings";
 import { SnappitStore } from "@/shared/store";
 import { Theme } from "@/shared/theme";
@@ -24,6 +31,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle_group";
 export function Preferences() {
   const [theme, setTheme] = Theme.create();
   const [notificationsEnabled, setNotificationsEnabled] = NotificationSettings.create();
+  const [notificationDuration, setNotificationDuration] = NotificationDurationSettings.create();
   const [autostartEnabled, setAutostartEnabled, autostartReady] = AutostartSettings.create();
   const [toolsEnabled, setToolsEnabled] = SnappitStore.createValue<boolean>(
     SNAPPIT_CONSTS.store.keys.tools_panel,
@@ -90,6 +98,37 @@ export function Preferences() {
             <SwitchThumb />
           </SwitchControl>
         </Switch>
+
+        <Show when={notificationsEnabled()}>
+          <div class="flex justify-between items-center h-[30px]">
+            <div class="text-sm font-light flex gap-2 items-center">
+              <BiRegularTimer /> Duration
+            </div>
+            <Select
+              value={notificationDuration() ?? DEFAULT_NOTIFICATION_DURATION}
+              onChange={(value) => value && setNotificationDuration(value)}
+              options={NOTIFICATION_DURATION_OPTIONS.map((o) => o.value)}
+              itemComponent={(props) => (
+                <SelectItem item={props.item}>
+                  {
+                    NOTIFICATION_DURATION_OPTIONS.find((o) => o.value === props.item.rawValue)
+                      ?.label
+                  }
+                </SelectItem>
+              )}
+            >
+              <SelectTrigger class="w-[130px]">
+                <SelectValue<NotificationDuration>>
+                  {(state) =>
+                    NOTIFICATION_DURATION_OPTIONS.find((o) => o.value === state.selectedOption())
+                      ?.label
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent />
+            </Select>
+          </div>
+        </Show>
 
         <Switch
           class="flex justify-between items-center h-[30px]"

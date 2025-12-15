@@ -6,11 +6,16 @@ import { Theme } from "@/shared/theme";
 
 function NotificationApp() {
   Theme.create();
-  const [visible, target, payload, data] = createNotificationVisible();
+  const [visible, target, payload, data, notificationId] = createNotificationVisible();
 
   return (
-    <Show when={visible() && target()}>
-      {(target) => <NotificationItem target={target} payload={payload} data={data} />}
+    <Show when={visible() && target()} keyed>
+      <NotificationItem
+        target={target}
+        payload={payload}
+        data={data}
+        notificationId={notificationId}
+      />
     </Show>
   );
 }
