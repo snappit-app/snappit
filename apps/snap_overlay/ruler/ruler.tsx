@@ -224,45 +224,72 @@ function MeasurementOverlay(props: {
 
   return (
     <div class="pointer-events-none fixed inset-0">
-      <div
-        class="absolute"
-        data-line
-        style={{
-          left: `${props.start.x}px`,
-          top: `${props.start.y}px`,
-        }}
+      {/* Line with contrast: white outline + primary stroke */}
+      <svg
+        class="absolute inset-0 w-full h-full overflow-visible"
+        style={{ "pointer-events": "none" }}
       >
-        <div
-          class="origin-left bg-primary"
-          style={{
-            width: `${props.length}px`,
-            height: "1px",
-            transform: `translateY(-0.5px) rotate(${props.angle}rad)`,
-          }}
+        {/* White outline for contrast */}
+        <line
+          x1={props.start.x}
+          y1={props.start.y}
+          x2={props.end.x}
+          y2={props.end.y}
+          stroke="white"
+          stroke-width="1"
+          stroke-linecap="round"
         />
-      </div>
+        {/* Black outline for contrast */}
+        <line
+          x1={props.start.x}
+          y1={props.start.y}
+          x2={props.end.x}
+          y2={props.end.y}
+          stroke="black"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+        {/* Primary color line */}
+        <line
+          x1={props.start.x}
+          y1={props.start.y}
+          x2={props.end.x}
+          y2={props.end.y}
+          class="stroke-primary"
+          stroke-width="1"
+          stroke-linecap="round"
+        />
+      </svg>
 
-      <div
-        data-start
-        class="absolute -translate-x-1/2 -translate-y-1/2"
+      {/* Start point with contrast */}
+      <svg
+        class="absolute overflow-visible"
         style={{
           left: `${props.start.x}px`,
           top: `${props.start.y}px`,
+          width: "1px",
+          height: "1px",
         }}
       >
-        <div class="w-1 h-1 rounded-full bg-primary" />
-      </div>
+        <circle cx="0" cy="0" r="4" fill="white" />
+        <circle cx="0" cy="0" r="3" fill="black" />
+        <circle cx="0" cy="0" r="2" class="fill-primary" />
+      </svg>
 
-      <div
-        data-end
-        class="absolute -translate-x-1/2 -translate-y-1/2"
+      {/* End point with contrast */}
+      <svg
+        class="absolute overflow-visible"
         style={{
           left: `${props.end.x}px`,
           top: `${props.end.y}px`,
+          width: "1px",
+          height: "1px",
         }}
       >
-        <div class="w-1 h-1 rounded-full bg-primary" />
-      </div>
+        <circle cx="0" cy="0" r="4" fill="white" />
+        <circle cx="0" cy="0" r="3" fill="black" />
+        <circle cx="0" cy="0" r="2" class="fill-primary" />
+      </svg>
 
       <div
         class="absolute"
