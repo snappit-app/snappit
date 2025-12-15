@@ -5,7 +5,7 @@ import { onColorRecognized } from "@/apps/snap_overlay/color_dropper/on_recogniz
 import { onScanSuccess } from "@/apps/snap_overlay/qr-scan";
 import { SNAPPIT_CONSTS } from "@/shared/constants";
 import { ColorFormat, DEFAULT_COLOR_FORMAT, formatColor } from "@/shared/libs/color_format";
-import { NotificationCenter } from "@/shared/notifications/notification_center";
+import { NotificationCenter } from "@/shared/notifications";
 import { RegionCaptureApi, RegionCaptureParams } from "@/shared/tauri/region_capture_api";
 import { ColorInfo } from "@/shared/tauri/screen_capture_api";
 import { SnapOverlayApi } from "@/shared/tauri/snap_overlay_api";

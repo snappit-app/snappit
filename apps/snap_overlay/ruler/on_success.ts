@@ -1,6 +1,6 @@
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 
-import { NotificationCenter } from "@/shared/notifications/notification_center";
+import { NotificationCenter } from "@/shared/notifications";
 
 export async function onRulerSuccess(body: string) {
   if (body) {

@@ -20,13 +20,12 @@ export abstract class NotificationSettings {
   static async isEnabled(): Promise<boolean> {
     try {
       const store = await load(SNAPPIT_CONSTS.store.file);
-      const value = await store.get<boolean>(this.KEY);
-      if (typeof value === "undefined") {
+      const enabled = await store.get<boolean>(this.KEY);
+      if (typeof enabled === "undefined") {
         return true;
       }
 
-      console.log(value);
-      return value;
+      return enabled;
     } catch (err) {
       console.error(err);
       return false;

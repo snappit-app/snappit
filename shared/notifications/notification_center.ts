@@ -1,4 +1,4 @@
-import { NotificationSettings } from "@/shared/notifications/settings";
+import { NotificationSettings } from "@/shared/notifications";
 import { NotificationApi } from "@/shared/tauri/notification_api";
 
 export abstract class NotificationCenter {

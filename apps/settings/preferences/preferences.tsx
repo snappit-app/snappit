@@ -21,8 +21,8 @@ import {
   NOTIFICATION_DURATION_OPTIONS,
   NotificationDuration,
   NotificationDurationSettings,
-} from "@/shared/notifications/duration";
-import { NotificationSettings } from "@/shared/notifications/settings";
+} from "@/shared/notifications";
+import { NotificationSettings } from "@/shared/notifications";
 import { SnappitStore } from "@/shared/store";
 import { Theme } from "@/shared/theme";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";

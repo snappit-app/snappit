@@ -33,4 +33,8 @@ export abstract class NotificationApi {
   static async hide() {
     return invoke("hide_notification");
   }
+
+  static async animateOut() {
+    return invoke("animate_out_notification");
+  }
 }

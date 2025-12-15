@@ -159,7 +159,7 @@ pub const TRAY_ITEMS: &[SnappitTrayItem] = &[
         },
     ),
     SnappitTrayItem::separator(),
-    SnappitTrayItem::item(SnappitTrayItemId::Settings, "Settings", true, |app| {
+    SnappitTrayItem::item(SnappitTrayItemId::Settings, "Settings...", true, |app| {
         SnappitSettings::show(app)?;
         Ok(())
     }),

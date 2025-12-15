@@ -13,7 +13,7 @@ import {
 import { Dynamic } from "solid-js/web";
 
 import { cn } from "@/shared/libs/cn";
-import { NotificationDurationSettings } from "@/shared/notifications/duration";
+import { NotificationDurationSettings } from "@/shared/notifications";
 import { SnappitStore } from "@/shared/store";
 import { NotificationApi } from "@/shared/tauri/notification_api";
 import { SnappitOverlayTarget } from "@/shared/tauri/snap_overlay_target";
@@ -33,25 +33,23 @@ type NotificationProps = {
   notificationId: Accessor<number>;
 };
 
-const ANIMATION_TIMEOUT = 200;
+const ANIMATION_DURATION_MS = 200;
 
 export function NotificationItem(props: NotificationProps) {
   const IconComponent = createMemo(() => ICON_MAP[props.target() ?? "none"]);
-  const [animationState, setAnimationState] = createSignal<"enter" | "exit">("enter");
   const [progress, setProgress] = createSignal(100);
 
   createEffect(
     on(props.notificationId, (currentId) => {
-      setAnimationState("enter");
       setProgress(100);
 
       let progressInterval: ReturnType<typeof setInterval> | undefined;
-      let exitTimeout: ReturnType<typeof setTimeout> | undefined;
+      let animateOutTimeout: ReturnType<typeof setTimeout> | undefined;
       let hideTimeout: ReturnType<typeof setTimeout> | undefined;
 
       const cleanup = () => {
         if (progressInterval) clearInterval(progressInterval);
-        if (exitTimeout) clearTimeout(exitTimeout);
+        if (animateOutTimeout) clearTimeout(animateOutTimeout);
         if (hideTimeout) clearTimeout(hideTimeout);
       };
 
@@ -59,7 +57,7 @@ export function NotificationItem(props: NotificationProps) {
 
       (async () => {
         await SnappitStore.sync();
-        const durationMs = 2000 ?? (await NotificationDurationSettings.getDurationMs());
+        const durationMs = await NotificationDurationSettings.getDurationMs();
 
         const startTime = Date.now();
         progressInterval = setInterval(() => {
@@ -75,12 +73,14 @@ export function NotificationItem(props: NotificationProps) {
           }
         }, 16);
 
-        exitTimeout = setTimeout(() => {
+        // Start native exit animation before hiding
+        animateOutTimeout = setTimeout(async () => {
           if (props.notificationId() === currentId) {
-            setAnimationState("exit");
+            await NotificationApi.animateOut();
           }
-        }, durationMs - ANIMATION_TIMEOUT);
+        }, durationMs - ANIMATION_DURATION_MS);
 
+        // Hide window after animation completes
         hideTimeout = setTimeout(async () => {
           if (props.notificationId() === currentId) {
             cleanup();
@@ -95,8 +95,6 @@ export function NotificationItem(props: NotificationProps) {
     <div
       class={cn(
         `pointer-events-none opacity-85 flex h-full w-full flex-col items-center justify-center gap-5 rounded-4xl text-center text-foreground backdrop-blur-xl`,
-        animationState() === "enter" && "animate-in duration-200 fade-in-0 zoom-in-95",
-        animationState() === "exit" && "animate-out duration-200 fade-out-0 zoom-out-95",
       )}
     >
       <div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 text-primary">

@@ -13,6 +13,7 @@ use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectStat
 
 const EMIT_RETRY_ATTEMPTS: u32 = 3;
 const EMIT_RETRY_DELAY_MS: u64 = 50;
+const ANIMATION_DURATION: f64 = 0.2;
 
 use crate::{
     platform::Platform, snappit_consts::SNAPPIT_CONSTS, snappit_errors::SnappitResult,
@@ -64,13 +65,67 @@ impl SnappitNotifications {
         let y = monitor.position().y + y_offset;
 
         window.set_position(PhysicalPosition::new(x, y))?;
+
+        #[cfg(target_os = "macos")]
+        Self::set_window_alpha(&window, 0.0);
+
         panel.show();
+        window.show()?;
+
+        #[cfg(target_os = "macos")]
+        Self::animate_window_alpha(&window, 1.0, ANIMATION_DURATION);
 
         Self::emit_with_retry(&window, "notification:shown", payload)?;
         SnappitSounds::play_capture(app);
         log::info!("shown");
 
         Ok(window)
+    }
+
+    pub fn animate_out(app: &AppHandle<Wry>) -> SnappitResult<()> {
+        let (_, window) = Self::ensure_handles(app)?;
+
+        #[cfg(target_os = "macos")]
+        Self::animate_window_alpha(&window, 0.0, ANIMATION_DURATION);
+
+        Ok(())
+    }
+
+    #[cfg(target_os = "macos")]
+    fn set_window_alpha(window: &WebviewWindow, alpha: f64) {
+        use objc2::msg_send;
+        use objc2::runtime::AnyObject;
+
+        if let Ok(ns_window) = window.ns_window() {
+            unsafe {
+                let ns_window = ns_window as *mut AnyObject;
+                let _: () = msg_send![ns_window, setAlphaValue: alpha];
+            }
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    fn animate_window_alpha(window: &WebviewWindow, alpha: f64, duration: f64) {
+        use objc2::msg_send;
+        use objc2::runtime::AnyObject;
+
+        if let Ok(ns_window) = window.ns_window() {
+            unsafe {
+                let ns_window = ns_window as *mut AnyObject;
+
+                let _: () = msg_send![objc2::class!(NSAnimationContext), beginGrouping];
+
+                let animation_context: *mut AnyObject =
+                    msg_send![objc2::class!(NSAnimationContext), currentContext];
+
+                let _: () = msg_send![animation_context, setDuration: duration];
+
+                let animator: *mut AnyObject = msg_send![ns_window, animator];
+                let _: () = msg_send![animator, setAlphaValue: alpha];
+
+                let _: () = msg_send![objc2::class!(NSAnimationContext), endGrouping];
+            }
+        }
     }
 
     fn emit_with_retry<S: serde::Serialize + Clone>(
@@ -133,6 +188,19 @@ impl SnappitNotifications {
             .get_webview_window(label)
             .ok_or_else(|| TauriError::WebviewNotFound)?;
 
+        let monitor = Platform::monitor_from_cursor(app)?;
+        let width = WINDOW_WIDTH as i32;
+        let height = WINDOW_HEIGHT as i32;
+        let available_width = monitor.size().width as i32;
+        let available_height = monitor.size().height as i32;
+        let x_offset = cmp::max((available_width - width) / 2, 0);
+        let y_offset = cmp::max(available_height - height - WINDOW_BOTTOM_MARGIN, 0);
+
+        let x = monitor.position().x + x_offset;
+        let y = monitor.position().y + y_offset;
+
+        window.set_position(PhysicalPosition::new(x, y))?;
+
         #[cfg(target_os = "macos")]
         if is_new {
             apply_vibrancy(
@@ -153,7 +221,7 @@ impl SnappitNotifications {
             SNAPPIT_CONSTS.windows.notification.as_str(),
         )
         .url(WebviewUrl::App("apps/notifications/index.html".into()))
-        .title("Notification Notifications")
+        .title("")
         .level(PanelLevel::PopUpMenu)
         .floating(true)
         .transparent(true)

@@ -42,6 +42,7 @@ use crate::{
     snappit_res::SnappitResponse,
     snappit_screen_capture::{SnappitColorInfo, SnappitScreenCapture},
     snappit_settings::SnappitSettings,
+    snappit_sounds::SnappitSounds,
     traits::into_dynamic::IntoPngByes,
 };
 
@@ -192,6 +193,12 @@ fn hide_notification(app: AppHandle) -> tauri::Result<()> {
 }
 
 #[tauri::command]
+fn animate_out_notification(app: AppHandle) -> tauri::Result<()> {
+    SnappitNotifications::animate_out(&app)?;
+    Ok(())
+}
+
+#[tauri::command]
 fn show_settings(app: AppHandle) -> tauri::Result<()> {
     SnappitSettings::show(&app)?;
     Ok(())
@@ -296,6 +303,7 @@ pub fn run() -> tauri::Result<()> {
             hide_snap_overlay,
             show_notification,
             hide_notification,
+            animate_out_notification,
             show_settings,
             hide_settings,
             scan_region_qr,
