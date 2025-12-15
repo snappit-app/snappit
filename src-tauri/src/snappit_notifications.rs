@@ -18,6 +18,7 @@ const ANIMATION_DURATION: f64 = 0.2;
 use crate::{
     platform::Platform, snappit_consts::SNAPPIT_CONSTS, snappit_errors::SnappitResult,
     snappit_overlay::SnappitOverlayTarget, snappit_sounds::SnappitSounds,
+    snappit_store::SnappitStore,
 };
 
 const WINDOW_WIDTH: u32 = 320;
@@ -45,7 +46,30 @@ tauri_panel! {
 pub struct SnappitNotifications;
 
 impl SnappitNotifications {
-    pub fn show(
+    pub fn is_enabled(app: &AppHandle<Wry>) -> bool {
+        match SnappitStore::get_value(app, &SNAPPIT_CONSTS.store.keys.notifications) {
+            Ok(Some(value)) => value.as_bool().unwrap_or(true),
+            _ => true,
+        }
+    }
+
+    /// Main entry point for notifications - checks settings and triggers both window and sound
+    pub fn notify(app: &AppHandle<Wry>, payload: SnappitNotificationPayload) -> SnappitResult<()> {
+        let window_enabled = Self::is_enabled(app);
+        let sound_enabled = SnappitSounds::is_enabled(app);
+
+        if window_enabled {
+            Self::show(app, payload)?;
+        }
+
+        if sound_enabled {
+            SnappitSounds::play_capture_unchecked(app);
+        }
+
+        Ok(())
+    }
+
+    fn show(
         app: &AppHandle<Wry>,
         payload: SnappitNotificationPayload,
     ) -> SnappitResult<WebviewWindow> {
@@ -76,7 +100,6 @@ impl SnappitNotifications {
         Self::animate_window_alpha(&window, 1.0, ANIMATION_DURATION);
 
         Self::emit_with_retry(&window, "notification:shown", payload)?;
-        SnappitSounds::play_capture(app);
         log::info!("shown");
 
         Ok(window)

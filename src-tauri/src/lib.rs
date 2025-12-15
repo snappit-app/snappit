@@ -181,7 +181,7 @@ fn hide_snap_overlay(app: AppHandle) -> tauri::Result<()> {
 
 #[tauri::command]
 fn show_notification(app: AppHandle, payload: SnappitNotificationPayload) -> tauri::Result<()> {
-    SnappitNotifications::show(&app, payload)?;
+    SnappitNotifications::notify(&app, payload)?;
     Ok(())
 }
 

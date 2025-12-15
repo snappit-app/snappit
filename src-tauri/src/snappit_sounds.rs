@@ -23,6 +23,17 @@ impl SnappitSounds {
             return;
         }
 
+        Self::play_capture_unchecked(app);
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    pub fn play_capture(_app: &tauri::AppHandle) {
+        // Sound not supported on this platform
+    }
+
+    /// Plays capture sound without checking if sound is enabled
+    #[cfg(target_os = "macos")]
+    pub fn play_capture_unchecked(_app: &tauri::AppHandle) {
         let name = NSString::from_str(CAPTURE_SOUND);
         if let Some(sound) = unsafe { NSSound::soundNamed(&name) } {
             unsafe { sound.play() };
@@ -30,7 +41,7 @@ impl SnappitSounds {
     }
 
     #[cfg(not(target_os = "macos"))]
-    pub fn play_capture(_app: &tauri::AppHandle) {
+    pub fn play_capture_unchecked(_app: &tauri::AppHandle) {
         // Sound not supported on this platform
     }
 }
