@@ -13,6 +13,7 @@ mod snappit_res;
 mod snappit_screen_capture;
 mod snappit_settings;
 mod snappit_shortcut_manager;
+mod snappit_sounds;
 mod snappit_store;
 mod snappit_tray;
 mod traits;

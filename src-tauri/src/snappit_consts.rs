@@ -26,6 +26,7 @@ pub struct SnappitStoreKeys {
     pub notifications: String,
     pub autostart: String,
     pub recognition_lang: String,
+    pub sound_enabled: String,
 }
 
 #[derive(Debug, Deserialize)]

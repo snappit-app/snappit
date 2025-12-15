@@ -1,6 +1,7 @@
 import {
   BiRegularSun,
   BiRegularTimer,
+  BiSolidBell,
   BiSolidDockBottom,
   BiSolidNotification,
   BiSolidPalette,
@@ -38,6 +39,9 @@ export function Preferences() {
   );
   const [colorFormat, setColorFormat] = SnappitStore.createValue<ColorFormat>(
     SNAPPIT_CONSTS.store.keys.preferred_color_format,
+  );
+  const [soundEnabled, setSoundEnabled] = SnappitStore.createValue<boolean>(
+    SNAPPIT_CONSTS.store.keys.sound_enabled,
   );
 
   onMount(async () => {
@@ -87,6 +91,35 @@ export function Preferences() {
 
         <Switch
           class="flex justify-between items-center h-[30px]"
+          checked={!!toolsEnabled()}
+          onChange={(value) => setToolsEnabled(value)}
+        >
+          <SwitchLabel class="text-sm font-light flex gap-2 items-center">
+            <BiSolidDockBottom /> Tools panel
+          </SwitchLabel>
+          <SwitchControl variant={"product"}>
+            <SwitchThumb />
+          </SwitchControl>
+        </Switch>
+
+        <Switch
+          class="flex justify-between items-center h-[30px]"
+          checked={soundEnabled() ?? true}
+          onChange={(value) => setSoundEnabled(value)}
+        >
+          <SwitchLabel class="text-sm font-light flex gap-2 items-center">
+            <BiSolidBell />
+            Sounds
+          </SwitchLabel>
+          <SwitchControl variant={"product"}>
+            <SwitchThumb />
+          </SwitchControl>
+        </Switch>
+      </div>
+
+      <div class="rounded-lg p-3 bg-card mb-3">
+        <Switch
+          class="flex justify-between items-center h-[30px]"
           checked={notificationsEnabled()}
           onChange={(e) => setNotificationsEnabled(e)}
         >
@@ -129,19 +162,6 @@ export function Preferences() {
             </Select>
           </div>
         </Show>
-
-        <Switch
-          class="flex justify-between items-center h-[30px]"
-          checked={!!toolsEnabled()}
-          onChange={(value) => setToolsEnabled(value)}
-        >
-          <SwitchLabel class="text-sm font-light flex gap-2 items-center">
-            <BiSolidDockBottom /> Tools panel
-          </SwitchLabel>
-          <SwitchControl variant={"product"}>
-            <SwitchThumb />
-          </SwitchControl>
-        </Switch>
       </div>
 
       <div class="rounded-lg p-3 bg-card">
@@ -160,7 +180,7 @@ export function Preferences() {
                 </SelectItem>
               )}
             >
-              <SelectTrigger class="w-[100px]">
+              <SelectTrigger class="w-[130px]">
                 <SelectValue<ColorFormat>>
                   {(state) =>
                     COLOR_FORMAT_OPTIONS.find((o) => o.value === state.selectedOption())?.label

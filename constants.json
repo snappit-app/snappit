@@ -14,7 +14,8 @@
       "tools_panel": "settings.tools_panel",
       "settings_initialized": "settings.initialized",
       "recognition_lang": "settings.recognition_lang",
-      "preferred_color_format": "settings.preferred_color_format"
+      "preferred_color_format": "settings.preferred_color_format",
+      "sound_enabled": "settings.sound_enabled"
     }
   },
   "windows": {

@@ -2,11 +2,6 @@ use std::cmp;
 use std::thread;
 use std::time::Duration;
 
-#[cfg(target_os = "macos")]
-use objc2_app_kit::NSSound;
-#[cfg(target_os = "macos")]
-use objc2_foundation::NSString;
-#[cfg(target_os = "macos")]
 use serde::{Deserialize, Serialize};
 use tauri::Error as TauriError;
 use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, WebviewUrl, WebviewWindow, Wry};
@@ -18,11 +13,10 @@ use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectStat
 
 const EMIT_RETRY_ATTEMPTS: u32 = 3;
 const EMIT_RETRY_DELAY_MS: u64 = 50;
-const NOTIFICATION_SOUND: &str = "Blow";
 
 use crate::{
     platform::Platform, snappit_consts::SNAPPIT_CONSTS, snappit_errors::SnappitResult,
-    snappit_overlay::SnappitOverlayTarget,
+    snappit_overlay::SnappitOverlayTarget, snappit_sounds::SnappitSounds,
 };
 
 const WINDOW_WIDTH: u32 = 320;
@@ -73,23 +67,10 @@ impl SnappitNotifications {
         panel.show();
 
         Self::emit_with_retry(&window, "notification:shown", payload)?;
-        Self::play_sound();
+        SnappitSounds::play_capture(app);
         log::info!("shown");
 
         Ok(window)
-    }
-
-    #[cfg(target_os = "macos")]
-    fn play_sound() {
-        let name = NSString::from_str(NOTIFICATION_SOUND);
-        if let Some(sound) = unsafe { NSSound::soundNamed(&name) } {
-            unsafe { sound.play() };
-        }
-    }
-
-    #[cfg(not(target_os = "macos"))]
-    fn play_sound() {
-        // Sound not supported on this platform
     }
 
     fn emit_with_retry<S: serde::Serialize + Clone>(
