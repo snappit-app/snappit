@@ -66,10 +66,14 @@ impl SnappitOverlay {
 
         log::info!("{}", "snap_overlay hidden".blue());
         overlay.emit("snap_overlay:hidden", true)?;
-        panel.hide();
-        overlay.hide()?;
+
+        // Restore focus BEFORE hiding the panel to prevent macOS from
+        // auto-focusing another window (like settings) when overlay disappears
         #[cfg(target_os = "macos")]
         Self::restore_previous_app_focus();
+
+        panel.hide();
+        overlay.hide()?;
         SnappitShortcutManager::unregister_hide(app)?;
 
         Ok(overlay)
