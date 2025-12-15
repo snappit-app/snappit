@@ -42,7 +42,6 @@ use crate::{
     snappit_res::SnappitResponse,
     snappit_screen_capture::{SnappitColorInfo, SnappitScreenCapture},
     snappit_settings::SnappitSettings,
-    snappit_sounds::SnappitSounds,
     traits::into_dynamic::IntoPngByes,
 };
 
