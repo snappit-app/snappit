@@ -279,7 +279,6 @@ pub fn run() -> tauri::Result<()> {
             SnappitOverlay::preload(app.handle())?;
             SnappitNotifications::preload(app.handle())?;
             SnappitSettings::preload(app.handle())?;
-            SnappitSettings::show(app.handle())?;
             SnappitPermissions::refresh_and_emit(app.handle())?;
 
             let permissions = SnappitPermissions::ensure_for_overlay(app.handle()).unwrap_or(
@@ -288,8 +287,8 @@ pub fn run() -> tauri::Result<()> {
                 },
             );
 
-            if permissions.all_granted() {
-                SnappitSettings::hide(app.handle())?;
+            if !permissions.all_granted() {
+                SnappitSettings::show(app.handle())?;
             }
 
             SnappitShortcutManager::sync_all(app.handle())?;
