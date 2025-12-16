@@ -1,4 +1,5 @@
 import {
+  BiRegularLinkExternal,
   BiRegularSun,
   BiRegularText,
   BiRegularTimer,
@@ -46,6 +47,9 @@ export function Preferences() {
   );
   const [ocrKeepLineBreaks, setOcrKeepLineBreaks] = SnappitStore.createValue<boolean>(
     SNAPPIT_CONSTS.store.keys.ocr_keep_line_breaks,
+  );
+  const [qrAutoOpenUrls, setQrAutoOpenUrls] = SnappitStore.createValue<boolean>(
+    SNAPPIT_CONSTS.store.keys.qr_auto_open_urls,
   );
 
   onMount(async () => {
@@ -95,19 +99,6 @@ export function Preferences() {
 
         <Switch
           class="flex justify-between items-center h-[30px]"
-          checked={!!toolsEnabled()}
-          onChange={(value) => setToolsEnabled(value)}
-        >
-          <SwitchLabel class="text-sm font-light flex gap-2 items-center">
-            <BiSolidDockBottom /> Tools panel
-          </SwitchLabel>
-          <SwitchControl variant={"product"}>
-            <SwitchThumb />
-          </SwitchControl>
-        </Switch>
-
-        <Switch
-          class="flex justify-between items-center h-[30px]"
           checked={soundEnabled() ?? true}
           onChange={(value) => setSoundEnabled(value)}
         >
@@ -128,6 +119,33 @@ export function Preferences() {
           <SwitchLabel class="text-sm font-light flex gap-2 items-center">
             <BiRegularText />
             Keep line breaks
+          </SwitchLabel>
+          <SwitchControl variant={"product"}>
+            <SwitchThumb />
+          </SwitchControl>
+        </Switch>
+
+        <Switch
+          class="flex justify-between items-center h-[30px]"
+          checked={!!toolsEnabled()}
+          onChange={(value) => setToolsEnabled(value)}
+        >
+          <SwitchLabel class="text-sm font-light flex gap-2 items-center">
+            <BiSolidDockBottom /> Tools panel
+          </SwitchLabel>
+          <SwitchControl variant={"product"}>
+            <SwitchThumb />
+          </SwitchControl>
+        </Switch>
+
+        <Switch
+          class="flex justify-between items-center h-[30px]"
+          checked={qrAutoOpenUrls() ?? false}
+          onChange={(value) => setQrAutoOpenUrls(value)}
+        >
+          <SwitchLabel class="text-sm font-light flex gap-2 items-center">
+            <BiRegularLinkExternal />
+            Auto-open QR URLs
           </SwitchLabel>
           <SwitchControl variant={"product"}>
             <SwitchThumb />

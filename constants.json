@@ -16,7 +16,8 @@
       "recognition_lang": "settings.recognition_lang",
       "preferred_color_format": "settings.preferred_color_format",
       "sound_enabled": "settings.sound_enabled",
-      "ocr_keep_line_breaks": "settings.ocr_keep_line_breaks"
+      "ocr_keep_line_breaks": "settings.ocr_keep_line_breaks",
+      "qr_auto_open_urls": "settings.qr_auto_open_urls"
     }
   },
   "windows": {
