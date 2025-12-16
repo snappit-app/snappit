@@ -1,5 +1,6 @@
 import {
   BiRegularSun,
+  BiRegularText,
   BiRegularTimer,
   BiSolidBell,
   BiSolidDockBottom,
@@ -42,6 +43,9 @@ export function Preferences() {
   );
   const [soundEnabled, setSoundEnabled] = SnappitStore.createValue<boolean>(
     SNAPPIT_CONSTS.store.keys.sound_enabled,
+  );
+  const [ocrKeepLineBreaks, setOcrKeepLineBreaks] = SnappitStore.createValue<boolean>(
+    SNAPPIT_CONSTS.store.keys.ocr_keep_line_breaks,
   );
 
   onMount(async () => {
@@ -115,6 +119,20 @@ export function Preferences() {
             <SwitchThumb />
           </SwitchControl>
         </Switch>
+
+        <Switch
+          class="flex justify-between items-center h-[30px]"
+          checked={ocrKeepLineBreaks() ?? true}
+          onChange={(value) => setOcrKeepLineBreaks(value)}
+        >
+          <SwitchLabel class="text-sm font-light flex gap-2 items-center">
+            <BiRegularText />
+            Keep line breaks
+          </SwitchLabel>
+          <SwitchControl variant={"product"}>
+            <SwitchThumb />
+          </SwitchControl>
+        </Switch>
       </div>
 
       <div class="rounded-lg p-3 bg-card mb-3">
@@ -164,7 +182,7 @@ export function Preferences() {
         </Show>
       </div>
 
-      <div class="rounded-lg p-3 bg-card">
+      <div class="rounded-lg p-3 bg-card mb-3">
         <div class="flex flex-col gap-2">
           <div class="flex justify-between items-center h-[30px]">
             <div class="text-sm font-light flex gap-2 items-center">
