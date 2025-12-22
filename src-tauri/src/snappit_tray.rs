@@ -367,6 +367,7 @@ impl SnappitTray {
             .menu(&menu)
             .show_menu_on_left_click(true)
             .icon(tray_icon)
+            .icon_as_template(true)
             .on_menu_event(|app, event| {
                 if let Ok(item) = <&SnappitTrayItem>::try_from(&event) {
                     if let Some(handler) = item.handler() {
