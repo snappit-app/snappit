@@ -215,7 +215,7 @@ impl SnappitOverlay {
         PanelBuilder::<_, SnapOverlayPanel>::new(app, SNAPPIT_CONSTS.windows.overlay.as_str())
             .url(WebviewUrl::App("apps/snap_overlay/index.html".into()))
             .title(SNAPPIT_CONSTS.windows.overlay.as_str())
-            .level(PanelLevel::PopUpMenu)
+            .level(PanelLevel::ScreenSaver)
             .floating(true)
             .transparent(true)
             .opaque(false)
