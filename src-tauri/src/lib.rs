@@ -180,6 +180,11 @@ fn hide_snap_overlay(app: AppHandle) -> tauri::Result<()> {
 }
 
 #[tauri::command]
+fn get_snap_overlay_target() -> Option<SnappitOverlayTarget> {
+    SnappitOverlay::get_current_target()
+}
+
+#[tauri::command]
 fn show_notification(app: AppHandle, payload: SnappitNotificationPayload) -> tauri::Result<()> {
     SnappitNotifications::notify(&app, payload)?;
     Ok(())
@@ -299,6 +304,7 @@ pub fn run() -> tauri::Result<()> {
         .invoke_handler(tauri::generate_handler![
             show_snap_overlay,
             hide_snap_overlay,
+            get_snap_overlay_target,
             show_notification,
             hide_notification,
             animate_out_notification,

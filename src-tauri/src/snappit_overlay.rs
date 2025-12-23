@@ -47,6 +47,9 @@ pub struct SnappitOverlay;
 
 static OVERLAY_LAST_MONITOR: Lazy<Mutex<Option<Monitor>>> = Lazy::new(|| Mutex::new(None));
 
+static OVERLAY_CURRENT_TARGET: Lazy<Mutex<Option<SnappitOverlayTarget>>> =
+    Lazy::new(|| Mutex::new(None));
+
 static MONITOR_THREAD_RUNNING: Lazy<AtomicBool> = Lazy::new(|| AtomicBool::new(false));
 
 #[cfg(target_os = "macos")]
@@ -58,6 +61,10 @@ impl SnappitOverlay {
         {
             let mut last = OVERLAY_LAST_MONITOR.lock().unwrap();
             *last = None;
+        }
+        {
+            let mut target = OVERLAY_CURRENT_TARGET.lock().unwrap();
+            *target = None;
         }
 
         Self::unsubscribe_monitor_changes();
@@ -108,6 +115,10 @@ impl SnappitOverlay {
             let mut last = OVERLAY_LAST_MONITOR.lock().unwrap();
             *last = Some(monitor.clone());
         }
+        {
+            let mut current_target = OVERLAY_CURRENT_TARGET.lock().unwrap();
+            *current_target = Some(target);
+        }
 
         let physical_size = monitor.size().clone();
 
@@ -145,6 +156,11 @@ impl SnappitOverlay {
         });
 
         Ok(overlay)
+    }
+
+    pub fn get_current_target() -> Option<SnappitOverlayTarget> {
+        let target = OVERLAY_CURRENT_TARGET.lock().unwrap();
+        *target
     }
 
     pub fn preload(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {

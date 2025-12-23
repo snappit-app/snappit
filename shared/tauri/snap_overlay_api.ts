@@ -27,4 +27,8 @@ export abstract class SnapOverlayApi {
     const overlay = await this.get();
     return overlay?.listen("snap_overlay:hidden", handler);
   }
+
+  static async getCurrentTarget(): Promise<SnappitOverlayTarget | null> {
+    return invoke<SnappitOverlayTarget | null>("get_snap_overlay_target");
+  }
 }

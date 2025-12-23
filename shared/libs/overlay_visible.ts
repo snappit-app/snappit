@@ -11,6 +11,12 @@ export function createOverlayVisible() {
   const [target, setTarget] = createSignal<SnappitOverlayTarget>("capture");
 
   onMount(async () => {
+    const currentTarget = await SnapOverlayApi.getCurrentTarget();
+    if (currentTarget) {
+      setWindowVisible(true);
+      setTarget(currentTarget);
+    }
+
     unlistenShown = await SnapOverlayApi.onShown(async (tool) => {
       setWindowVisible(true);
       setTarget(tool.payload);
