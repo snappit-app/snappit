@@ -15,7 +15,7 @@ use colored::Colorize;
 #[cfg(target_os = "macos")]
 use objc2::rc::{autoreleasepool, Retained as ObjcRetained};
 #[cfg(target_os = "macos")]
-use objc2_app_kit::{NSApplicationActivationOptions, NSRunningApplication, NSWorkspace};
+use objc2_app_kit::{NSRunningApplication, NSWorkspace};
 use once_cell::sync::Lazy;
 use tauri::{
     AppHandle, Emitter, Error as TauriError, Manager, Monitor, WebviewUrl, WebviewWindow, Wry,
@@ -74,13 +74,9 @@ impl SnappitOverlay {
         log::info!("{}", "snap_overlay hidden".blue());
         overlay.emit("snap_overlay:hidden", true)?;
 
-        // Restore focus BEFORE hiding the panel to prevent macOS from
-        // auto-focusing another window (like settings) when overlay disappears
-        #[cfg(target_os = "macos")]
-        Self::restore_previous_app_focus();
-
         panel.hide();
         overlay.hide()?;
+
         SnappitShortcutManager::unregister_hide(app)?;
 
         Ok(overlay)
@@ -140,7 +136,6 @@ impl SnappitOverlay {
         log::info!("{}", "snap_overlay shown".blue());
 
         overlay.emit("snap_overlay:shown", target)?;
-        overlay.set_focus()?;
         SnappitShortcutManager::register_hide(app)?;
 
         // Show panel after a short delay to allow webview to re-layout
@@ -199,34 +194,6 @@ impl SnappitOverlay {
         }
     }
 
-    #[cfg(target_os = "macos")]
-    fn restore_previous_app_focus() {
-        let previous = {
-            let mut slot = PREVIOUS_FOREGROUND_APP.lock().unwrap();
-            slot.take()
-        };
-
-        let Some(previous_app) = previous else {
-            return;
-        };
-
-        unsafe {
-            autoreleasepool(|_| {
-                if previous_app.isTerminated() {
-                    return;
-                }
-
-                #[allow(deprecated)]
-                let options = NSApplicationActivationOptions::ActivateAllWindows
-                    | NSApplicationActivationOptions::ActivateIgnoringOtherApps;
-
-                if !previous_app.activateWithOptions(options) {
-                    log::warn!("snappit overlay: failed to restore previous focus");
-                }
-            });
-        }
-    }
-
     fn builder<'a>(app: &'a AppHandle<Wry>) -> PanelBuilder<'a, Wry, SnapOverlayPanel> {
         PanelBuilder::<_, SnapOverlayPanel>::new(app, SNAPPIT_CONSTS.windows.overlay.as_str())
             .url(WebviewUrl::App("apps/snap_overlay/index.html".into()))
@@ -249,6 +216,7 @@ impl SnappitOverlay {
                     .accept_first_mouse(true)
                     .fullscreen(false)
                     .shadow(false)
+                    .focusable(false)
                     .always_on_top(true)
                     .content_protected(true)
                     .skip_taskbar(true)
@@ -326,32 +294,26 @@ impl SnappitOverlay {
     fn switch_monitor(app: &AppHandle<Wry>, monitor: Monitor) -> SnappitResult<()> {
         let (panel, overlay) = Self::get_overlay_handles(app)?;
 
-        // Hide the panel to prevent visual glitch during resize
         panel.set_alpha_value(0.0);
 
-        // Update last monitor
         {
             let mut last = OVERLAY_LAST_MONITOR.lock().unwrap();
             *last = Some(monitor.clone());
         }
 
-        // Update size and position
         let physical_size = monitor.size().clone();
         overlay.set_size(physical_size)?;
         overlay.set_position(monitor.position().clone())?;
 
-        // Emit event so frontend can prepare, then show after a brief delay
         overlay.emit("snap_overlay:monitor_changed", true)?;
 
-        // Show panel after a short delay to allow webview to re-layout
         let app_clone = app.clone();
         std::thread::spawn(move || {
             std::thread::sleep(Duration::from_millis(50));
             let app_inner = app_clone.clone();
             let _ = app_clone.run_on_main_thread(move || {
-                if let Ok((panel, overlay)) = Self::get_overlay_handles(&app_inner) {
+                if let Ok((panel, _overlay)) = Self::get_overlay_handles(&app_inner) {
                     panel.set_alpha_value(1.0);
-                    let _ = overlay.set_focus();
                 }
             });
         });
