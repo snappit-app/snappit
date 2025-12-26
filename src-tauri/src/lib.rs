@@ -1,4 +1,6 @@
 mod img_protocol;
+#[cfg(target_os = "macos")]
+mod macos_color_capture;
 mod platform;
 mod region_capture;
 mod snappit_consts;

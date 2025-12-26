@@ -1,6 +1,4 @@
 use crate::platform::Platform;
-use crate::region_capture::RegionCapture;
-use crate::region_capture::RegionCaptureParams;
 use crate::snappit_consts::SNAPPIT_CONSTS;
 use crate::snappit_errors::SnappitResult;
 use image::ImageBuffer;
@@ -8,6 +6,14 @@ use image::Rgba;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use tauri::AppHandle;
+
+#[cfg(not(target_os = "macos"))]
+use crate::region_capture::RegionCapture;
+#[cfg(not(target_os = "macos"))]
+use crate::region_capture::RegionCaptureParams;
+
+#[cfg(target_os = "macos")]
+use crate::macos_color_capture;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SnappitColorInfo {
@@ -41,9 +47,82 @@ impl SnappitScreenCapture {
         let ratio = SNAPPIT_CONSTS.defaults.color_dropper.magnify_ratio;
         let size = radius * 2 + 1;
 
-        return (radius, ratio, size);
+        (radius, ratio, size)
     }
 
+    // ========================================================================
+    // macOS implementation using CoreGraphics
+    // Pipeline: CGWindowListCreateImage -> linear RGB -> averaging -> sRGB -> HEX
+    // ========================================================================
+
+    #[cfg(target_os = "macos")]
+    fn get_monitor_info(app: &AppHandle) -> (f64, (f64, f64)) {
+        if let Ok(monitor) = Platform::monitor_from_cursor(app) {
+            let scale_factor = monitor.scale_factor();
+            // Get monitor position in logical coordinates
+            let position = monitor.position().to_logical::<f64>(scale_factor);
+            (scale_factor, (position.x, position.y))
+        } else {
+            (2.0, (0.0, 0.0))
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    pub fn capture_color_at_cursor(
+        app: &AppHandle,
+        x: u32,
+        y: u32,
+    ) -> SnappitResult<SnappitColorInfo> {
+        let (radius, _, _) = Self::get_params();
+
+        // Get scale factor and monitor origin from the monitor under cursor
+        let (scale_factor, monitor_origin) = Self::get_monitor_info(app);
+
+        let (center_color, _grid) = macos_color_capture::capture_color_at_position(
+            x,
+            y,
+            radius,
+            scale_factor,
+            monitor_origin,
+        )?;
+
+        Ok(SnappitColorInfo::from_rgba(
+            center_color.r,
+            center_color.g,
+            center_color.b,
+            255,
+        ))
+    }
+
+    #[cfg(target_os = "macos")]
+    pub fn capture_magnified_view(
+        app: &AppHandle,
+        x: u32,
+        y: u32,
+    ) -> SnappitResult<ImageBuffer<Rgba<u8>, Vec<u8>>> {
+        let (radius, ratio, size) = Self::get_params();
+
+        // Get scale factor and monitor origin from the monitor under cursor
+        let (scale_factor, monitor_origin) = Self::get_monitor_info(app);
+
+        let (_center_color, grid) = macos_color_capture::capture_color_at_position(
+            x,
+            y,
+            radius,
+            scale_factor,
+            monitor_origin,
+        )?;
+
+        let magnified = macos_color_capture::grid_to_magnified_image(&grid, size, ratio);
+
+        Ok(magnified)
+    }
+
+    // ========================================================================
+    // Non-macOS implementation (original xcap-based code)
+    // ========================================================================
+
+    #[cfg(not(target_os = "macos"))]
     fn capture_logical_grid(app: &AppHandle, x: u32, y: u32) -> SnappitResult<Vec<Rgba<u8>>> {
         let (radius, _, size) = Self::get_params();
 
@@ -91,8 +170,8 @@ impl SnappitScreenCapture {
         let image = RegionCapture::capture_around_cursor(
             app,
             RegionCaptureParams {
-                x: x,
-                y: y,
+                x,
+                y,
                 width: size,
                 height: size,
             },
@@ -187,6 +266,7 @@ impl SnappitScreenCapture {
         Ok(grid)
     }
 
+    #[cfg(not(target_os = "macos"))]
     pub fn capture_color_at_cursor(
         app: &AppHandle,
         x: u32,
@@ -203,6 +283,7 @@ impl SnappitScreenCapture {
         ))
     }
 
+    #[cfg(not(target_os = "macos"))]
     pub fn capture_magnified_view(
         app: &AppHandle,
         x: u32,

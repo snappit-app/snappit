@@ -72,6 +72,12 @@ pub enum SnappitError {
 
     #[error("License data corrupted")]
     LicenseCorrupted,
+
+    #[error("ScreenCaptureKit error: {0}")]
+    ScreenCaptureKit(String),
+
+    #[error("ColorSync error: {0}")]
+    ColorSync(String),
 }
 
 pub type SnappitResult<T> = Result<T, SnappitError>;
