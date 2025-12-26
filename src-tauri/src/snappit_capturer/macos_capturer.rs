@@ -28,6 +28,11 @@ use tauri::AppHandle;
 const K_CG_WINDOW_LIST_OPTION_ON_SCREEN_ONLY: u32 = 1 << 0;
 const K_CG_NULL_WINDOW_ID: u32 = 0;
 
+// CGWindowImageOption to exclude cursor from capture
+// This flag ensures the cursor is never included in the captured image,
+// even when screen recording software (like OBS) changes cursor rendering
+const K_CG_WINDOW_IMAGE_SHOULD_BE_OPAQUE: u32 = 1 << 3;
+
 // CoreGraphics functions
 #[link(name = "CoreGraphics", kind = "framework")]
 extern "C" {
@@ -150,11 +155,15 @@ fn capture_region_to_srgb(
         let rect = CGRect::new(&CGPoint::new(x, y), &CGSize::new(width, height));
 
         // Capture the screen - image is in display's native color space
+        // Use kCGWindowImageShouldBeOpaque to exclude cursor from capture
+        // This ensures consistent behavior even when screen recording apps change cursor rendering
         let image = CGWindowListCreateImage(
             rect,
             K_CG_WINDOW_LIST_OPTION_ON_SCREEN_ONLY,
             K_CG_NULL_WINDOW_ID,
-            kCGWindowImageBestResolution | kCGWindowImageBoundsIgnoreFraming,
+            kCGWindowImageBestResolution
+                | kCGWindowImageBoundsIgnoreFraming
+                | K_CG_WINDOW_IMAGE_SHOULD_BE_OPAQUE,
         );
 
         if image.is_null() {
