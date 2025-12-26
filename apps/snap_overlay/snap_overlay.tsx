@@ -81,7 +81,7 @@ function SnapOverlay(props: snapOverlayProps) {
     const overlay = await SnapOverlayApi.get();
     unregisterFocus = await overlay?.onFocusChanged((e) => {
       if (e.event === "tauri://blur") {
-        SnapOverlayApi.hide();
+        // SnapOverlayApi.hide();
       }
     });
   });

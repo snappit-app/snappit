@@ -1,9 +1,7 @@
 :root {
-  --snappit-product_hex: #6991f8;
-  --snappit-product_hex: #7190f1;
-  --snappit-product_hex: #778fea;
-  --snappit-product_hex: #7c8ee3;
-  --snappit-product_hex: #7f8ddd;
-  --snappit-product_hex: #828cd7;
-  --snappit-product_hex: #848cd2;
+  --snappit-product_hex_0: #6991f8;
+  --snappit-product_hex_1: #6891F8;
+  --snappit-product_hex_2: #6891F8;
+  --snappit-product_hex_3: #6891F8;
+  --snappit-product_hex_4: #6890F9;
 }

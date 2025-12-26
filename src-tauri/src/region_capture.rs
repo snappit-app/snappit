@@ -42,23 +42,6 @@ impl RegionCapture {
         Ok(image)
     }
 
-    pub fn capture_around_cursor(
-        app: &AppHandle<Wry>,
-        params: RegionCaptureParams,
-    ) -> SnappitResult<ImageBuffer<Rgba<u8>, Vec<u8>>> {
-        let left_top_x = params.x.saturating_sub(params.width / 2);
-        let left_top_y = params.y.saturating_sub(params.height / 2);
-
-        let left_top_params = RegionCaptureParams {
-            x: left_top_x,
-            y: left_top_y,
-            width: params.width,
-            height: params.height,
-        };
-
-        Self::capture(app, left_top_params)
-    }
-
     pub fn save_image(image: &ImageBuffer<Rgba<u8>, Vec<u8>>) {
         let monitors = Monitor::all().expect("asd");
 

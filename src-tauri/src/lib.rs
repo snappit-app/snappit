@@ -1,8 +1,8 @@
 mod img_protocol;
 #[cfg(target_os = "macos")]
-mod macos_color_capture;
 mod platform;
 mod region_capture;
+mod snappit_capturer;
 mod snappit_consts;
 mod snappit_errors;
 mod snappit_license;
@@ -12,7 +12,6 @@ mod snappit_overlay;
 mod snappit_permissions;
 mod snappit_qr;
 mod snappit_res;
-mod snappit_screen_capture;
 mod snappit_settings;
 mod snappit_shortcut_manager;
 mod snappit_sounds;
@@ -29,6 +28,7 @@ use tauri::{async_runtime::spawn_blocking, AppHandle};
 
 use crate::{
     img_protocol::{handle_img_request, ImageSlot, IMAGE},
+    snappit_capturer::{SnappitCapturer, SnappitColorInfo},
     snappit_errors::{SnappitError, SnappitResult},
     snappit_license::{LicenseState, SnappitLicense},
     snappit_ocr::{
@@ -42,7 +42,6 @@ use crate::{
     snappit_permissions::{SnappitPermissions, SnappitPermissionsState},
     snappit_qr::SnappitQr,
     snappit_res::SnappitResponse,
-    snappit_screen_capture::{SnappitColorInfo, SnappitScreenCapture},
     snappit_settings::SnappitSettings,
     traits::into_dynamic::IntoPngByes,
 };
@@ -56,7 +55,7 @@ async fn capture_color_at_cursor(
     let app_handle = app.clone();
 
     let color_info = spawn_blocking(move || -> SnappitResult<_> {
-        SnappitScreenCapture::capture_color_at_cursor(&app_handle, x, y)
+        SnappitCapturer::capture_color_at_cursor(&app_handle, x, y)
     })
     .await??;
 
@@ -68,7 +67,7 @@ async fn capture_magnified_view(app: AppHandle, x: u32, y: u32) -> tauri::Result
     let app_handle = app.clone();
 
     let image_data = spawn_blocking(move || -> SnappitResult<_> {
-        SnappitScreenCapture::capture_magnified_view(&app_handle, x, y)
+        SnappitCapturer::capture_magnified_view(&app_handle, x, y)
     })
     .await??;
 
