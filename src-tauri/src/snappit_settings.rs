@@ -52,6 +52,7 @@ impl SnappitSettings {
     pub fn preload(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
         let window = Self::builder(app)
             .fullscreen(false)
+            .accept_first_mouse(true)
             .shadow(false)
             .always_on_top(false)
             .content_protected(false)
