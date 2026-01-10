@@ -1,4 +1,5 @@
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   BiRegularCheck,
   BiRegularCopy,
@@ -8,9 +9,10 @@ import {
   BiRegularTrash,
   BiSolidPalette,
 } from "solid-icons/bi";
-import { Component, createSignal, Match, Switch } from "solid-js";
+import { Component, createMemo, createSignal, Match, Show, Switch } from "solid-js";
 
 import { CaptureHistory, CaptureHistoryItem } from "@/shared/history";
+import { normalizeHttpUrl } from "@/shared/libs/normalize_url";
 import { Button } from "@/shared/ui/button";
 
 interface HistoryItemProps {
@@ -55,6 +57,13 @@ function getCopyValue(item: CaptureHistoryItem): string {
 export const HistoryItem: Component<HistoryItemProps> = (props) => {
   const [copied, setCopied] = createSignal(false);
 
+  const qrUrl = createMemo(() => {
+    if (props.item.type === "qr") {
+      return normalizeHttpUrl(props.item.payload.content);
+    }
+    return undefined;
+  });
+
   const handleCopy = async () => {
     const value = getCopyValue(props.item);
     await writeText(value);
@@ -64,6 +73,13 @@ export const HistoryItem: Component<HistoryItemProps> = (props) => {
 
   const handleDelete = async () => {
     await CaptureHistory.remove(props.item.id);
+  };
+
+  const handleOpenUrl = async () => {
+    const url = qrUrl();
+    if (url) {
+      await openUrl(url);
+    }
   };
 
   return (
@@ -86,7 +102,29 @@ export const HistoryItem: Component<HistoryItemProps> = (props) => {
       </div>
 
       <div class="flex-1 min-w-0 overflow-hidden">
-        <p class="text-sm truncate">{getDisplayValue(props.item)}</p>
+        <Switch>
+          <Match when={qrUrl()}>
+            <button
+              class="text-sm truncate text-blue-500 hover:underline cursor-pointer text-left w-full"
+              onClick={handleOpenUrl}
+            >
+              {getDisplayValue(props.item)}
+            </button>
+          </Match>
+          <Match when={!qrUrl()}>
+            <div class="inline-flex gap-1 items-center">
+              <Show when={props.item.type === "dropper" && props.item.payload.hex}>
+                <div
+                  class="w-4 h-4 rounded-sm border border-border"
+                  style={{
+                    "background-color": (props.item as { payload: { hex: string } }).payload.hex,
+                  }}
+                />
+              </Show>
+              <p class="text-sm truncate">{getDisplayValue(props.item)}</p>
+            </div>
+          </Match>
+        </Switch>
         <p class="text-xs text-muted-foreground">{formatTime(props.item.timestamp)}</p>
       </div>
 
