@@ -67,7 +67,7 @@ export const HistoryItem: Component<HistoryItemProps> = (props) => {
   };
 
   return (
-    <div class="flex items-center gap-3 p-3 bg-card rounded-lg overflow-hidden">
+    <div class="flex items-center gap-3 p-3 bg-card rounded-lg overflow-hidden shrink-0">
       <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-md bg-muted">
         <Switch>
           <Match when={props.item.type === "ocr"}>

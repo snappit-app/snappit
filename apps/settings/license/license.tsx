@@ -4,8 +4,8 @@ import { createSignal, onCleanup, onMount, Show } from "solid-js";
 import { SnappitLicense } from "@/shared/libs/license";
 import { getLicenseKey } from "@/shared/tauri/license_api";
 
-import { FullLicense } from "./full-license";
-import { TrialLicense } from "./trial-license";
+import { FullLicense } from "./full_license";
+import { TrialLicense } from "./trial_license";
 
 export function License() {
   const [licenseState, refetch] = SnappitLicense.create();

@@ -92,7 +92,7 @@ function SettingsApp() {
           <span class="text-xs">Snappit</span>
         </div>
       </aside>
-      <main class="relative grow-1 min-h-0 p-4 pt-[56px] bg-background">
+      <main class="relative grow-1 min-h-0 p-4 pt-[56px] bg-background min-w-[0px]">
         <Show when={isTrial()}>
           <div class="fixed right-[16px] top-[11px]">
             <TrialBadge />
@@ -126,7 +126,7 @@ function SettingsApp() {
           <TabsContent value="license" class="h-full overflow-auto">
             <License />
           </TabsContent>
-          <TabsContent value="history" class="h-full overflow-auto">
+          <TabsContent value="history" class="h-full">
             <History />
           </TabsContent>
         </Show>

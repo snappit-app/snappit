@@ -1,6 +1,5 @@
 import { createSignal, Show } from "solid-js";
 
-import { cn } from "@/shared/libs/cn";
 import { activateFullLicense, updateTrayLicenseStatus } from "@/shared/tauri/license_api";
 import { Button } from "@/shared/ui/button";
 

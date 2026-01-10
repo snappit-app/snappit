@@ -53,7 +53,7 @@ export function History() {
           </div>
         }
       >
-        <div class="flex flex-col gap-2 max-w-[398px]">
+        <div class="flex flex-col gap-2 h-[450px] -mr-[16px] pr-[2px] overflow-y-auto [scrollbar-gutter:stable]">
           <For each={items()}>{(item) => <HistoryItem item={item} />}</For>
         </div>
       </Show>
