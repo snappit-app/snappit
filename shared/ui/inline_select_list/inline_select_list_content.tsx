@@ -8,9 +8,5 @@ export interface InlineSelectListContentProps {
 }
 
 export function InlineSelectListContent(props: InlineSelectListContentProps) {
-  return (
-    <div class={cn("flex-1 overflow-auto", props.class)}>
-      {props.children}
-    </div>
-  );
+  return <div class={cn("flex-1 overflow-auto", props.class)}>{props.children}</div>;
 }

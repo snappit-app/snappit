@@ -1,9 +1,16 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
 import { UnlistenFn } from "@tauri-apps/api/event";
-import { BiRegularCommand, BiRegularGlobe, BiSolidCog, BiSolidShield } from "solid-icons/bi";
+import {
+  BiRegularCommand,
+  BiRegularGlobe,
+  BiRegularHistory,
+  BiSolidCog,
+  BiSolidShield,
+} from "solid-icons/bi";
 import { createMemo, createSignal, Show } from "solid-js";
 import { onCleanup, onMount } from "solid-js";
 
+import { History } from "@/apps/settings/history";
 import { Languages } from "@/apps/settings/languages";
 import { License } from "@/apps/settings/license";
 import { Shortcuts } from "@/apps/settings/shortcuts";
@@ -57,7 +64,7 @@ function SettingsApp() {
         class="h-[56px] w-full absolute left-0 top-0 z-55 flex items-center justify-end pr-3  cursor-default select-none"
       />
 
-      <aside class="w-[200px] h-full px-2 pb-7 pt-[56px] flex flex-col justify-between">
+      <aside class="w-[200px] h-full px-2 pb-7 pt-[56px] flex flex-col justify-between shrink-0">
         <Show when={canLoadApp()} fallback={<div />}>
           <TabsList>
             <TabsTrigger value="preferences">
@@ -68,6 +75,10 @@ function SettingsApp() {
             </TabsTrigger>
             <TabsTrigger value="languages">
               <BiRegularGlobe /> Languages
+            </TabsTrigger>
+            <TabsTrigger value="history">
+              <BiRegularHistory />
+              History
             </TabsTrigger>
             <TabsTrigger value="license">
               <BiSolidShield />
@@ -114,6 +125,9 @@ function SettingsApp() {
           </TabsContent>
           <TabsContent value="license" class="h-full overflow-auto">
             <License />
+          </TabsContent>
+          <TabsContent value="history" class="h-full overflow-auto">
+            <History />
           </TabsContent>
         </Show>
       </main>

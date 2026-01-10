@@ -3,6 +3,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { load } from "@tauri-apps/plugin-store";
 
 import { SNAPPIT_CONSTS } from "@/shared/constants";
+import { CaptureHistory } from "@/shared/history";
 import { normalizeHttpUrl } from "@/shared/libs/normalize_url";
 import { NotificationCenter } from "@/shared/notifications";
 import { SnapOverlayApi } from "@/shared/tauri/snap_overlay_api";
@@ -31,5 +32,6 @@ export async function onScanSuccess(content: string) {
     await NotificationCenter.notifyQrOnCopied(`${content}`);
   }
 
+  await CaptureHistory.addQr({ content });
   SnapOverlayApi.hide();
 }
