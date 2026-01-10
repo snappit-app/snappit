@@ -1,2 +1,2 @@
-export * from "./shortcut-pref-item";
+export * from "./shortcut_pref_item";
 export * from "./shortcuts";

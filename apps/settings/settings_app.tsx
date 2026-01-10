@@ -13,6 +13,7 @@ import { createSettingsVisible } from "@/shared/libs/settings_visible";
 import { ensureSystemLanguagesInstalled, isInitialSetup } from "@/shared/ocr/installed_languages";
 import { SettingsApi } from "@/shared/tauri/settings_api";
 import { Theme } from "@/shared/theme";
+import { TrialBadge } from "@/shared/ui/trial_badge";
 
 import { PermissionsGate } from "./permissions";
 import { Preferences } from "./preferences";
@@ -23,8 +24,9 @@ function SettingsApp() {
   const permissions = createPermissions();
   const permissionsGranted = createMemo(() => permissions.state()?.screenRecording ?? false);
   const canLoadApp = createMemo(() => !permissions.loading() && permissionsGranted() && visible());
-  const [refetch] = SnappitLicense.create();
+  const [licenseState, refetch] = SnappitLicense.create();
   const [activeTab, setActiveTab] = createSignal("preferences");
+  const isTrial = createMemo(() => licenseState()?.licenseType === "trial");
   let unlistenOpenTab: UnlistenFn | undefined;
 
   refetch();
@@ -50,7 +52,11 @@ function SettingsApp() {
       value={activeTab()}
       onChange={setActiveTab}
     >
-      <header data-tauri-drag-region class="h-[56px] w-full absolute left-0 top-0 z-55" />
+      <header
+        data-tauri-drag-region
+        class="h-[56px] w-full absolute left-0 top-0 z-55 flex items-center justify-end pr-3  cursor-default select-none"
+      />
+
       <aside class="w-[200px] h-full px-2 pb-7 pt-[56px] flex flex-col justify-between">
         <Show when={canLoadApp()} fallback={<div />}>
           <TabsList>
@@ -76,6 +82,11 @@ function SettingsApp() {
         </div>
       </aside>
       <main class="relative grow-1 min-h-0 p-4 pt-[56px] bg-background">
+        <Show when={isTrial()}>
+          <div class="fixed right-[16px] top-[11px]">
+            <TrialBadge />
+          </div>
+        </Show>
         <Show when={isInitialSetup()}>
           <div class="h-full flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
             <div class="animate-spin h-8 w-8 border-4 border-prima ary border-t-transparent rounded-full mb-4" />

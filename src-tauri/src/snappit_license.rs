@@ -14,7 +14,7 @@ use crate::snappit_settings::SnappitSettings;
 
 const LICENSE_FOLDER: &str = ".snappit_data";
 const LICENSE_FILE: &str = "license.dat";
-const INITIAL_TRIAL_USES: u32 = 30;
+const INITIAL_TRIAL_USES: u32 = 150;
 
 /// Secret salt for checksum - makes it harder to forge license data
 const CHECKSUM_SALT: &str = "sn4pp1t_x7k9m2_l1c3ns3_s4lt_2024";
@@ -201,8 +201,10 @@ impl SnappitLicense {
     }
 
     pub fn deactivate() -> SnappitResult<()> {
-        let hardware_id = Self::get_hardware_uuid()?;
-        let data = LicenseData::new(&hardware_id, INITIAL_TRIAL_USES, "t");
+        let mut data = Self::load_or_init()?;
+        data.lt = "t".to_string();
+        data.license_key = None;
+        data.cs = data.compute_checksum();
         Self::save(&data)?;
         Self::invalidate_cache();
         Ok(())
