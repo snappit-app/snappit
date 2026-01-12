@@ -13,12 +13,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # macOS Apple Silicon (runs on ARM runner)
+          # macOS Apple Silicon
           - platform: macos-latest
             args: --target aarch64-apple-darwin
-          # macOS Intel (runs on Intel runner to avoid cross-compilation)
-          - platform: macos-13
+          # macOS Intel (cross-compile from ARM with x86_64 Homebrew)
+          - platform: macos-latest
             args: --target x86_64-apple-darwin
+            cross: true
 
     runs-on: ${{ matrix.platform }}
 
@@ -41,9 +42,21 @@ jobs:
         with:
           targets: aarch64-apple-darwin,x86_64-apple-darwin
 
-      - name: Install system dependencies (macOS)
+      - name: Install system dependencies (native)
+        if: ${{ !matrix.cross }}
         run: |
           brew install leptonica tesseract
+
+      - name: Install system dependencies (x86_64 cross-compile)
+        if: ${{ matrix.cross }}
+        run: |
+          # Install x86_64 Homebrew and dependencies
+          arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          arch -x86_64 /usr/local/bin/brew install leptonica tesseract
+
+          # Set pkg-config to find x86_64 libraries
+          echo "PKG_CONFIG_PATH=/usr/local/lib/pkgconfig" >> $GITHUB_ENV
+          echo "PKG_CONFIG_SYSROOT_DIR=/" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: pnpm install
