@@ -4,12 +4,14 @@ import {
   BiRegularCommand,
   BiRegularGlobe,
   BiRegularHistory,
+  BiRegularInfoCircle,
   BiSolidCog,
   BiSolidShield,
 } from "solid-icons/bi";
 import { createMemo, createSignal, Show } from "solid-js";
 import { onCleanup, onMount } from "solid-js";
 
+import { About } from "@/apps/settings/about";
 import { History } from "@/apps/settings/history";
 import { Languages } from "@/apps/settings/languages";
 import { License } from "@/apps/settings/license";
@@ -84,6 +86,10 @@ function SettingsApp() {
               <BiSolidShield />
               License
             </TabsTrigger>
+            <TabsTrigger value="about">
+              <BiRegularInfoCircle />
+              About
+            </TabsTrigger>
           </TabsList>
         </Show>
 
@@ -128,6 +134,9 @@ function SettingsApp() {
           </TabsContent>
           <TabsContent value="history" class="h-full">
             <History />
+          </TabsContent>
+          <TabsContent value="about" class="h-full overflow-auto">
+            <About />
           </TabsContent>
         </Show>
       </main>
