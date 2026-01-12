@@ -13,11 +13,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # macOS Apple Silicon
+          # macOS Apple Silicon (runs on ARM runner)
           - platform: macos-latest
             args: --target aarch64-apple-darwin
-          # macOS Intel
-          - platform: macos-latest
+          # macOS Intel (runs on Intel runner to avoid cross-compilation)
+          - platform: macos-13
             args: --target x86_64-apple-darwin
 
     runs-on: ${{ matrix.platform }}
