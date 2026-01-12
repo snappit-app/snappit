@@ -19,6 +19,7 @@ import { Shortcuts } from "@/apps/settings/shortcuts";
 import { SnappitLicense } from "@/shared/libs/license";
 import { createPermissions } from "@/shared/libs/permissions";
 import { createSettingsVisible } from "@/shared/libs/settings_visible";
+import { createVersion } from "@/shared/libs/version";
 import { ensureSystemLanguagesInstalled, isInitialSetup } from "@/shared/ocr/installed_languages";
 import { SettingsApi } from "@/shared/tauri/settings_api";
 import { Theme } from "@/shared/theme";
@@ -29,6 +30,7 @@ import { Preferences } from "./preferences";
 
 function SettingsApp() {
   Theme.create();
+  const version = createVersion();
   const [visible] = createSettingsVisible();
   const permissions = createPermissions();
   const permissionsGranted = createMemo(() => permissions.state()?.screenRecording ?? false);
@@ -66,7 +68,7 @@ function SettingsApp() {
         class="h-[56px] w-full absolute left-0 top-0 z-55 flex items-center justify-end pr-3  cursor-default select-none"
       />
 
-      <aside class="w-[200px] h-full px-2 pb-7 pt-[56px] flex flex-col justify-between shrink-0">
+      <aside class="w-[200px] h-full px-3 pb-7 pt-[56px] flex flex-col justify-between shrink-0">
         <Show when={canLoadApp()} fallback={<div />}>
           <TabsList>
             <TabsTrigger value="preferences">
@@ -95,7 +97,10 @@ function SettingsApp() {
 
         <div class="flex flex-col items-center justify-center gap-4">
           <img src="/favicon.png" alt="Snappit Logo" class=" w-[32px] h-[32px]" />
-          <span class="text-xs">Snappit</span>
+          <div class="inline-flex flex-col items-center">
+            <span class="text-xs">Snappit</span>
+            <span class="text-xs text-foreground/40">{version()}</span>
+          </div>
         </div>
       </aside>
       <main class="relative grow-1 min-h-0 p-4 pt-[56px] bg-background min-w-[0px]">

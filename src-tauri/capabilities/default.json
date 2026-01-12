@@ -5,6 +5,7 @@
   "windows": ["snap_overlay", "settings", "notification"],
   "permissions": [
     "core:default",
+    "process:default",
     "opener:default",
     "updater:default",
     "core:window:allow-close",

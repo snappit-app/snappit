@@ -2,42 +2,53 @@
   "formatter": null,
   "file_types": {
     "typescript": ["*.ts"],
-    "typescriptreact": ["*.tsx"]
+    "typescriptreact": ["*.tsx"],
   },
   "lsp": {
+    "tailwindcss-language-server": {
+      "settings": {
+        "includeLanguages": {
+          "typescriptreact": "html",
+        },
+        "classAttributes": ["class", "className", "classList"],
+        "experimental": {
+          "configFile": "./shared/global.css",
+        },
+      },
+    },
     "rust-analyzer": {
       "initialization_options": {
         "checkOnSave": true,
         "cargo": {
-          "allTargets": false
+          "allTargets": false,
         },
         "check": {
-          "workspace": false
+          "workspace": false,
         },
         "rust": {
-          "analyzerTargetDir": true
-        }
-      }
-    }
+          "analyzerTargetDir": true,
+        },
+      },
+    },
   },
   "languages": {
     "TSX": {
       "formatter": [],
       "format_on_save": "on",
       "code_actions_on_format": {
-        "source.fixAll.eslint": true
-      }
+        "source.fixAll.eslint": true,
+      },
     },
     "TypeScript": {
       "formatter": [],
       "format_on_save": "on",
       "code_actions_on_format": {
-        "source.fixAll.eslint": true
-      }
+        "source.fixAll.eslint": true,
+      },
     },
     "Rust": {
       "format_on_save": "on",
-      "formatter": "language_server"
-    }
-  }
+      "formatter": "language_server",
+    },
+  },
 }
