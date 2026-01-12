@@ -121,9 +121,7 @@ export function About() {
         {/* Up to date state */}
         <Show when={status() === "up-to-date"}>
           <div class="text-center py-2">
-            <p class="text-sm text-green-600 dark:text-green-400 mb-2">
-              You're using the latest version
-            </p>
+            <p class="text-sm text-product mb-2">You're using the latest version</p>
             <button
               onClick={() => setStatus("idle")}
               class="text-sm text-muted-foreground hover:text-foreground transition-colors"
