@@ -4,7 +4,7 @@ import { JSX, splitProps } from "solid-js";
 import { cn } from "../libs/cn";
 
 export const tagVariants = cva(
-  "px-2 py-[1px] rounded-full text-[10px] bg-product text-product-foreground whitespace-nowrap",
+  "px-2 py-[1px] rounded-full text-[10px] bg-product text-product-foreground whitespace-nowrap inline-flex gap-1 items-center",
   {
     variants: {
       variant: {

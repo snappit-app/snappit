@@ -257,6 +257,17 @@ fn update_tray_license_status(app: AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
+#[tauri::command]
+fn set_update_ready(app: AppHandle, ready: bool) -> tauri::Result<()> {
+    SnappitTray::set_update_ready(&app, ready)?;
+    Ok(())
+}
+
+#[tauri::command]
+fn is_update_ready() -> bool {
+    SnappitTray::is_update_ready()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() -> tauri::Result<()> {
     return tauri::Builder::default()
@@ -334,6 +345,8 @@ pub fn run() -> tauri::Result<()> {
             get_license_key,
             deactivate_license,
             update_tray_license_status,
+            set_update_ready,
+            is_update_ready,
         ])
         .run(tauri::generate_context!());
 }

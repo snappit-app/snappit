@@ -1,105 +1,25 @@
-import { makeTimer } from "@solid-primitives/timer";
-import { relaunch } from "@tauri-apps/plugin-process";
-import { check, Update } from "@tauri-apps/plugin-updater";
-import { createSignal, Show } from "solid-js";
+import { BiSolidCheckCircle, BiSolidCloudDownload } from "solid-icons/bi";
+import { Show } from "solid-js";
 
+import { useAutoUpdate } from "@/shared/auto-update";
 import { createVersion } from "@/shared/libs/version";
 import { Button } from "@/shared/ui/button";
-
-type UpdateStatus =
-  | "idle"
-  | "checking"
-  | "available"
-  | "downloading"
-  | "ready"
-  | "error"
-  | "up-to-date";
+import { Switch, SwitchControl, SwitchLabel, SwitchThumb } from "@/shared/ui/switch";
+import { Tag } from "@/shared/ui/tag";
 
 export function About() {
   const version = createVersion();
-  const [status, setStatus] = createSignal<UpdateStatus>("idle");
-  const [error, setError] = createSignal<string>("");
-  const [updateInfo, setUpdateInfo] = createSignal<Update | null>(null);
-  const [downloadProgress, setDownloadProgress] = createSignal(0);
-  const [countdown, setCountdown] = createSignal(5);
-
-  function startCountdown() {
-    setCountdown(5);
-    const clear = makeTimer(
-      () => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clear();
-            setStatus("idle");
-            return 5;
-          }
-          return prev - 1;
-        });
-      },
-      1000,
-      setInterval,
-    );
-  }
-
-  async function checkForUpdates() {
-    setStatus("checking");
-    setError("");
-
-    try {
-      const update = await check();
-
-      if (!update) {
-        setStatus("up-to-date");
-        startCountdown();
-        return;
-      }
-
-      setUpdateInfo(update);
-      setStatus("available");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to check for updates");
-      setStatus("error");
-    }
-  }
-
-  async function downloadUpdate() {
-    const update = updateInfo();
-    if (!update) return;
-
-    setStatus("downloading");
-    setDownloadProgress(0);
-
-    try {
-      let totalSize = 0;
-      let downloadedSize = 0;
-
-      await update.downloadAndInstall((event) => {
-        switch (event.event) {
-          case "Started":
-            totalSize = event.data.contentLength ?? 0;
-            break;
-          case "Progress":
-            downloadedSize += event.data.chunkLength;
-            if (totalSize > 0) {
-              setDownloadProgress(Math.round((downloadedSize / totalSize) * 100));
-            }
-            break;
-          case "Finished":
-            setDownloadProgress(100);
-            break;
-        }
-      });
-
-      setStatus("ready");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to download update");
-      setStatus("error");
-    }
-  }
-
-  async function restartApp() {
-    await relaunch();
-  }
+  const {
+    checkForUpdates,
+    downloadUpdate,
+    restartApp,
+    status,
+    error,
+    updateInfo,
+    downloadProgress,
+    autoUpdatesEnabled,
+    setAutoUpdatesEnabled,
+  } = useAutoUpdate();
 
   return (
     <>
@@ -128,11 +48,31 @@ export function About() {
         </Show>
 
         <Show when={status() === "up-to-date"}>
-          <div class="flex items-center gap-2 py-2">
-            <span class="text-xs text-foreground">You're up-to-date!</span>
-            <span class="text-xs text-muted-foreground">{countdown()}</span>
+          <div class="flex items-center gap-2 ">
+            <button onClick={checkForUpdates}>
+              <Tag>
+                <BiSolidCheckCircle class="w-[12px] h-[12px]" />
+                <span>You're up to date!</span>
+              </Tag>
+            </button>
           </div>
         </Show>
+      </div>
+
+      <div class="rounded-lg p-3 bg-card mb-3">
+        <Switch
+          class="flex justify-between items-center h-[30px]"
+          checked={autoUpdatesEnabled() ?? false}
+          onChange={(value) => setAutoUpdatesEnabled(value)}
+        >
+          <SwitchLabel class="text-sm font-light flex gap-2 items-center">
+            <BiSolidCloudDownload />
+            Auto updates
+          </SwitchLabel>
+          <SwitchControl variant={"product"}>
+            <SwitchThumb />
+          </SwitchControl>
+        </Switch>
       </div>
 
       {/* Update available state */}
@@ -171,7 +111,7 @@ export function About() {
       {/* Ready to restart state */}
       <Show when={status() === "ready"}>
         <div class="space-y-3 p-3 bg-success/10 rounded-lg text-center flex gap-4 justify-between items-center">
-          <p class="text-success text-xs mb-0">Update downloaded successfully!</p>
+          <p class="text-success text-xs mb-0">Update is ready!</p>
 
           <Button onClick={restartApp} size={"sm"} variant="muted">
             Restart to Update

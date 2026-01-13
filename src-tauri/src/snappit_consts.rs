@@ -29,6 +29,7 @@ pub struct SnappitStoreKeys {
     pub sound_enabled: String,
     pub ocr_keep_line_breaks: String,
     pub qr_auto_open_urls: String,
+    pub auto_updates: String,
 }
 
 #[derive(Debug, Deserialize)]

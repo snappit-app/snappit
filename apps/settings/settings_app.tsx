@@ -16,6 +16,7 @@ import { History } from "@/apps/settings/history";
 import { Languages } from "@/apps/settings/languages";
 import { License } from "@/apps/settings/license";
 import { Shortcuts } from "@/apps/settings/shortcuts";
+import { useAutoUpdate } from "@/shared/auto-update";
 import { SnappitLicense } from "@/shared/libs/license";
 import { createPermissions } from "@/shared/libs/permissions";
 import { createSettingsVisible } from "@/shared/libs/settings_visible";
@@ -38,6 +39,8 @@ function SettingsApp() {
   const [licenseState, refetch] = SnappitLicense.create();
   const [activeTab, setActiveTab] = createSignal("preferences");
   const isTrial = createMemo(() => licenseState()?.licenseType === "trial");
+  const { status: updateStatus } = useAutoUpdate();
+  const isUpdateReady = createMemo(() => updateStatus() === "ready");
   let unlistenOpenTab: UnlistenFn | undefined;
 
   refetch();
@@ -88,9 +91,12 @@ function SettingsApp() {
               <BiSolidShield />
               License
             </TabsTrigger>
-            <TabsTrigger value="about">
+            <TabsTrigger value="about" class="relative">
               <BiRegularInfoCircle />
               About
+              <Show when={isUpdateReady()}>
+                <span class="absolute top-1/2 right-2 w-2 h-2 bg-primary rounded-full -translate-y-1/2" />
+              </Show>
             </TabsTrigger>
           </TabsList>
         </Show>

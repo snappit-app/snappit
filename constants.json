@@ -18,6 +18,7 @@
       "sound_enabled": "settings.sound_enabled",
       "ocr_keep_line_breaks": "settings.ocr_keep_line_breaks",
       "qr_auto_open_urls": "settings.qr_auto_open_urls",
+      "auto_updates": "settings.auto_updates",
       "capture_history": "history.captures"
     }
   },

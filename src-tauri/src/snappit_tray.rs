@@ -1,3 +1,4 @@
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::OnceLock;
 use strum_macros::{AsRefStr, EnumString};
 use tauri::menu::MenuItemKind;
@@ -5,7 +6,7 @@ use tauri::{
     image::Image,
     menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem},
     tray::{TrayIcon, TrayIconBuilder},
-    AppHandle, Wry,
+    AppHandle, Emitter, Wry,
 };
 
 use crate::{
@@ -184,6 +185,9 @@ impl<'a> TryFrom<&'a MenuEvent> for &'a SnappitTrayItem {
 pub struct SnappitTray;
 
 static MENU: OnceLock<Menu<Wry>> = OnceLock::new();
+static UPDATE_READY: AtomicBool = AtomicBool::new(false);
+
+const RESTART_TO_UPDATE_ID: &str = "restart_to_update";
 
 impl SnappitTray {
     const TRAY_ID: &str = "main";
@@ -272,6 +276,87 @@ impl SnappitTray {
 
             Self::update_shortcut(app, tray_item_id, accelerator.as_deref())?;
         }
+
+        Ok(())
+    }
+
+    pub fn is_update_ready() -> bool {
+        UPDATE_READY.load(Ordering::SeqCst)
+    }
+
+    pub fn set_update_ready(app: &AppHandle<Wry>, ready: bool) -> SnappitResult<()> {
+        let was_ready = UPDATE_READY.swap(ready, Ordering::SeqCst);
+
+        // Only update UI if state actually changed
+        if was_ready != ready {
+            Self::update_tray_for_update_state(app, ready)?;
+            // Emit event to frontend so it can update UI (badge in sidebar)
+            app.emit("update:ready_changed", ready)?;
+        }
+
+        Ok(())
+    }
+
+    fn update_tray_for_update_state(app: &AppHandle<Wry>, update_ready: bool) -> SnappitResult<()> {
+        let Some(tray) = app.tray_by_id(Self::TRAY_ID) else {
+            return Ok(());
+        };
+
+        // Update tray icon
+        let icon = if update_ready {
+            Image::from_bytes(include_bytes!("../icons/tray-generated/restart-64x64.png"))?
+        } else {
+            Image::from_bytes(include_bytes!("../icons/tray-generated/64x64.png"))?
+        };
+        tray.set_icon(Some(icon))?;
+
+        // Update menu: add or remove "Restart to Update" item
+        let Some(menu) = MENU.get() else {
+            return Ok(());
+        };
+
+        let items = menu.items()?;
+
+        // Find existing restart item
+        let existing_restart_item = items.iter().find(|kind| {
+            if let MenuItemKind::MenuItem(item) = kind {
+                item.id().as_ref() == RESTART_TO_UPDATE_ID
+            } else {
+                false
+            }
+        });
+
+        if update_ready {
+            // Add restart item if not present
+            if existing_restart_item.is_none() {
+                // Find the position after "Settings..." item
+                let settings_position = items.iter().position(|kind| {
+                    if let MenuItemKind::MenuItem(item) = kind {
+                        item.id().as_ref() == SnappitTrayItemId::Settings.as_ref()
+                    } else {
+                        false
+                    }
+                });
+
+                if let Some(pos) = settings_position {
+                    let restart_item = MenuItem::with_id(
+                        app,
+                        RESTART_TO_UPDATE_ID,
+                        "Restart to Update",
+                        true,
+                        Option::<&str>::None,
+                    )?;
+                    menu.insert(&restart_item, pos + 1)?;
+                }
+            }
+        } else {
+            // Remove restart item if present
+            if let Some(MenuItemKind::MenuItem(item)) = existing_restart_item {
+                menu.remove(item)?;
+            }
+        }
+
+        tray.set_menu(Some(menu.clone()))?;
 
         Ok(())
     }
@@ -369,6 +454,12 @@ impl SnappitTray {
             .icon(tray_icon)
             .icon_as_template(true)
             .on_menu_event(|app, event| {
+                // Handle restart to update click
+                if event.id.as_ref() == RESTART_TO_UPDATE_ID {
+                    log::info!("Restart to update clicked, relaunching app...");
+                    app.restart();
+                }
+
                 if let Ok(item) = <&SnappitTrayItem>::try_from(&event) {
                     if let Some(handler) = item.handler() {
                         if let Err(err) = handler(app) {
