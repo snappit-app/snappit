@@ -1,3 +1,4 @@
+import { makeTimer } from "@solid-primitives/timer";
 import { BiRegularQrScan, BiSolidCopy, BiSolidEyedropper, BiSolidRuler } from "solid-icons/bi";
 import {
   Accessor,
@@ -43,14 +44,11 @@ export function NotificationItem(props: NotificationProps) {
     on(props.notificationId, (currentId) => {
       setProgress(100);
 
-      let progressInterval: ReturnType<typeof setInterval> | undefined;
-      let animateOutTimeout: ReturnType<typeof setTimeout> | undefined;
-      let hideTimeout: ReturnType<typeof setTimeout> | undefined;
+      const cleanupFns: (() => void)[] = [];
 
       const cleanup = () => {
-        if (progressInterval) clearInterval(progressInterval);
-        if (animateOutTimeout) clearTimeout(animateOutTimeout);
-        if (hideTimeout) clearTimeout(hideTimeout);
+        cleanupFns.forEach((fn) => fn());
+        cleanupFns.length = 0;
       };
 
       onCleanup(cleanup);
@@ -60,33 +58,48 @@ export function NotificationItem(props: NotificationProps) {
         const durationMs = await NotificationDurationSettings.getDurationMs();
 
         const startTime = Date.now();
-        progressInterval = setInterval(() => {
-          if (props.notificationId() !== currentId) {
-            cleanup();
-            return;
-          }
-          const elapsed = Date.now() - startTime;
-          const remaining = Math.max(0, 100 - (elapsed / durationMs) * 100);
-          setProgress(remaining);
-          if (remaining <= 0) {
-            clearInterval(progressInterval);
-          }
-        }, 16);
+        const clearProgress = makeTimer(
+          () => {
+            if (props.notificationId() !== currentId) {
+              cleanup();
+              return;
+            }
+            const elapsed = Date.now() - startTime;
+            const remaining = Math.max(0, 100 - (elapsed / durationMs) * 100);
+            setProgress(remaining);
+            if (remaining <= 0) {
+              clearProgress();
+            }
+          },
+          16,
+          setInterval,
+        );
+        cleanupFns.push(clearProgress);
 
         // Start native exit animation before hiding
-        animateOutTimeout = setTimeout(async () => {
-          if (props.notificationId() === currentId) {
-            await NotificationApi.animateOut();
-          }
-        }, durationMs - ANIMATION_DURATION_MS);
+        const clearAnimateOut = makeTimer(
+          async () => {
+            if (props.notificationId() === currentId) {
+              await NotificationApi.animateOut();
+            }
+          },
+          durationMs - ANIMATION_DURATION_MS,
+          setTimeout,
+        );
+        cleanupFns.push(clearAnimateOut);
 
         // Hide window after animation completes
-        hideTimeout = setTimeout(async () => {
-          if (props.notificationId() === currentId) {
-            cleanup();
-            await NotificationApi.hide();
-          }
-        }, durationMs);
+        const clearHide = makeTimer(
+          async () => {
+            if (props.notificationId() === currentId) {
+              cleanup();
+              await NotificationApi.hide();
+            }
+          },
+          durationMs,
+          setTimeout,
+        );
+        cleanupFns.push(clearHide);
       })();
     }),
   );

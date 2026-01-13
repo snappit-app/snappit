@@ -10,12 +10,14 @@ function NotificationApp() {
 
   return (
     <Show when={visible() && target()} keyed>
-      <NotificationItem
-        target={target}
-        payload={payload}
-        data={data}
-        notificationId={notificationId}
-      />
+      {(currentTarget) => (
+        <NotificationItem
+          target={() => currentTarget}
+          payload={payload}
+          data={data}
+          notificationId={notificationId}
+        />
+      )}
     </Show>
   );
 }

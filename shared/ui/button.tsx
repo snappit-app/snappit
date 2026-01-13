@@ -29,6 +29,13 @@ export const buttonVariants = cva(
         icon: "h-7 w-7",
       },
     },
+    compoundVariants: [
+      {
+        variant: "link",
+        size: "sm",
+        class: "px-0",
+      },
+    ],
     defaultVariants: {
       variant: "default",
       size: "default",

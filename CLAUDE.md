@@ -8,15 +8,16 @@ Snappit is a macOS desktop application for screen capture and utility tasks, bui
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `pnpm start` | Primary dev command - runs `tauri dev` with hot-reloading |
-| `pnpm build-tauri` | Build production Tauri application |
-| `pnpm lint` | Run ESLint |
-| `pnpm format` | Run ESLint with auto-fix |
-| `pnpm resolve-dylib` | Resolve dynamic library paths for macOS |
+| Command              | Description                                               |
+| -------------------- | --------------------------------------------------------- |
+| `pnpm start`         | Primary dev command - runs `tauri dev` with hot-reloading |
+| `pnpm build-tauri`   | Build production Tauri application                        |
+| `pnpm lint`          | Run ESLint                                                |
+| `pnpm format`        | Run ESLint with auto-fix                                  |
+| `pnpm resolve-dylib` | Resolve dynamic library paths for macOS                   |
 
 For Rust backend:
+
 - `cargo check` in `src-tauri/` to type-check Rust code
 - `cargo build` in `src-tauri/` to build backend only
 
@@ -25,22 +26,26 @@ For Rust backend:
 ### Multi-Page Application Structure
 
 The frontend uses Vite MPA with three entry points:
+
 - `apps/snap_overlay/` - Main transparent overlay for screen capture and tools
 - `apps/settings/` - Settings window
 - `apps/notifications/` - Custom notification UI
 
 ### Shared Code (`shared/`)
+
 - `ui/` - Reusable SolidJS UI components (Button, Select, Switch, etc.)
 - `tauri/` - TypeScript wrappers for Tauri IPC commands (`*_api.ts` files)
 - `libs/` - Utility functions and shared logic
 - `store/` - SolidJS stores for state management
 
 ### Rust Backend (`src-tauri/src/`)
+
 - `lib.rs` - Main entry point, exposes all Tauri commands
 - `snappit_*.rs` - Feature modules (overlay, ocr, shortcuts, license, etc.)
 - `snappit_ocr/` and `snappit_qr/` - OCR and QR code processing
 
 ### Path Aliases (vite.config.ts)
+
 - `@` → project root
 - `@shared` → `./shared`
 - `@overlay` → `./apps/overlay`
@@ -61,3 +66,4 @@ The frontend uses Vite MPA with three entry points:
 - ESLint with Prettier (100 char width, double quotes, 2-space indent)
 - Import sorting via `eslint-plugin-simple-import-sort`
 - Unused vars allowed if prefixed with `_`
+- **Solid Primitives**: Always prefer `@solid-primitives/*` packages over custom implementations. Only write custom primitives if no suitable solid-primitives package exists.

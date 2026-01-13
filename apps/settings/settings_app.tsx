@@ -99,7 +99,7 @@ function SettingsApp() {
           <img src="/favicon.png" alt="Snappit Logo" class=" w-[32px] h-[32px]" />
           <div class="inline-flex flex-col items-center">
             <span class="text-xs">Snappit</span>
-            <span class="text-xs text-foreground/40">{version()}</span>
+            <span class="text-xs text-muted-foreground">{version()}</span>
           </div>
         </div>
       </aside>
