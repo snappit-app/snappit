@@ -15,11 +15,13 @@ jobs:
         include:
           # macOS Apple Silicon
           - platform: macos-latest
-            args: --target aarch64-apple-darwin
-          # macOS Intel (cross-compile from ARM with x86_64 Homebrew)
+            target: aarch64-apple-darwin
+            brew_prefix: /opt/homebrew
+          # macOS Intel
           - platform: macos-latest
-            args: --target x86_64-apple-darwin
-            cross: true
+            target: x86_64-apple-darwin
+            brew_prefix: /usr/local
+            arch: x86_64
 
     runs-on: ${{ matrix.platform }}
 
@@ -42,24 +44,46 @@ jobs:
         with:
           targets: aarch64-apple-darwin,x86_64-apple-darwin
 
-      - name: Install system dependencies (native)
-        if: ${{ !matrix.cross }}
+      - name: Install system dependencies (arm64)
+        if: ${{ !matrix.arch }}
         run: |
-          brew install leptonica tesseract
+          brew install leptonica tesseract libarchive
 
-      - name: Install system dependencies (x86_64 cross-compile)
-        if: ${{ matrix.cross }}
+      - name: Install system dependencies (x86_64)
+        if: ${{ matrix.arch == 'x86_64' }}
         run: |
-          # Install x86_64 Homebrew and dependencies
+          # Install x86_64 Homebrew
           arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          arch -x86_64 /usr/local/bin/brew install leptonica tesseract
+          arch -x86_64 /usr/local/bin/brew install leptonica tesseract libarchive
 
-          # Set pkg-config to find x86_64 libraries
-          echo "PKG_CONFIG_PATH=/usr/local/lib/pkgconfig" >> $GITHUB_ENV
-          echo "PKG_CONFIG_SYSROOT_DIR=/" >> $GITHUB_ENV
+      - name: Set environment for x86_64
+        if: ${{ matrix.arch == 'x86_64' }}
+        run: |
+          echo "PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/opt/libarchive/lib/pkgconfig" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Copy and patch dylibs for bundling
+        run: |
+          LIB_MAC_DIR="src-tauri/resources/lib-mac"
+          BREW_PREFIX="${{ matrix.brew_prefix }}"
+
+          # Ensure lib-mac directory exists
+          mkdir -p "$LIB_MAC_DIR"
+
+          # Copy main libraries
+          cp "$BREW_PREFIX/opt/tesseract/lib/libtesseract.5.dylib" "$LIB_MAC_DIR/"
+          cp "$BREW_PREFIX/opt/leptonica/lib/libleptonica.6.dylib" "$LIB_MAC_DIR/"
+          cp "$BREW_PREFIX/opt/libarchive/lib/libarchive.13.dylib" "$LIB_MAC_DIR/"
+
+          # Run resolve-paths.sh to copy all transitive dependencies and patch paths
+          chmod +x ./resolve-paths.sh
+          ./resolve-paths.sh "$LIB_MAC_DIR" "$LIB_MAC_DIR"
+
+          # Verify architecture
+          echo "Verifying ${{ matrix.target }} architecture:"
+          file "$LIB_MAC_DIR"/*.dylib | head -5
 
       - name: Build and release
         uses: tauri-apps/tauri-action@v0
@@ -81,4 +105,4 @@ jobs:
             - See commit history for changes
           releaseDraft: true
           prerelease: false
-          args: ${{ matrix.args }}
+          args: --target ${{ matrix.target }}

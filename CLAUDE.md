@@ -6,6 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Snappit is a macOS desktop application for screen capture and utility tasks, built with Tauri v2 (Rust backend) and SolidJS (TypeScript frontend). Features include OCR, QR code scanning, color picking, and screen magnification.
 
+## Development Setup
+
+Before running the project locally, install required system dependencies:
+
+```bash
+brew install leptonica tesseract libarchive
+```
+
+Then run `pnpm resolve-dylib` to copy and patch libraries for bundling.
+
 ## Commands
 
 | Command              | Description                                               |
