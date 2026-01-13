@@ -140,44 +140,54 @@ list_deps() {
 
 copy_and_fix_id() {
   # $1 = src abs path
-  # Returns 0 if copied, 1 if already present
+  # Sets COPY_RESULT=1 if copied or ID was fixed, COPY_RESULT=0 if already present and ID is correct
   src="$1"
   base="$(basename "$src")"
   dst="$DEST_DIR/$base"
+  COPY_RESULT=0
+  idpath="@rpath/$base"
   if [ -f "$dst" ]; then
     log "Already present: $base"
-    return 1
+    # Check if ID needs to be fixed (first line of otool -L output after the filename line)
+    current_id=$(otool -D "$dst" 2>/dev/null | sed -n '2p')
+    if [ "$current_id" != "$idpath" ]; then
+      log "Fixing install_name (id): $current_id -> $idpath"
+      do_chmod_u_w "$dst"
+      do_install_id "$idpath" "$dst"
+      mark_for_codesign "$dst"
+      COPY_RESULT=1
+    fi
   else
     log "Copy: $src -> $dst"
     do_cp "$src" "$dst"
     do_chmod_u_w "$dst"
-    idpath="@rpath/$base"
     log "Set install_name (id): $idpath"
     do_install_id "$idpath" "$dst"
     mark_for_codesign "$dst"
-    return 0
+    COPY_RESULT=1
   fi
 }
 
 change_dep_to_rpath() {
   # $1 = target file, $2 = old path
-  # Returns 0 if changed, 1 if nothing to do
+  # Sets DEP_CHANGED=1 if changed, DEP_CHANGED=0 if nothing to do
   target="$1"
   old="$2"
   base="$(basename "$old")"
   new="@rpath/$base"
+  DEP_CHANGED=0
   # If it's already @rpath/<same>, skip
   case "$old" in
-    "@rpath/"*) return 1 ;;
+    "@rpath/"*) return 0 ;;
   esac
   # Check if this dependency is actually still present in the file
   if ! otool -L "$target" 2>/dev/null | grep -qF "$old"; then
-    return 1
+    return 0
   fi
   log "Rewrite in '$target': $old -> $new"
   do_change_dep "$old" "$new" "$target"
   mark_for_codesign "$target"
-  return 0
+  DEP_CHANGED=1
 }
 
 record_unresolved() {
@@ -237,7 +247,11 @@ while : ; do
   : > "$UNRESOLVED_LIST"
 
   TMP_LIST="$(mktemp)"
-  ( find "$SCAN_DIR" "$DEST_DIR" -type f -name '*.dylib' 2>/dev/null || true ) > "$TMP_LIST"
+  TMP_LIST_RAW="$(mktemp)"
+  ( find "$SCAN_DIR" "$DEST_DIR" -type f -name '*.dylib' 2>/dev/null || true ) > "$TMP_LIST_RAW"
+  # Deduplicate files (in case SCAN_DIR == DEST_DIR or overlapping paths)
+  sort -u "$TMP_LIST_RAW" > "$TMP_LIST"
+  rm -f "$TMP_LIST_RAW"
 
   while IFS= read -r dylib; do
     [ -n "$dylib" ] || continue
@@ -263,16 +277,16 @@ while : ; do
         /opt/homebrew/*|/usr/local/Cellar/*|/usr/local/lib/*|/usr/local/opt/*)
           if [ -f "$dep" ]; then
             copy_and_fix_id "$dep"
-            if change_dep_to_rpath "$dylib" "$dep"; then
-              CHANGED=1
-            fi
+            [ "$COPY_RESULT" -eq 1 ] && CHANGED=1
+            change_dep_to_rpath "$dylib" "$dep"
+            [ "$DEP_CHANGED" -eq 1 ] && CHANGED=1
           else
             bn="$(basename "$dep")"
             if found="$(find_brew_lib "$bn" 2>/dev/null)"; then
               copy_and_fix_id "$found"
-              if change_dep_to_rpath "$dylib" "$dep"; then
-                CHANGED=1
-              fi
+              [ "$COPY_RESULT" -eq 1 ] && CHANGED=1
+              change_dep_to_rpath "$dylib" "$dep"
+              [ "$DEP_CHANGED" -eq 1 ] && CHANGED=1
             else
               log "Unresolved (Homebrew not found): $dep"
               record_unresolved "$dylib" "$dep" "homebrew-not-found"
@@ -288,9 +302,9 @@ while : ; do
         /*)
           if [ -f "$dep" ]; then
             copy_and_fix_id "$dep"
-            if change_dep_to_rpath "$dylib" "$dep"; then
-              CHANGED=1
-            fi
+            [ "$COPY_RESULT" -eq 1 ] && CHANGED=1
+            change_dep_to_rpath "$dylib" "$dep"
+            [ "$DEP_CHANGED" -eq 1 ] && CHANGED=1
           else
             log "Unresolved (absolute missing): $dep"
             record_unresolved "$dylib" "$dep" "absolute-missing"
@@ -309,9 +323,8 @@ while : ; do
             :
           else
             if found="$(find_brew_lib "$bn" 2>/dev/null)"; then
-              if copy_and_fix_id "$found"; then
-                CHANGED=1
-              fi
+              copy_and_fix_id "$found"
+              [ "$COPY_RESULT" -eq 1 ] && CHANGED=1
             else
               log "Unresolved (@rpath not found locally or in brew): $dep"
               record_unresolved "$dylib" "$dep" "rpath-missing"
@@ -328,15 +341,14 @@ while : ; do
           bn="$(basename "$dep")"
           if [ -f "$DEST_DIR/$bn" ]; then
             # normalize to @rpath only once; if already @rpath/<bn>, change_dep_to_rpath is a no-op
-            if change_dep_to_rpath "$dylib" "$dep"; then
-              CHANGED=1
-            fi
+            change_dep_to_rpath "$dylib" "$dep"
+            [ "$DEP_CHANGED" -eq 1 ] && CHANGED=1
           else
             if found="$(find_brew_lib "$bn" 2>/dev/null)"; then
               copy_and_fix_id "$found"
-              if change_dep_to_rpath "$dylib" "$dep"; then
-                CHANGED=1
-              fi
+              [ "$COPY_RESULT" -eq 1 ] && CHANGED=1
+              change_dep_to_rpath "$dylib" "$dep"
+              [ "$DEP_CHANGED" -eq 1 ] && CHANGED=1
             else
               log "Unresolved (loader/exe path missing): $dep"
               record_unresolved "$dylib" "$dep" "loader-exe-missing"
