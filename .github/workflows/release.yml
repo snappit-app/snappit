@@ -124,7 +124,7 @@ jobs:
 
           echo "Release ID: $RELEASE_ID"
 
-          # Get and rename assets
+          # Get and rename only .dmg assets (not .tar.gz - those are referenced by latest.json for auto-updates)
           gh api repos/${{ github.repository }}/releases/$RELEASE_ID/assets --jq '.[] | "\(.id) \(.name)"' | while read -r ASSET_ID ASSET_NAME; do
             NEW_NAME=""
 
@@ -132,10 +132,6 @@ jobs:
               NEW_NAME="snappit_${ARCH_NAME}.dmg"
             elif [[ "$ASSET_NAME" == *.dmg.sig ]]; then
               NEW_NAME="snappit_${ARCH_NAME}.dmg.sig"
-            elif [[ "$ASSET_NAME" == *.tar.gz && "$ASSET_NAME" != *.tar.gz.sig ]]; then
-              NEW_NAME="snappit_${ARCH_NAME}.app.tar.gz"
-            elif [[ "$ASSET_NAME" == *.tar.gz.sig ]]; then
-              NEW_NAME="snappit_${ARCH_NAME}.app.tar.gz.sig"
             fi
 
             if [[ -n "$NEW_NAME" && "$ASSET_NAME" != "$NEW_NAME" ]]; then
