@@ -68,7 +68,7 @@ function SettingsApp() {
     >
       <header
         data-tauri-drag-region
-        class="h-[56px] w-full absolute left-0 top-0 z-55 flex items-center justify-end pr-3  cursor-default select-none"
+        class="h-[56px] w-full absolute left-0 top-0 z-55 flex items-center justify-end pr-3 cursor-default select-none"
       />
 
       <aside class="w-[200px] h-full px-3 pb-7 pt-[56px] flex flex-col justify-between shrink-0">
@@ -109,7 +109,7 @@ function SettingsApp() {
           </div>
         </div>
       </aside>
-      <main class="relative grow-1 min-h-0 p-4 pt-[56px] bg-background min-w-[0px]">
+      <main class="relative grow-1 min-h-0 pt-[56px] bg-background min-w-[0px]">
         <Show when={isTrial()}>
           <div class="fixed right-[16px] top-[11px]">
             <TrialBadge />

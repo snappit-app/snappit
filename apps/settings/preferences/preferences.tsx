@@ -57,7 +57,7 @@ export function Preferences() {
   });
 
   return (
-    <>
+    <div class="p-3">
       <h2 class="text-center text-bold mb-3 font-bold text-xl">Preferences</h2>
 
       <div class="rounded-lg p-3 bg-card mb-3">
@@ -228,6 +228,6 @@ export function Preferences() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

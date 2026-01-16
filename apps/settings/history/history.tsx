@@ -89,7 +89,7 @@ export function History() {
   });
 
   return (
-    <>
+    <div class="p-3">
       <h2 class="text-center font-bold mb-3 text-xl">History</h2>
 
       <Show when={!isEmpty()}>
@@ -171,11 +171,11 @@ export function History() {
             </div>
           }
         >
-          <div class="flex flex-col gap-2 h-[408px] -mr-[16px] pr-[2px] overflow-y-auto [scrollbar-gutter:stable]">
+          <div class="flex flex-col gap-2 h-[412px] pb-3 -mr-4 pr-4 overflow-y-auto [scrollbar-gutter:stable]">
             <For each={filteredItems()}>{(item) => <HistoryItem item={item} />}</For>
           </div>
         </Show>
       </Show>
-    </>
+    </div>
   );
 }
