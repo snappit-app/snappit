@@ -88,6 +88,7 @@ jobs:
           file "$LIB_MAC_DIR"/*.dylib | head -5
 
       - name: Build and release
+        id: tauri
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -108,3 +109,39 @@ jobs:
           releaseDraft: true
           prerelease: false
           args: --target ${{ matrix.target }}
+
+      - name: Rename release assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+
+          # Determine architecture suffix
+          if [[ "${{ matrix.target }}" == "aarch64-apple-darwin" ]]; then
+            ARCH_NAME="mac_arm"
+          else
+            ARCH_NAME="mac_intel"
+          fi
+
+          # Get release ID
+          RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/$TAG_NAME --jq '.id')
+
+          # Get and rename assets
+          gh api repos/${{ github.repository }}/releases/$RELEASE_ID/assets --jq '.[] | "\(.id) \(.name)"' | while read -r ASSET_ID ASSET_NAME; do
+            NEW_NAME=""
+
+            if [[ "$ASSET_NAME" == *.dmg ]]; then
+              NEW_NAME="snappit_${ARCH_NAME}.dmg"
+            elif [[ "$ASSET_NAME" == *.dmg.sig ]]; then
+              NEW_NAME="snappit_${ARCH_NAME}.dmg.sig"
+            elif [[ "$ASSET_NAME" == *.tar.gz ]]; then
+              NEW_NAME="snappit_${ARCH_NAME}.app.tar.gz"
+            elif [[ "$ASSET_NAME" == *.tar.gz.sig ]]; then
+              NEW_NAME="snappit_${ARCH_NAME}.app.tar.gz.sig"
+            fi
+
+            if [[ -n "$NEW_NAME" && "$ASSET_NAME" != "$NEW_NAME" ]]; then
+              echo "Renaming $ASSET_NAME -> $NEW_NAME"
+              gh api --method PATCH repos/${{ github.repository }}/releases/assets/$ASSET_ID -f name="$NEW_NAME"
+            fi
+          done
