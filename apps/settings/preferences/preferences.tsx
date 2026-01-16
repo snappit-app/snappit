@@ -9,7 +9,7 @@ import {
   BiSolidPalette,
   BiSolidUser,
 } from "solid-icons/bi";
-import { onMount, Show } from "solid-js";
+import { createMemo, onMount, Show } from "solid-js";
 
 import { AutostartSettings } from "@/shared/autostart";
 import { SNAPPIT_CONSTS } from "@/shared/constants";
@@ -36,20 +36,24 @@ export function Preferences() {
   const [notificationsEnabled, setNotificationsEnabled] = NotificationSettings.create();
   const [notificationDuration, setNotificationDuration] = NotificationDurationSettings.create();
   const [autostartEnabled, setAutostartEnabled, autostartReady] = AutostartSettings.create();
-  const [toolsEnabled, setToolsEnabled] = SnappitStore.createValue<boolean>(
+  const [toolsEnabled, setToolsEnabled, , toolsLoading] = SnappitStore.createValue<boolean>(
     SNAPPIT_CONSTS.store.keys.tools_panel,
   );
-  const [colorFormat, setColorFormat] = SnappitStore.createValue<ColorFormat>(
+  const [colorFormat, setColorFormat, , colorFormatLoading] = SnappitStore.createValue<ColorFormat>(
     SNAPPIT_CONSTS.store.keys.preferred_color_format,
   );
-  const [soundEnabled, setSoundEnabled] = SnappitStore.createValue<boolean>(
+  const [soundEnabled, setSoundEnabled, , soundLoading] = SnappitStore.createValue<boolean>(
     SNAPPIT_CONSTS.store.keys.sound_enabled,
   );
-  const [ocrKeepLineBreaks, setOcrKeepLineBreaks] = SnappitStore.createValue<boolean>(
+  const [ocrKeepLineBreaks, setOcrKeepLineBreaks, , ocrLoading] = SnappitStore.createValue<boolean>(
     SNAPPIT_CONSTS.store.keys.ocr_keep_line_breaks,
   );
-  const [qrAutoOpenUrls, setQrAutoOpenUrls] = SnappitStore.createValue<boolean>(
+  const [qrAutoOpenUrls, setQrAutoOpenUrls, , qrLoading] = SnappitStore.createValue<boolean>(
     SNAPPIT_CONSTS.store.keys.qr_auto_open_urls,
+  );
+
+  const isLoading = createMemo(
+    () => toolsLoading() || colorFormatLoading() || soundLoading() || ocrLoading() || qrLoading(),
   );
 
   onMount(async () => {
@@ -57,177 +61,187 @@ export function Preferences() {
   });
 
   return (
-    <div class="p-3">
-      <h2 class="text-center text-bold mb-3 font-bold text-xl">Preferences</h2>
-
-      <div class="rounded-lg p-3 bg-card mb-3">
-        <div class="flex justify-between items-center">
-          <div class="text-sm font-light flex gap-2 items-center">
-            <BiRegularSun />
-            Theme
-          </div>
-          <ToggleGroup size={"sm"} color={"product"} value={theme()}>
-            <ToggleGroupItem onClick={() => setTheme("light")} value="light">
-              Light
-            </ToggleGroupItem>
-            <ToggleGroupItem onClick={() => setTheme("dark")} value="dark">
-              Dark
-            </ToggleGroupItem>
-
-            <ToggleGroupItem onClick={() => setTheme("system")} value="system">
-              System
-            </ToggleGroupItem>
-          </ToggleGroup>
+    <Show
+      when={!isLoading()}
+      fallback={
+        <div class="h-full flex flex-col items-center justify-center">
+          <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mb-4" />
+          <p class="text-sm font-medium">Loading preferences...</p>
         </div>
-      </div>
+      }
+    >
+      <div class="p-3">
+        <h2 class="text-center text-bold mb-3 font-bold text-xl">Preferences</h2>
 
-      <div class="rounded-lg p-3 bg-card mb-3">
-        <Switch
-          class="flex justify-between items-center h-[30px]"
-          checked={autostartEnabled()}
-          onChange={setAutostartEnabled}
-          disabled={!autostartReady()}
-        >
-          <SwitchLabel class="text-sm font-light  flex gap-2 items-center">
-            <BiSolidUser />
-            Launch at startup
-          </SwitchLabel>
-          <SwitchControl variant={"product"}>
-            <SwitchThumb />
-          </SwitchControl>
-        </Switch>
-
-        <Switch
-          class="flex justify-between items-center h-[30px]"
-          checked={soundEnabled() ?? true}
-          onChange={(value) => setSoundEnabled(value)}
-        >
-          <SwitchLabel class="text-sm font-light flex gap-2 items-center">
-            <BiSolidBell />
-            Sounds
-          </SwitchLabel>
-          <SwitchControl variant={"product"}>
-            <SwitchThumb />
-          </SwitchControl>
-        </Switch>
-
-        <Switch
-          class="flex justify-between items-center h-[30px]"
-          checked={ocrKeepLineBreaks() ?? true}
-          onChange={(value) => setOcrKeepLineBreaks(value)}
-        >
-          <SwitchLabel class="text-sm font-light flex gap-2 items-center">
-            <BiRegularText />
-            Keep line breaks
-          </SwitchLabel>
-          <SwitchControl variant={"product"}>
-            <SwitchThumb />
-          </SwitchControl>
-        </Switch>
-
-        <Switch
-          class="flex justify-between items-center h-[30px]"
-          checked={!!toolsEnabled()}
-          onChange={(value) => setToolsEnabled(value)}
-        >
-          <SwitchLabel class="text-sm font-light flex gap-2 items-center">
-            <BiSolidDockBottom /> Tools panel
-          </SwitchLabel>
-          <SwitchControl variant={"product"}>
-            <SwitchThumb />
-          </SwitchControl>
-        </Switch>
-
-        <Switch
-          class="flex justify-between items-center h-[30px]"
-          checked={qrAutoOpenUrls() ?? false}
-          onChange={(value) => setQrAutoOpenUrls(value)}
-        >
-          <SwitchLabel class="text-sm font-light flex gap-2 items-center">
-            <BiRegularLinkExternal />
-            Auto-open QR URLs
-          </SwitchLabel>
-          <SwitchControl variant={"product"}>
-            <SwitchThumb />
-          </SwitchControl>
-        </Switch>
-      </div>
-
-      <div class="rounded-lg p-3 bg-card mb-3">
-        <Switch
-          class="flex justify-between items-center h-[30px]"
-          checked={notificationsEnabled()}
-          onChange={(e) => setNotificationsEnabled(e)}
-        >
-          <SwitchLabel class="text-sm font-light flex gap-2 items-center">
-            <BiSolidNotification />
-            Notifications
-          </SwitchLabel>
-          <SwitchControl variant={"product"}>
-            <SwitchThumb />
-          </SwitchControl>
-        </Switch>
-
-        <Show when={notificationsEnabled()}>
-          <div class="flex justify-between items-center h-[30px]">
+        <div class="rounded-lg p-3 bg-card mb-3">
+          <div class="flex justify-between items-center">
             <div class="text-sm font-light flex gap-2 items-center">
-              <BiRegularTimer /> Duration
+              <BiRegularSun />
+              Theme
             </div>
-            <Select
-              value={notificationDuration() ?? DEFAULT_NOTIFICATION_DURATION}
-              onChange={(value) => value && setNotificationDuration(value)}
-              options={NOTIFICATION_DURATION_OPTIONS.map((o) => o.value)}
-              itemComponent={(props) => (
-                <SelectItem item={props.item}>
-                  {
-                    NOTIFICATION_DURATION_OPTIONS.find((o) => o.value === props.item.rawValue)
-                      ?.label
-                  }
-                </SelectItem>
-              )}
-            >
-              <SelectTrigger class="w-[130px]">
-                <SelectValue<NotificationDuration>>
-                  {(state) =>
-                    NOTIFICATION_DURATION_OPTIONS.find((o) => o.value === state.selectedOption())
-                      ?.label
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent />
-            </Select>
-          </div>
-        </Show>
-      </div>
+            <ToggleGroup size={"sm"} color={"product"} value={theme()}>
+              <ToggleGroupItem onClick={() => setTheme("light")} value="light">
+                Light
+              </ToggleGroupItem>
+              <ToggleGroupItem onClick={() => setTheme("dark")} value="dark">
+                Dark
+              </ToggleGroupItem>
 
-      <div class="rounded-lg p-3 bg-card mb-3">
-        <div class="flex flex-col gap-2">
-          <div class="flex justify-between items-center h-[30px]">
-            <div class="text-sm font-light flex gap-2 items-center">
-              <BiSolidPalette /> Color format
-            </div>
-            <Select
-              value={colorFormat() ?? DEFAULT_COLOR_FORMAT}
-              onChange={(value) => value && setColorFormat(value)}
-              options={COLOR_FORMAT_OPTIONS.map((o) => o.value)}
-              itemComponent={(props) => (
-                <SelectItem item={props.item}>
-                  {COLOR_FORMAT_OPTIONS.find((o) => o.value === props.item.rawValue)?.label}
-                </SelectItem>
-              )}
-            >
-              <SelectTrigger class="w-[130px]">
-                <SelectValue<ColorFormat>>
-                  {(state) =>
-                    COLOR_FORMAT_OPTIONS.find((o) => o.value === state.selectedOption())?.label
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent />
-            </Select>
+              <ToggleGroupItem onClick={() => setTheme("system")} value="system">
+                System
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
         </div>
+
+        <div class="rounded-lg p-3 bg-card mb-3">
+          <Switch
+            class="flex justify-between items-center h-[30px]"
+            checked={autostartEnabled()}
+            onChange={setAutostartEnabled}
+            disabled={!autostartReady()}
+          >
+            <SwitchLabel class="text-sm font-light  flex gap-2 items-center">
+              <BiSolidUser />
+              Launch at startup
+            </SwitchLabel>
+            <SwitchControl variant={"product"}>
+              <SwitchThumb />
+            </SwitchControl>
+          </Switch>
+
+          <Switch
+            class="flex justify-between items-center h-[30px]"
+            checked={soundEnabled() ?? true}
+            onChange={(value) => setSoundEnabled(value)}
+          >
+            <SwitchLabel class="text-sm font-light flex gap-2 items-center">
+              <BiSolidBell />
+              Sounds
+            </SwitchLabel>
+            <SwitchControl variant={"product"}>
+              <SwitchThumb />
+            </SwitchControl>
+          </Switch>
+
+          <Switch
+            class="flex justify-between items-center h-[30px]"
+            checked={ocrKeepLineBreaks() ?? true}
+            onChange={(value) => setOcrKeepLineBreaks(value)}
+          >
+            <SwitchLabel class="text-sm font-light flex gap-2 items-center">
+              <BiRegularText />
+              Keep line breaks
+            </SwitchLabel>
+            <SwitchControl variant={"product"}>
+              <SwitchThumb />
+            </SwitchControl>
+          </Switch>
+
+          <Switch
+            class="flex justify-between items-center h-[30px]"
+            checked={!!toolsEnabled()}
+            onChange={(value) => setToolsEnabled(value)}
+          >
+            <SwitchLabel class="text-sm font-light flex gap-2 items-center">
+              <BiSolidDockBottom /> Tools panel
+            </SwitchLabel>
+            <SwitchControl variant={"product"}>
+              <SwitchThumb />
+            </SwitchControl>
+          </Switch>
+
+          <Switch
+            class="flex justify-between items-center h-[30px]"
+            checked={qrAutoOpenUrls() ?? false}
+            onChange={(value) => setQrAutoOpenUrls(value)}
+          >
+            <SwitchLabel class="text-sm font-light flex gap-2 items-center">
+              <BiRegularLinkExternal />
+              Auto-open QR URLs
+            </SwitchLabel>
+            <SwitchControl variant={"product"}>
+              <SwitchThumb />
+            </SwitchControl>
+          </Switch>
+        </div>
+
+        <div class="rounded-lg p-3 bg-card mb-3">
+          <Switch
+            class="flex justify-between items-center h-[30px]"
+            checked={notificationsEnabled()}
+            onChange={(e) => setNotificationsEnabled(e)}
+          >
+            <SwitchLabel class="text-sm font-light flex gap-2 items-center">
+              <BiSolidNotification />
+              Notifications
+            </SwitchLabel>
+            <SwitchControl variant={"product"}>
+              <SwitchThumb />
+            </SwitchControl>
+          </Switch>
+
+          <Show when={notificationsEnabled()}>
+            <div class="flex justify-between items-center h-[30px]">
+              <div class="text-sm font-light flex gap-2 items-center">
+                <BiRegularTimer /> Duration
+              </div>
+              <Select
+                value={notificationDuration() ?? DEFAULT_NOTIFICATION_DURATION}
+                onChange={(value) => value && setNotificationDuration(value)}
+                options={NOTIFICATION_DURATION_OPTIONS.map((o) => o.value)}
+                itemComponent={(props) => (
+                  <SelectItem item={props.item}>
+                    {
+                      NOTIFICATION_DURATION_OPTIONS.find((o) => o.value === props.item.rawValue)
+                        ?.label
+                    }
+                  </SelectItem>
+                )}
+              >
+                <SelectTrigger class="w-[130px]">
+                  <SelectValue<NotificationDuration>>
+                    {(state) =>
+                      NOTIFICATION_DURATION_OPTIONS.find((o) => o.value === state.selectedOption())
+                        ?.label
+                    }
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent />
+              </Select>
+            </div>
+          </Show>
+        </div>
+
+        <div class="rounded-lg p-3 bg-card mb-3">
+          <div class="flex flex-col gap-2">
+            <div class="flex justify-between items-center h-[30px]">
+              <div class="text-sm font-light flex gap-2 items-center">
+                <BiSolidPalette /> Color format
+              </div>
+              <Select
+                value={colorFormat() ?? DEFAULT_COLOR_FORMAT}
+                onChange={(value) => value && setColorFormat(value)}
+                options={COLOR_FORMAT_OPTIONS.map((o) => o.value)}
+                itemComponent={(props) => (
+                  <SelectItem item={props.item}>
+                    {COLOR_FORMAT_OPTIONS.find((o) => o.value === props.item.rawValue)?.label}
+                  </SelectItem>
+                )}
+              >
+                <SelectTrigger class="w-[130px]">
+                  <SelectValue<ColorFormat>>
+                    {(state) =>
+                      COLOR_FORMAT_OPTIONS.find((o) => o.value === state.selectedOption())?.label
+                    }
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent />
+              </Select>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </Show>
   );
 }

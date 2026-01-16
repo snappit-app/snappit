@@ -16,6 +16,7 @@ export abstract class SnappitStore {
       setValue: (v: unknown) => Promise<void>;
       refetch: () => Promise<unknown | null>;
       remove: () => Promise<void>;
+      loading: () => boolean;
     }
   > = new Map();
 
@@ -45,6 +46,7 @@ export abstract class SnappitStore {
         hit.value as Resource<T | null>,
         hit.setValue as (v: T) => Promise<void>,
         hit.remove,
+        hit.loading as () => boolean,
       ] as const;
     }
 
@@ -70,7 +72,9 @@ export abstract class SnappitStore {
         refetch();
       }
 
-      return { value, setValue, dispose, remove, refetch } as const;
+      const loading = () => value.loading;
+
+      return { value, setValue, dispose, remove, refetch, loading } as const;
     });
 
     this._valueSingletons.set(key, {
@@ -78,12 +82,14 @@ export abstract class SnappitStore {
       setValue: inst.setValue as (v: unknown) => Promise<void>,
       refetch: inst.refetch as () => Promise<unknown | null>,
       remove: inst.remove as () => Promise<void>,
+      loading: inst.loading as () => boolean,
     });
 
     return [
       inst.value as Resource<T | null>,
       inst.setValue as (v: T) => Promise<void>,
       inst.remove as () => Promise<void>,
+      inst.loading as () => boolean,
     ] as const;
   }
 
