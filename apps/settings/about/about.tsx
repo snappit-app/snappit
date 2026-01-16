@@ -22,7 +22,7 @@ export function About() {
   } = useAutoUpdate();
 
   return (
-    <>
+    <div class="p-3">
       <h2 class="text-center text-bold mb-3 font-bold text-xl">About</h2>
 
       <div class="rounded-lg p-4 bg-card mb-3  flex gap-4 justify-between items-center">
@@ -130,6 +130,6 @@ export function About() {
           </div>
         </div>
       </Show>
-    </>
+    </div>
   );
 }

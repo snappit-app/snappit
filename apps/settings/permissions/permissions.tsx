@@ -35,7 +35,7 @@ export function PermissionsGate() {
   }
 
   return (
-    <>
+    <div class="p-3">
       <div class="text-center text-bold mb-3 font-bold text-xl flex items-center gap-2 justify-center">
         <h2>Screen access required</h2>
         <div use:tooltip={{ content: tooltipText() }}>
@@ -62,6 +62,6 @@ export function PermissionsGate() {
           </Button>
         </div>
       </div>
-    </>
+    </div>
   );
 }

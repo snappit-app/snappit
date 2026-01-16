@@ -4,7 +4,7 @@ import { ShortcutPreferenceItem, TOOL_SHORTCUTS } from "./shortcut_pref_item";
 
 export function Shortcuts() {
   return (
-    <>
+    <div class="p-3">
       <h2 class="text-center text-bold mb-3 font-bold text-xl">Shortcuts</h2>
 
       <For each={TOOL_SHORTCUTS}>
@@ -14,6 +14,6 @@ export function Shortcuts() {
           </div>
         )}
       </For>
-    </>
+    </div>
   );
 }

@@ -43,7 +43,7 @@ export function License() {
   };
 
   return (
-    <>
+    <div class="p-3">
       <h2 class="text-center text-bold mb-3 font-bold text-xl">About your license</h2>
 
       <Show
@@ -52,6 +52,6 @@ export function License() {
       >
         <FullLicense licenseKey={storedLicenseKey()!} onDeactivated={handleDeactivated} />
       </Show>
-    </>
+    </div>
   );
 }
