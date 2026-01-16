@@ -1,6 +1,6 @@
 import { createEventListener } from "@solid-primitives/event-listener";
 import { FiDownload } from "solid-icons/fi";
-import { Accessor, createMemo, createSignal, For, Show } from "solid-js";
+import { Accessor, createSignal, For, onCleanup, Show } from "solid-js";
 
 import { Checkbox, CheckboxControl } from "@/shared/ui/checkbox";
 import { Tag } from "@/shared/ui/tag";
@@ -24,19 +24,25 @@ export interface TesseractLanguageListProps {
 export function TesseractLanguageList(props: TesseractLanguageListProps) {
   const [searchQuery, setSearchQuery] = createSignal("");
   const [highlightedValue, setHighlightedValue] = createSignal<string | null>(null);
-  let lastTypeAt = 0;
-  const TYPEAHEAD_RESET_MS = 1000;
+  let resetTimeoutId: number | undefined;
+  const TYPEAHEAD_RESET_MS = 1200;
 
-  const filteredOptions = createMemo(() => {
-    const query = searchQuery().toLowerCase();
-    if (!query) return props.options();
+  const resetSearch = () => {
+    setSearchQuery("");
+    setHighlightedValue(null);
+  };
 
-    return props
-      .options()
-      .filter(
-        (option) =>
-          option.label.toLowerCase().includes(query) || option.value.toLowerCase().includes(query),
-      );
+  const scheduleReset = () => {
+    if (resetTimeoutId !== undefined) {
+      clearTimeout(resetTimeoutId);
+    }
+    resetTimeoutId = window.setTimeout(resetSearch, TYPEAHEAD_RESET_MS);
+  };
+
+  onCleanup(() => {
+    if (resetTimeoutId !== undefined) {
+      clearTimeout(resetTimeoutId);
+    }
   });
 
   const handleTypeahead = (event: KeyboardEvent) => {
@@ -45,8 +51,11 @@ export function TesseractLanguageList(props: TesseractLanguageListProps) {
     if (event.metaKey || event.ctrlKey || event.altKey) return;
 
     if (event.key === "Escape") {
-      setSearchQuery("");
-      setHighlightedValue(null);
+      if (resetTimeoutId !== undefined) {
+        clearTimeout(resetTimeoutId);
+        resetTimeoutId = undefined;
+      }
+      resetSearch();
       return;
     }
 
@@ -54,20 +63,23 @@ export function TesseractLanguageList(props: TesseractLanguageListProps) {
       const nextQuery = searchQuery().slice(0, -1);
       setSearchQuery(nextQuery);
       if (!nextQuery) {
+        if (resetTimeoutId !== undefined) {
+          clearTimeout(resetTimeoutId);
+          resetTimeoutId = undefined;
+        }
         setHighlightedValue(null);
         return;
       }
       findAndHighlight(nextQuery);
+      scheduleReset();
       return;
     }
 
     if (event.key.length === 1) {
-      const now = Date.now();
-      const baseQuery = now - lastTypeAt > TYPEAHEAD_RESET_MS ? "" : searchQuery();
-      lastTypeAt = now;
-      const nextQuery = (baseQuery + event.key).toLowerCase();
+      const nextQuery = (searchQuery() + event.key).toLowerCase();
       setSearchQuery(nextQuery);
       findAndHighlight(nextQuery);
+      scheduleReset();
     }
   };
 
@@ -93,18 +105,42 @@ export function TesseractLanguageList(props: TesseractLanguageListProps) {
     const match = startWithMatch ?? includesMatch;
     if (match) {
       setHighlightedValue(match);
-      const element = document.querySelector(`[data-language-value="${match}"]`);
-      element?.scrollIntoView({ block: "center", behavior: "smooth" });
+      const element = document.querySelector(`[data-language-value="${match}"]`) as HTMLElement;
+      if (element) {
+        const scrollContainer = findScrollableParent(element);
+        if (scrollContainer) {
+          const containerRect = scrollContainer.getBoundingClientRect();
+          const elementRect = element.getBoundingClientRect();
+          const scrollTop =
+            scrollContainer.scrollTop +
+            (elementRect.top - containerRect.top) -
+            containerRect.height / 2 +
+            elementRect.height / 2;
+          scrollContainer.scrollTop = scrollTop;
+        }
+      }
     } else {
       setHighlightedValue(null);
     }
+  };
+
+  const findScrollableParent = (element: HTMLElement): HTMLElement | null => {
+    let parent = element.parentElement;
+    while (parent) {
+      const style = getComputedStyle(parent);
+      if (style.overflowY === "auto" || style.overflowY === "scroll") {
+        return parent;
+      }
+      parent = parent.parentElement;
+    }
+    return null;
   };
 
   createEventListener(window, "keydown", handleTypeahead);
 
   return (
     <div>
-      <For each={filteredOptions()}>
+      <For each={props.options()}>
         {(option) => {
           const isInstalled = () => props.installedLanguages().includes(option.value);
           const isDownloading = () => props.downloading().has(option.value);
