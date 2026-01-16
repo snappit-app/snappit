@@ -15,7 +15,7 @@ import { tooltip } from "@/shared/ui/tooltip";
 
 import { isMacOS, systemLanguagesInfo } from "./installed_languages";
 import { DEFAULT_VALUE } from "./recognition_language";
-import { useRecognitionLanguages } from "./use_recognition_languages";
+import { createRecognitionLanguages } from "./use_recognition_languages";
 
 void tooltip;
 
@@ -32,7 +32,7 @@ export function RecognitionLanguageSelector() {
     handleDownload,
     deleteLanguage,
     canDeleteLanguage,
-  } = useRecognitionLanguages();
+  } = createRecognitionLanguages();
 
   const handleSelectDefault = () => {
     setRecognitionLanguage(DEFAULT_VALUE);
@@ -86,7 +86,6 @@ export function RecognitionLanguageSelector() {
                 handleDownload(option.value);
               }
             };
-
             return (
               <InlineSelectListItem value={option.value} label={option.label} onClick={handleClick}>
                 <div class="flex items-center gap-2 cursor-default">
@@ -117,7 +116,7 @@ export function RecognitionLanguageSelector() {
                         e.stopPropagation();
                         deleteLanguage(option.value);
                       }}
-                      class="text-muted-foreground  hover:text-destructive-foreground transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 p-1"
+                      class="text-muted-foreground hover:text-destructive-foreground transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
                       title="Delete language"
                     >
                       <FiTrash2 size={14} />

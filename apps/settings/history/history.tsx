@@ -89,18 +89,18 @@ export function History() {
   });
 
   return (
-    <div class="p-3">
-      <h2 class="text-center font-bold mb-3 text-xl">History</h2>
+    <div class="p-3 pb-0 flex flex-col min-h-0 h-full">
+      <h2 class="text-center font-bold mb-3 text-xl shrink-0">History</h2>
 
       <Show when={!isEmpty()}>
-        <div class="flex justify-end gap-2 mb-3">
+        <div class="flex justify-end gap-2 mb-3 shrink-0">
           <Button variant="destructive" size="sm" onClick={handleClearAll}>
             <BiRegularTrash class="w-4 h-4 mr-2" />
             Clear All
           </Button>
         </div>
 
-        <div class="flex justify-between mb-3 gap-3">
+        <div class="flex justify-between mb-3 gap-3 shrink-0">
           <div class="relative flex-1 w-full">
             <BiRegularSearch class="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
@@ -171,7 +171,7 @@ export function History() {
             </div>
           }
         >
-          <div class="flex flex-col gap-2 h-[412px] pb-3 -mr-4 pr-4 overflow-y-auto [scrollbar-gutter:stable]">
+          <div class="border-t pt-3 flex flex-col gap-2 pb-3 -ml-3 pl-3 -mr-3 pr-3 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
             <For each={filteredItems()}>{(item) => <HistoryItem item={item} />}</For>
           </div>
         </Show>

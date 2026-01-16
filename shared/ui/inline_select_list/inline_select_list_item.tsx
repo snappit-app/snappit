@@ -57,7 +57,7 @@ export function InlineSelectListItem(props: InlineSelectListItemProps) {
       tabIndex={props.disabled ? -1 : 0}
       role="option"
       class={cn(
-        "flex items-center w-full relative py-1 px-2 rounded-sm group hover:bg-muted/40 focus:outline-none focus:bg-muted/40 focus-visible:bg-muted/40",
+        "flex items-center w-full relative py-1 px-2 rounded-sm group hover:bg-muted focus:outline-none focus:bg-muted/40 focus-visible:bg-muted/40",
         props.disabled && "opacity-50 cursor-not-allowed",
         props.class,
       )}

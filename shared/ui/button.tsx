@@ -20,7 +20,7 @@ export const buttonVariants = cva(
         ghost: "hover:bg-muted hover:text-accent-foreground",
         product: "text-product hover:bg-product/10 hover:text-product",
         link: "text-primary underline-offset-4 hover:underline",
-        muted: "bg-muted text-accent-foreground hover:bg-muted/80",
+        muted: "bg-muted text-accent-foreground active:brightness-90",
       },
       size: {
         default: "h-7 px-2",
