@@ -1,12 +1,16 @@
 import { invoke } from "@tauri-apps/api/core";
 import { createSignal } from "solid-js";
 
+import { RecognitionLanguageValue } from "./recognition_language";
+
 export interface SystemLanguageInfo {
   code: string;
   name: string;
 }
 
-export const [installedLanguages, setInstalledLanguages] = createSignal<string[]>([]);
+export const [installedLanguages, setInstalledLanguages] = createSignal<RecognitionLanguageValue[]>(
+  [],
+);
 export const [systemLanguages, setSystemLanguages] = createSignal<string[]>([]);
 export const [systemLanguagesInfo, setSystemLanguagesInfo] = createSignal<SystemLanguageInfo[]>([]);
 export const [isInitialSetup, setIsInitialSetup] = createSignal(false);

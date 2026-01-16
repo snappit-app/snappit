@@ -1,14 +1,7 @@
-import { BsQuestionCircleFill } from "solid-icons/bs";
-import { createMemo } from "solid-js";
-
 import { DEFAULT_VALUE } from "@/shared/ocr/recognition_language";
-import { SystemLanguageButton } from "@/shared/ocr/system_language_button";
 import { TesseractLanguageList } from "@/shared/ocr/tesseract_language_list";
 import { createRecognitionLanguages } from "@/shared/ocr/use_recognition_languages";
-import { Tag } from "@/shared/ui/tag";
-import { tooltip } from "@/shared/ui/tooltip";
-
-void tooltip;
+import { RadioGroup, RadioGroupItemCard } from "@/shared/ui/radio_group";
 
 export function Languages() {
   const {
@@ -25,56 +18,65 @@ export function Languages() {
     canDeleteLanguage,
   } = createRecognitionLanguages();
 
-  const modelLabel = createMemo(() => (isAutoLanguageSelected() ? "macOS Vision" : "Tesseract"));
-  const modelHint = createMemo(() =>
-    isAutoLanguageSelected()
-      ? "System languages are active, macOS Vision is used."
-      : "Custom languages are selected, Tesseract will be used.",
-  );
+  const handleEngineChange = (value: string) => {
+    if (value === "vision") {
+      setRecognitionLanguage(DEFAULT_VALUE);
+    } else if (value === "tesseract") {
+      const installed = installedLanguages();
 
-  const handleSelectSystem = () => {
-    setRecognitionLanguage(DEFAULT_VALUE);
+      installed.forEach((language) => {
+        toggleRecognitionLanguage(language);
+      });
+    }
   };
 
   return (
-    <div class="p-3 pb-0 flex flex-col min-h-0 h-full">
-      <h2 class="shrink-0 text-center text-bold mb-3 font-bold text-xl">Languages</h2>
+    <div class="p-3 h-full">
+      <RadioGroup
+        class="min-h-0 h-full"
+        variant="product"
+        value={isAutoLanguageSelected() ? "vision" : "tesseract"}
+        onChange={handleEngineChange}
+      >
+        <h2 class="shrink-0 text-center text-bold font-bold text-xl">Languages</h2>
 
-      <div class="flex items-center justify-between p-3 rounded-lg bg-card mb-3">
-        <span class="tracking-wide text-[10px] text-muted-foreground text-xs">
-          Recognition model
-        </span>
-        <span use:tooltip={modelHint()}>
-          <Tag>
-            <div class="flex items-center gap-1">
-              {modelLabel()}
-              <BsQuestionCircleFill />
-            </div>
-          </Tag>
-        </span>
-      </div>
+        <RadioGroupItemCard value="vision" header="MacOS Vision" class="bg-card p-3 rounded-lg">
+          <div class="text-xs text-muted-foreground border-b pb-3 mb-3 mt-2">English, Russian</div>
 
-      <div class="border-t pt-3 flex flex-col gap-1 pb-3 -ml-3 pl-3 -mr-3 pr-3 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
-        <div class="mb-3">
-          <SystemLanguageButton
-            isSelected={isAutoLanguageSelected()}
-            onSelect={handleSelectSystem}
-          />
-        </div>
+          <div class="text-xs pr-8 text-muted-foreground">
+            Snappit will use macOS built-in OCR for language recognition, which provides the best
+            accuracy and speed for printed text.
+          </div>
+        </RadioGroupItemCard>
 
-        <div class="text-sm text-muted-foreground">Tesseract Languages</div>
-        <TesseractLanguageList
-          options={sortedOptions}
-          installedLanguages={installedLanguages}
-          downloading={downloading}
-          selectedLanguages={selectedManualLanguageSet}
-          isSystemLanguage={isSystemLanguage}
-          canDeleteLanguage={canDeleteLanguage}
-          onToggle={toggleRecognitionLanguage}
-          onDownload={handleDownload}
-          onDelete={deleteLanguage}
-        />
-      </div>
+        <RadioGroupItemCard
+          value="tesseract"
+          header="Tesseract"
+          class="flex flex-col bg-card rounded-lg grow-1 min-h-0 p-3"
+        >
+          <div class="text-xs text-muted-foreground border-b pb-3 mb-3 mt-2">
+            <div>Download languages to enable Tesseract</div>
+          </div>
+
+          <div class="text-xs pr-8 text-muted-foreground">
+            Tesseract provides better quality for handwritten text and a wider choice of languages.
+          </div>
+
+          <div class="overflow-y-auto [scrollbar-gutter:stable] border-t p-3 -mx-3 mt-3">
+            <TesseractLanguageList
+              options={sortedOptions}
+              installedLanguages={installedLanguages}
+              downloading={downloading}
+              selectedLanguages={selectedManualLanguageSet}
+              isSystemLanguage={isSystemLanguage}
+              canDeleteLanguage={canDeleteLanguage}
+              onToggle={toggleRecognitionLanguage}
+              onDownload={handleDownload}
+              onDelete={deleteLanguage}
+            />
+          </div>
+        </RadioGroupItemCard>
+      </RadioGroup>
     </div>
   );
 }

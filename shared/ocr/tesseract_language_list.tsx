@@ -103,7 +103,7 @@ export function TesseractLanguageList(props: TesseractLanguageListProps) {
   createEventListener(window, "keydown", handleTypeahead);
 
   return (
-    <div class="rounded-lg bg-card px-3 py-1">
+    <div>
       <For each={filteredOptions()}>
         {(option) => {
           const isInstalled = () => props.installedLanguages().includes(option.value);
