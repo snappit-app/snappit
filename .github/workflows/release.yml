@@ -115,17 +115,25 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_ID: ${{ steps.tauri.outputs.releaseId }}
         run: |
-          # Determine architecture suffix
+          # Determine architecture suffix and original file pattern
           if [[ "${{ matrix.target }}" == "aarch64-apple-darwin" ]]; then
             ARCH_NAME="mac_arm"
+            ARCH_PATTERN="aarch64"
           else
             ARCH_NAME="mac_intel"
+            ARCH_PATTERN="x64"
           fi
 
           echo "Release ID: $RELEASE_ID"
+          echo "Looking for files with pattern: $ARCH_PATTERN"
 
-          # Get and rename only .dmg assets (not .tar.gz - those are referenced by latest.json for auto-updates)
+          # Get and rename only .dmg assets for current architecture
           gh api repos/${{ github.repository }}/releases/$RELEASE_ID/assets --jq '.[] | "\(.id) \(.name)"' | while read -r ASSET_ID ASSET_NAME; do
+            # Skip files that don't match current architecture pattern
+            if [[ "$ASSET_NAME" != *"$ARCH_PATTERN"* ]]; then
+              continue
+            fi
+
             NEW_NAME=""
 
             if [[ "$ASSET_NAME" == *.dmg && "$ASSET_NAME" != *.dmg.sig ]]; then
@@ -134,7 +142,7 @@ jobs:
               NEW_NAME="snappit_${ARCH_NAME}.dmg.sig"
             fi
 
-            if [[ -n "$NEW_NAME" && "$ASSET_NAME" != "$NEW_NAME" ]]; then
+            if [[ -n "$NEW_NAME" ]]; then
               echo "Renaming $ASSET_NAME -> $NEW_NAME"
               gh api --method PATCH repos/${{ github.repository }}/releases/assets/$ASSET_ID -f name="$NEW_NAME"
             fi
