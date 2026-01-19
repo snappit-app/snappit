@@ -7,7 +7,7 @@ import { SnappitStore } from "@/shared/store";
 
 export type themeOptions = "light" | "dark" | "system";
 
-type ThemeTuple = readonly [() => themeOptions, (t: themeOptions) => void];
+type ThemeTuple = readonly [() => themeOptions, (t: themeOptions) => void, () => boolean];
 
 export const toTheme = (isDark: boolean): themeOptions => (isDark ? "dark" : "light");
 
@@ -17,7 +17,8 @@ export abstract class Theme {
   static create() {
     if (this._themeSingleton) return this._themeSingleton;
     const THEME_KEY = SNAPPIT_CONSTS.store.keys.theme;
-    const [storeTheme, setStoreTheme] = SnappitStore.createValue<themeOptions>(THEME_KEY);
+    const [storeTheme, setStoreTheme, , isReady] =
+      SnappitStore.createValue<themeOptions>(THEME_KEY);
 
     const preference = createMemo<themeOptions>(() => {
       const stored = storeTheme();
@@ -55,7 +56,7 @@ export abstract class Theme {
       setStoreTheme(t);
     }
 
-    this._themeSingleton = [preference, setTheme] as const;
+    this._themeSingleton = [preference, setTheme, isReady] as const;
     return this._themeSingleton;
   }
 }

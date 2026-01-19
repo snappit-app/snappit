@@ -32,7 +32,7 @@ import { Switch, SwitchControl, SwitchLabel, SwitchThumb } from "@/shared/ui/swi
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle_group";
 
 export function Preferences() {
-  const [theme, setTheme] = Theme.create();
+  const [theme, setTheme, isThemeReady] = Theme.create();
   const [notificationsEnabled, setNotificationsEnabled] = NotificationSettings.create();
   const [notificationDuration, setNotificationDuration] = NotificationDurationSettings.create();
   const [autostartEnabled, setAutostartEnabled, autostartReady] = AutostartSettings.create();
@@ -53,7 +53,13 @@ export function Preferences() {
   );
 
   const isReady = createMemo(
-    () => toolsReady() && colorFormatReady() && soundReady() && ocrReady() && qrReady(),
+    () =>
+      toolsReady() &&
+      isThemeReady() &&
+      colorFormatReady() &&
+      soundReady() &&
+      ocrReady() &&
+      qrReady(),
   );
 
   onMount(async () => {
