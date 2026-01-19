@@ -1,4 +1,6 @@
-import { createMemo, onMount } from "solid-js";
+import { createPresence } from "@solid-primitives/presence";
+import { BiSolidError } from "solid-icons/bi";
+import { createMemo, onMount, Show } from "solid-js";
 
 import { refreshSystemLanguagesInfo, systemLanguagesInfo } from "@/shared/ocr/installed_languages";
 import { DEFAULT_VALUE, RECOGNITION_LANGUAGE_OPTIONS } from "@/shared/ocr/recognition_language";
@@ -31,9 +33,24 @@ export function Languages() {
     return info.map((lang) => lang.name).join(", ");
   });
 
+  const visionDescriptionPresence = createPresence(() => isAutoLanguageSelected(), {
+    transitionDuration: 200,
+  });
+
+  const tesseractDescriptionPresence = createPresence(() => selectedManualLanguageSet().size > 0, {
+    transitionDuration: 200,
+  });
+
   const tesseractSelectedText = createMemo(() => {
     const selected = selectedManualLanguageSet();
-    if (selected.size === 0) return null;
+    const installed = installedLanguages();
+
+    if (!installed.length) return "";
+
+    if (selected.size === 0)
+      return RECOGNITION_LANGUAGE_OPTIONS.filter((opt) => installed.includes(opt.value))
+        .map((opt) => opt.label)
+        .join(", ");
 
     const labels = RECOGNITION_LANGUAGE_OPTIONS.filter(
       (opt) => opt.value !== DEFAULT_VALUE && selected.has(opt.value),
@@ -65,32 +82,65 @@ export function Languages() {
         <h2 class="shrink-0 text-center text-bold font-bold text-xl">Languages</h2>
 
         <RadioGroupItemCard value="vision" header="MacOS Vision" class="bg-card p-3 rounded-lg">
-          <div class="text-xs text-muted-foreground border-b pb-3 mb-3 truncate">
-            {visionLanguagesText()}
-          </div>
+          <div class="text-xs text-muted-foreground truncate">{visionLanguagesText()}</div>
 
-          <div class="text-xs pr-8 text-muted-foreground">
-            Snappit will use macOS built-in OCR for language recognition, which provides the best
-            accuracy and speed for printed text.
-          </div>
+          <Show when={visionDescriptionPresence.isMounted()}>
+            <div
+              class="grid transition-all duration-200 ease-out"
+              style={{
+                "grid-template-rows": visionDescriptionPresence.isVisible() ? "1fr" : "0fr",
+                opacity: visionDescriptionPresence.isVisible() ? "1" : "0",
+              }}
+            >
+              <div class="overflow-hidden">
+                <div class="text-xs pr-8 text-muted-foreground border-t mt-2 pt-2">
+                  Snappit will use macOS built-in OCR for language recognition, which provides the
+                  best accuracy and speed for printed text.
+                </div>
+              </div>
+            </div>
+          </Show>
         </RadioGroupItemCard>
 
         <RadioGroupItemCard
           value="tesseract"
           header="Tesseract"
-          class="flex flex-col bg-card rounded-lg grow-1 min-h-0 p-3 pb-0"
+          class="flex flex-col bg-card rounded-lg shrink-0 p-3 mb-3"
+          disabled={!installedLanguages().length}
         >
-          <div class="border-b pb-3 mb-3 pr-6">
-            <div class="text-xs text-muted-foreground truncate">
-              {tesseractSelectedText() ?? "Download languages to enable Tesseract"}
+          <div class="text-xs text-muted-foreground truncate pr-6">
+            <Show when={!installedLanguages().length}>
+              <div class="flex gap-1 items-center">
+                To use Tesseract, download at least one language <BiSolidError />
+              </div>
+            </Show>
+
+            <Show when={installedLanguages().length}>
+              {tesseractSelectedText() ?? "Not selected"}
+            </Show>
+          </div>
+
+          <Show when={tesseractDescriptionPresence.isMounted()}>
+            <div
+              class="grid transition-all duration-200 ease-out"
+              style={{
+                "grid-template-rows": tesseractDescriptionPresence.isVisible() ? "1fr" : "0fr",
+                opacity: tesseractDescriptionPresence.isVisible() ? "1" : "0",
+              }}
+            >
+              <div class="overflow-hidden">
+                <div class="text-xs pr-8 text-muted-foreground border-t mt-2 pt-2">
+                  Tesseract provides better quality for handwritten text and a wider choice of
+                  languages.
+                </div>
+              </div>
             </div>
-          </div>
+          </Show>
+        </RadioGroupItemCard>
 
-          <div class="text-xs pr-8 text-muted-foreground">
-            Tesseract provides better quality for handwritten text and a wider choice of languages.
-          </div>
-
-          <div class="overflow-y-auto [scrollbar-gutter:stable] border-t px-3 py-2 -mx-3 mt-3">
+        <div class="flex flex-col min-h-0 -m-3 border-t pt-3 p-3 pb-0 overflow-y-auto [scrollbar-gutter:stable]">
+          <div class="text-muted-foreground text-sm">Tesseract languages</div>
+          <div class="">
             <TesseractLanguageList
               options={sortedOptions}
               installedLanguages={installedLanguages}
@@ -103,7 +153,7 @@ export function Languages() {
               onDelete={deleteLanguage}
             />
           </div>
-        </RadioGroupItemCard>
+        </div>
       </RadioGroup>
     </div>
   );

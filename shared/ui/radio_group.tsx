@@ -55,13 +55,22 @@ type radioGroupItemCardProps = ParentProps<{
   value: string;
   headerClass?: string;
   header: JSX.Element;
+  disabled?: boolean;
 }>;
 
 export const RadioGroupItemCard = (props: radioGroupItemCardProps) => {
   return (
-    <RadioGroupPrimitive.Item value={props.value} class="contents">
+    <RadioGroupPrimitive.Item value={props.value} class="contents" disabled={props.disabled}>
       <RadioGroupPrimitive.ItemInput class="peer sr-only" />
-      <RadioGroupPrimitive.ItemLabel class={cn("block hover:bg-muted/30", props.class)}>
+      <RadioGroupPrimitive.ItemLabel
+        class={cn(
+          "block",
+          props.disabled
+            ? "opacity-50 cursor-not-allowed pointer-events-none"
+            : "active:bg-muted/70",
+          props.class,
+        )}
+      >
         <span class={cn("flex items-center justify-between", props.headerClass)}>
           <span>{props.header}</span>
           <RadioGroupItemControl />
