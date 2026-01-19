@@ -223,7 +223,11 @@ export const RECOGNITION_LANGUAGE_OPTIONS = [
   ...MANUAL_RECOGNITION_LANGUAGE_OPTIONS,
 ] as const satisfies readonly RecognitionLanguageOption[];
 
-type RecognitionLanguagePreference = readonly [() => Language, (next: Language) => void];
+type RecognitionLanguagePreference = readonly [
+  () => Language,
+  (next: Language) => void,
+  () => boolean,
+];
 
 const STORE_KEY = SNAPPIT_CONSTS.store.keys.recognition_lang;
 const VALID_CODES = new Set<Language>(
@@ -268,7 +272,7 @@ export abstract class RecognitionLanguage {
   static create(): RecognitionLanguagePreference {
     if (this._singleton) return this._singleton;
 
-    const [storeValue, setStoreValue] = SnappitStore.createValue<Language>(STORE_KEY);
+    const [storeValue, setStoreValue, , isReady] = SnappitStore.createValue<Language>(STORE_KEY);
     const [preference, setPreference] = createSignal<Language>(DEFAULT_VALUE);
 
     createEffect(() => {
@@ -289,7 +293,7 @@ export abstract class RecognitionLanguage {
       setStoreValue(sanitized).catch(() => {});
     }
 
-    this._singleton = [preference, update] as const;
+    this._singleton = [preference, update, isReady] as const;
     return this._singleton;
   }
 }

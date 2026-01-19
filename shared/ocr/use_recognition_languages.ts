@@ -22,7 +22,7 @@ const MANUAL_RECOGNITION_OPTIONS = RECOGNITION_LANGUAGE_OPTIONS.filter(
 const MANUAL_RECOGNITION_OPTION_VALUES = MANUAL_RECOGNITION_OPTIONS.map((option) => option.value);
 
 export function createRecognitionLanguages() {
-  const [recognitionLanguage, setRecognitionLanguage] = RecognitionLanguage.create();
+  const [recognitionLanguage, setRecognitionLanguage, isReady] = RecognitionLanguage.create();
   const [downloading, setDownloading] = createSignal<Set<string>>(new Set());
 
   onMount(() => {
@@ -121,5 +121,6 @@ export function createRecognitionLanguages() {
     installedLanguages,
     isSystemLanguage,
     canDeleteLanguage,
+    isReady,
   };
 }
