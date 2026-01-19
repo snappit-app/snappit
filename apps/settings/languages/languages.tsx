@@ -1,4 +1,3 @@
-import { createPresence } from "@solid-primitives/presence";
 import { BiSolidError } from "solid-icons/bi";
 import { createMemo, onMount, Show } from "solid-js";
 
@@ -31,14 +30,6 @@ export function Languages() {
     const info = systemLanguagesInfo();
     if (info.length === 0) return "Loading...";
     return info.map((lang) => lang.name).join(", ");
-  });
-
-  const visionDescriptionPresence = createPresence(() => isAutoLanguageSelected(), {
-    transitionDuration: 200,
-  });
-
-  const tesseractDescriptionPresence = createPresence(() => selectedManualLanguageSet().size > 0, {
-    transitionDuration: 200,
   });
 
   const tesseractSelectedText = createMemo(() => {
@@ -84,22 +75,20 @@ export function Languages() {
         <RadioGroupItemCard value="vision" header="MacOS Vision" class="bg-card p-3 rounded-lg">
           <div class="text-xs text-muted-foreground truncate">{visionLanguagesText()}</div>
 
-          <Show when={visionDescriptionPresence.isMounted()}>
-            <div
-              class="grid transition-all duration-200 ease-out"
-              style={{
-                "grid-template-rows": visionDescriptionPresence.isVisible() ? "1fr" : "0fr",
-                opacity: visionDescriptionPresence.isVisible() ? "1" : "0",
-              }}
-            >
-              <div class="overflow-hidden">
-                <div class="text-xs pr-8 text-muted-foreground border-t mt-2 pt-2">
-                  Snappit will use macOS built-in OCR for language recognition, which provides the
-                  best accuracy and speed for printed text.
-                </div>
+          <div
+            class="grid transition-all duration-200 ease-out"
+            style={{
+              "grid-template-rows": isAutoLanguageSelected() ? "1fr" : "0fr",
+              opacity: isAutoLanguageSelected() ? "1" : "0",
+            }}
+          >
+            <div class="overflow-hidden">
+              <div class="text-xs pr-8 text-muted-foreground border-t mt-2 pt-2">
+                Snappit will use macOS built-in OCR for language recognition, which provides the
+                best accuracy and speed for printed text.
               </div>
             </div>
-          </Show>
+          </div>
         </RadioGroupItemCard>
 
         <RadioGroupItemCard
@@ -120,22 +109,20 @@ export function Languages() {
             </Show>
           </div>
 
-          <Show when={tesseractDescriptionPresence.isMounted()}>
-            <div
-              class="grid transition-all duration-200 ease-out"
-              style={{
-                "grid-template-rows": tesseractDescriptionPresence.isVisible() ? "1fr" : "0fr",
-                opacity: tesseractDescriptionPresence.isVisible() ? "1" : "0",
-              }}
-            >
-              <div class="overflow-hidden">
-                <div class="text-xs pr-8 text-muted-foreground border-t mt-2 pt-2">
-                  Tesseract provides better quality for handwritten text and a wider choice of
-                  languages.
-                </div>
+          <div
+            class="grid transition-all duration-200 ease-out"
+            style={{
+              "grid-template-rows": selectedManualLanguageSet().size > 0 ? "1fr" : "0fr",
+              opacity: selectedManualLanguageSet().size > 0 ? "1" : "0",
+            }}
+          >
+            <div class="overflow-hidden">
+              <div class="text-xs pr-8 text-muted-foreground border-t mt-2 pt-2">
+                Tesseract provides better quality for handwritten text and a wider choice of
+                languages.
               </div>
             </div>
-          </Show>
+          </div>
         </RadioGroupItemCard>
 
         <div class="flex flex-col min-h-0 -m-3 border-t pt-3 p-3 pb-0 overflow-y-auto [scrollbar-gutter:stable]">
