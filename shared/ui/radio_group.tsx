@@ -73,7 +73,7 @@ export const RadioGroupItemCard = (props: radioGroupItemCardProps) => {
       >
         <span class={cn("flex items-center justify-between", props.headerClass)}>
           <span>{props.header}</span>
-          <RadioGroupItemControl />
+          <RadioGroupItemControlIndicator />
         </span>
         {props.children}
       </RadioGroupPrimitive.ItemLabel>
@@ -95,6 +95,27 @@ const radioGroupItemControlVariants = cva(
     },
   },
 );
+
+type radioGroupItemControlIndicatorProps = VoidProps<{
+  class?: string;
+  variant?: RadioGroupVariant;
+}>;
+
+const RadioGroupItemControlIndicator = (props: radioGroupItemControlIndicatorProps) => {
+  const variant = props.variant ?? useContext(RadioGroupVariantContext);
+
+  return (
+    <RadioGroupPrimitive.ItemControl
+      class={cn(radioGroupItemControlVariants({ variant }), props.class)}
+    >
+      <RadioGroupPrimitive.ItemIndicator class="flex items-center justify-center">
+        <svg viewBox="0 0 8 8" class="h-[6px] w-[6px] fill-current text-product-foreground">
+          <circle cx="4" cy="4" r="4" />
+        </svg>
+      </RadioGroupPrimitive.ItemIndicator>
+    </RadioGroupPrimitive.ItemControl>
+  );
+};
 
 type radioGroupItemControlProps<T extends ValidComponent = "div"> = VoidProps<
   RadioGroupItemControlProps<T> & { class?: string; variant?: RadioGroupVariant }
