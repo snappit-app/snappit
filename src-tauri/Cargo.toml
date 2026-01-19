@@ -41,7 +41,7 @@ strum = "0.27.2"
 image = "0.25"
 leptess = "0.14.0"
 sys-locale = "0.3.2"
-rqrr = "0.10.0"
+rxing = "0.8"
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2.1" }
 objc2 = "0.6"
 objc2-foundation = "0.3.2"

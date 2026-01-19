@@ -1,20 +1,20 @@
 //! QR code scanning module
 //!
 //! This module provides QR code scanning functionality with platform-specific implementations:
-//! - macOS: Will use Vision Framework (Phase 3)
-//! - Other platforms: Uses rqrr/rxing library
+//! - macOS: Will use Vision Framework with rxing fallback (Phase 3)
+//! - Other platforms: Uses rxing library (ZXing port)
 
 use image::{ImageBuffer, Rgba};
 
 use crate::snappit_errors::SnappitResult;
 
-use super::rqrr_qr::RqrrQr;
+use super::rxing_qr::RxingQr;
 
 /// Main QR scanner providing platform-agnostic API
 ///
 /// This struct internally chooses the appropriate platform-specific implementation:
-/// - On macOS: Will use Vision Framework with rqrr/rxing fallback (Phase 3)
-/// - On other platforms: Uses rqrr/rxing library
+/// - On macOS: Will use Vision Framework with rxing fallback (Phase 3)
+/// - On other platforms: Uses rxing library
 pub struct SnappitQr;
 
 impl SnappitQr {
@@ -29,13 +29,11 @@ impl SnappitQr {
         //     match vision_qr::scan(&image) {
         //         Ok(result) => return Ok(result),
         //         Err(err) => {
-        //             log::warn!("Vision QR scan failed, falling back to rqrr: {err}");
+        //             log::warn!("Vision QR scan failed, falling back to rxing: {err}");
         //         }
         //     }
         // }
 
-        // Current: use rqrr on all platforms
-        // Phase 2: will be replaced with rxing
-        RqrrQr::scan(image)
+        RxingQr::scan(image)
     }
 }

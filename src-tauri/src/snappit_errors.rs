@@ -78,6 +78,9 @@ pub enum SnappitError {
 
     #[error("ColorSync error: {0}")]
     ColorSync(String),
+
+    #[error("QR scan failed: {0}")]
+    QrScanFailed(String),
 }
 
 pub type SnappitResult<T> = Result<T, SnappitError>;
