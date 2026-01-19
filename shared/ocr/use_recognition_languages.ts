@@ -2,9 +2,9 @@ import { createMemo, createSignal, onMount } from "solid-js";
 
 import {
   DEFAULT_VALUE,
+  Language,
   RECOGNITION_LANGUAGE_OPTIONS,
   RecognitionLanguage,
-  RecognitionLanguageValue,
 } from "@/shared/ocr/recognition_language";
 
 import {
@@ -29,7 +29,7 @@ export function createRecognitionLanguages() {
     refreshInstalledLanguages();
   });
 
-  const handleDownload = async (code: string) => {
+  const handleDownload = async (code: Language) => {
     setDownloading((prev) => {
       const next = new Set(prev);
       next.add(code);
@@ -46,35 +46,35 @@ export function createRecognitionLanguages() {
     }
   };
 
-  const deleteLang = async (lang: RecognitionLanguageValue) => {
-    if (selectedManualLanguageSet().has(lang)) {
-      selectedManualLanguageSet().delete(lang);
+  const deleteLang = async (lang: Language) => {
+    if (tesseractLanguageSet().has(lang)) {
+      tesseractLanguageSet().delete(lang);
       toggleRecognitionLanguage(lang);
     }
 
     return deleteLanguage(lang);
   };
 
-  const selectedManualLanguageCodes = createMemo<RecognitionLanguageValue[]>(() => {
+  const selectedManualLanguageCodes = createMemo<Language[]>(() => {
     const current = recognitionLanguage();
     if (!current || current === DEFAULT_VALUE) return [];
 
     const parts = current
       .split("+")
-      .map((code) => code.trim() as RecognitionLanguageValue)
+      .map((code) => code.trim() as Language)
       .filter(Boolean);
 
     return MANUAL_RECOGNITION_OPTION_VALUES.filter((code) => parts.includes(code));
   });
 
-  const selectedManualLanguageSet = createMemo(() => new Set(selectedManualLanguageCodes()));
+  const tesseractLanguageSet = createMemo(() => new Set(selectedManualLanguageCodes()));
 
   const isAutoLanguageSelected = createMemo(() => {
     const current = recognitionLanguage();
     return !current || current === DEFAULT_VALUE || selectedManualLanguageCodes().length === 0;
   });
 
-  const toggleRecognitionLanguage = (value: RecognitionLanguageValue) => {
+  const toggleRecognitionLanguage = (value: Language) => {
     const current = new Set(selectedManualLanguageCodes());
 
     if (current.has(value)) {
@@ -89,7 +89,7 @@ export function createRecognitionLanguages() {
     }
 
     const ordered = MANUAL_RECOGNITION_OPTION_VALUES.filter((code) => current.has(code));
-    setRecognitionLanguage(ordered.join("+") as RecognitionLanguageValue);
+    setRecognitionLanguage(ordered.join("+") as Language);
   };
 
   const sortedOptions = createMemo(() => {
@@ -113,7 +113,7 @@ export function createRecognitionLanguages() {
     setRecognitionLanguage,
     downloading,
     handleDownload,
-    selectedManualLanguageSet,
+    tesseractLanguageSet,
     isAutoLanguageSelected,
     toggleRecognitionLanguage,
     sortedOptions,

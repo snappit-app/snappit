@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItemCard } from "@/shared/ui/radio_group";
 export function Languages() {
   const {
     sortedOptions,
-    selectedManualLanguageSet,
+    tesseractLanguageSet,
     installedLanguages,
     downloading,
     isSystemLanguage,
@@ -33,7 +33,7 @@ export function Languages() {
   });
 
   const tesseractSelectedText = createMemo(() => {
-    const selected = selectedManualLanguageSet();
+    const selected = tesseractLanguageSet();
     const installed = installedLanguages();
 
     if (!installed.length) return "";
@@ -112,8 +112,8 @@ export function Languages() {
           <div
             class="grid transition-all duration-200 ease-out"
             style={{
-              "grid-template-rows": selectedManualLanguageSet().size > 0 ? "1fr" : "0fr",
-              opacity: selectedManualLanguageSet().size > 0 ? "1" : "0",
+              "grid-template-rows": tesseractLanguageSet().size > 0 ? "1fr" : "0fr",
+              opacity: tesseractLanguageSet().size > 0 ? "1" : "0",
             }}
           >
             <div class="overflow-hidden">
@@ -132,7 +132,7 @@ export function Languages() {
               options={sortedOptions}
               installedLanguages={installedLanguages}
               downloading={downloading}
-              selectedLanguages={selectedManualLanguageSet}
+              selectedLanguages={tesseractLanguageSet}
               isSystemLanguage={isSystemLanguage}
               canDeleteLanguage={canDeleteLanguage}
               onToggle={toggleRecognitionLanguage}

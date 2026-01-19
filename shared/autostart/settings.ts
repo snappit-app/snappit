@@ -13,7 +13,7 @@ export abstract class AutostartSettings {
   static create(): AutostartPreference {
     if (this._singleton) return this._singleton;
 
-    const [storeValue, setStoreValue] = SnappitStore.createValue<boolean>(this.KEY);
+    const [storeValue, setStoreValue, , isReady] = SnappitStore.createValue<boolean>(this.KEY);
     const [enabled, setEnabled] = createSignal<boolean>(false);
     const [initialized, setInitialized] = createSignal(false);
     const [updating, setUpdating] = createSignal(false);
@@ -98,8 +98,6 @@ export abstract class AutostartSettings {
         }
       })();
     }
-
-    const isReady = () => initialized() && !updating();
 
     this._singleton = [enabled, update, isReady] as const;
     return this._singleton;

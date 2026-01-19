@@ -1,5 +1,5 @@
 import { load, Store } from "@tauri-apps/plugin-store";
-import { createResource, createRoot, Resource } from "solid-js";
+import { createEffect, createResource, createRoot, createSignal, Resource } from "solid-js";
 
 import { SNAPPIT_CONSTS } from "@/shared/constants";
 
@@ -16,7 +16,7 @@ export abstract class SnappitStore {
       setValue: (v: unknown) => Promise<void>;
       refetch: () => Promise<unknown | null>;
       remove: () => Promise<void>;
-      loading: () => boolean;
+      isReady: () => boolean;
     }
   > = new Map();
 
@@ -46,14 +46,21 @@ export abstract class SnappitStore {
         hit.value as Resource<T | null>,
         hit.setValue as (v: T) => Promise<void>,
         hit.remove,
-        hit.loading as () => boolean,
+        hit.isReady,
       ] as const;
     }
 
     const inst = createRoot((dispose) => {
+      const [isReady, setIsReady] = createSignal(false);
       const [store] = SnappitStore.create();
       const [value, { refetch }] = createResource<T | null, Store, R>(store, async (s) => {
         return (await s.get(key)) ?? null;
+      });
+
+      createEffect(() => {
+        if (!value.loading && !isReady()) {
+          setIsReady(true);
+        }
       });
 
       async function setValue(newValue: T) {
@@ -72,9 +79,7 @@ export abstract class SnappitStore {
         refetch();
       }
 
-      const loading = () => value.loading;
-
-      return { value, setValue, dispose, remove, refetch, loading } as const;
+      return { value, setValue, dispose, remove, refetch, isReady } as const;
     });
 
     this._valueSingletons.set(key, {
@@ -82,14 +87,14 @@ export abstract class SnappitStore {
       setValue: inst.setValue as (v: unknown) => Promise<void>,
       refetch: inst.refetch as () => Promise<unknown | null>,
       remove: inst.remove as () => Promise<void>,
-      loading: inst.loading as () => boolean,
+      isReady: inst.isReady,
     });
 
     return [
       inst.value as Resource<T | null>,
       inst.setValue as (v: T) => Promise<void>,
       inst.remove as () => Promise<void>,
-      inst.loading as () => boolean,
+      inst.isReady,
     ] as const;
   }
 

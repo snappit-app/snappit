@@ -1,24 +1,22 @@
 import { invoke } from "@tauri-apps/api/core";
 import { createSignal } from "solid-js";
 
-import { RecognitionLanguageValue } from "./recognition_language";
+import { Language } from "./recognition_language";
 
 export interface SystemLanguageInfo {
   code: string;
   name: string;
 }
 
-export const [installedLanguages, setInstalledLanguages] = createSignal<RecognitionLanguageValue[]>(
-  [],
-);
-export const [systemLanguages, setSystemLanguages] = createSignal<string[]>([]);
+export const [installedLanguages, setInstalledLanguages] = createSignal<Language[]>([]);
+export const [systemLanguages, setSystemLanguages] = createSignal<Language[]>([]);
 export const [systemLanguagesInfo, setSystemLanguagesInfo] = createSignal<SystemLanguageInfo[]>([]);
 export const [isInitialSetup, setIsInitialSetup] = createSignal(false);
 export const [isMacOS, setIsMacOS] = createSignal(false);
 
 export async function refreshInstalledLanguages() {
   try {
-    const langs = await invoke<string[]>("get_tess_languages");
+    const langs = await invoke<Language[]>("get_tess_languages");
     setInstalledLanguages(langs);
   } catch (e) {
     console.error("Failed to get installed languages", e);
@@ -27,7 +25,7 @@ export async function refreshInstalledLanguages() {
 
 export async function refreshSystemLanguages() {
   try {
-    const langs = await invoke<string[]>("get_system_tess_languages");
+    const langs = await invoke<Language[]>("get_system_tess_languages");
     setSystemLanguages(langs);
   } catch (e) {
     console.error("Failed to get system languages", e);
@@ -67,7 +65,7 @@ export async function ensureSystemLanguagesInstalled() {
   const system = systemLanguages();
   const installed = installedLanguages();
 
-  const missing = system.filter((lang) => !installed.includes(lang));
+  const missing = system.filter((lang: Language) => !installed.includes(lang));
 
   if (missing.length > 0) {
     setIsInitialSetup(true);
@@ -82,13 +80,13 @@ export async function ensureSystemLanguagesInstalled() {
   }
 }
 
-export function isSystemLanguage(lang: string) {
+export function isSystemLanguage(lang: Language) {
   // On macOS, system languages are only "system" in terms of Vision usage
   // They are not protected from deletion in Tesseract
   return systemLanguages().includes(lang);
 }
 
-export function canDeleteLanguage(lang: string) {
+export function canDeleteLanguage(lang: Language) {
   // On macOS, any language can be deleted (including system languages)
   // On other platforms, system languages cannot be deleted
   if (isMacOS()) {
@@ -97,12 +95,12 @@ export function canDeleteLanguage(lang: string) {
   return !isSystemLanguage(lang);
 }
 
-export async function downloadLanguage(lang: string) {
+export async function downloadLanguage(lang: Language) {
   await invoke("download_tess_language", { lang });
   await refreshInstalledLanguages();
 }
 
-export async function deleteLanguage(lang: string) {
+export async function deleteLanguage(lang: Language) {
   await invoke("delete_tess_language", { lang });
   await refreshInstalledLanguages();
 }

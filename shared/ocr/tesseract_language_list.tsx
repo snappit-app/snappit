@@ -7,18 +7,18 @@ import { Tag } from "@/shared/ui/tag";
 
 import { Button } from "../ui/button";
 import { isMacOS } from "./installed_languages";
-import { RecognitionLanguageOption, RecognitionLanguageValue } from "./recognition_language";
+import { Language, RecognitionLanguageOption } from "./recognition_language";
 
 export interface TesseractLanguageListProps {
   options: Accessor<RecognitionLanguageOption[]>;
   installedLanguages: Accessor<string[]>;
   downloading: Accessor<Set<string>>;
-  selectedLanguages: Accessor<Set<RecognitionLanguageValue>>;
-  isSystemLanguage: (lang: string) => boolean;
-  canDeleteLanguage: (lang: string) => boolean;
-  onToggle: (lang: RecognitionLanguageValue) => void;
-  onDownload: (lang: string) => void;
-  onDelete: (lang: RecognitionLanguageValue) => void;
+  selectedLanguages: Accessor<Set<Language>>;
+  isSystemLanguage: (lang: Language) => boolean;
+  canDeleteLanguage: (lang: Language) => boolean;
+  onToggle: (lang: Language) => void;
+  onDownload: (lang: Language) => void;
+  onDelete: (lang: Language) => void;
 }
 
 export function TesseractLanguageList(props: TesseractLanguageListProps) {

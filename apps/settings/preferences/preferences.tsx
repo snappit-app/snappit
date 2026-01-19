@@ -36,24 +36,24 @@ export function Preferences() {
   const [notificationsEnabled, setNotificationsEnabled] = NotificationSettings.create();
   const [notificationDuration, setNotificationDuration] = NotificationDurationSettings.create();
   const [autostartEnabled, setAutostartEnabled, autostartReady] = AutostartSettings.create();
-  const [toolsEnabled, setToolsEnabled, , toolsLoading] = SnappitStore.createValue<boolean>(
+  const [toolsEnabled, setToolsEnabled, , toolsReady] = SnappitStore.createValue<boolean>(
     SNAPPIT_CONSTS.store.keys.tools_panel,
   );
-  const [colorFormat, setColorFormat, , colorFormatLoading] = SnappitStore.createValue<ColorFormat>(
+  const [colorFormat, setColorFormat, , colorFormatReady] = SnappitStore.createValue<ColorFormat>(
     SNAPPIT_CONSTS.store.keys.preferred_color_format,
   );
-  const [soundEnabled, setSoundEnabled, , soundLoading] = SnappitStore.createValue<boolean>(
+  const [soundEnabled, setSoundEnabled, , soundReady] = SnappitStore.createValue<boolean>(
     SNAPPIT_CONSTS.store.keys.sound_enabled,
   );
-  const [ocrKeepLineBreaks, setOcrKeepLineBreaks, , ocrLoading] = SnappitStore.createValue<boolean>(
+  const [ocrKeepLineBreaks, setOcrKeepLineBreaks, , ocrReady] = SnappitStore.createValue<boolean>(
     SNAPPIT_CONSTS.store.keys.ocr_keep_line_breaks,
   );
-  const [qrAutoOpenUrls, setQrAutoOpenUrls, , qrLoading] = SnappitStore.createValue<boolean>(
+  const [qrAutoOpenUrls, setQrAutoOpenUrls, , qrReady] = SnappitStore.createValue<boolean>(
     SNAPPIT_CONSTS.store.keys.qr_auto_open_urls,
   );
 
-  const isLoading = createMemo(
-    () => toolsLoading() || colorFormatLoading() || soundLoading() || ocrLoading() || qrLoading(),
+  const isReady = createMemo(
+    () => toolsReady() && colorFormatReady() && soundReady() && ocrReady() && qrReady(),
   );
 
   onMount(async () => {
@@ -61,15 +61,7 @@ export function Preferences() {
   });
 
   return (
-    <Show
-      when={!isLoading()}
-      fallback={
-        <div class="h-full flex flex-col items-center justify-center">
-          <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mb-4" />
-          <p class="text-sm font-medium">Loading preferences...</p>
-        </div>
-      }
-    >
+    <Show when={isReady()}>
       <div class="p-3">
         <h2 class="text-center text-bold mb-3 font-bold text-xl">Preferences</h2>
 
@@ -181,36 +173,45 @@ export function Preferences() {
             </SwitchControl>
           </Switch>
 
-          <Show when={notificationsEnabled()}>
-            <div class="flex justify-between items-center h-[30px]">
-              <div class="text-sm font-light flex gap-2 items-center">
-                <BiRegularTimer /> Duration
+          <div
+            class="grid transition-all duration-200 ease-out"
+            style={{
+              "grid-template-rows": notificationsEnabled() ? "1fr" : "0fr",
+              opacity: notificationsEnabled() ? "1" : "0",
+            }}
+          >
+            <div class="overflow-hidden">
+              <div class="flex justify-between items-center h-[30px]">
+                <div class="text-sm font-light flex gap-2 items-center">
+                  <BiRegularTimer /> Duration
+                </div>
+                <Select
+                  value={notificationDuration() ?? DEFAULT_NOTIFICATION_DURATION}
+                  onChange={(value) => value && setNotificationDuration(value)}
+                  options={NOTIFICATION_DURATION_OPTIONS.map((o) => o.value)}
+                  itemComponent={(props) => (
+                    <SelectItem item={props.item}>
+                      {
+                        NOTIFICATION_DURATION_OPTIONS.find((o) => o.value === props.item.rawValue)
+                          ?.label
+                      }
+                    </SelectItem>
+                  )}
+                >
+                  <SelectTrigger class="w-[130px]">
+                    <SelectValue<NotificationDuration>>
+                      {(state) =>
+                        NOTIFICATION_DURATION_OPTIONS.find(
+                          (o) => o.value === state.selectedOption(),
+                        )?.label
+                      }
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent />
+                </Select>
               </div>
-              <Select
-                value={notificationDuration() ?? DEFAULT_NOTIFICATION_DURATION}
-                onChange={(value) => value && setNotificationDuration(value)}
-                options={NOTIFICATION_DURATION_OPTIONS.map((o) => o.value)}
-                itemComponent={(props) => (
-                  <SelectItem item={props.item}>
-                    {
-                      NOTIFICATION_DURATION_OPTIONS.find((o) => o.value === props.item.rawValue)
-                        ?.label
-                    }
-                  </SelectItem>
-                )}
-              >
-                <SelectTrigger class="w-[130px]">
-                  <SelectValue<NotificationDuration>>
-                    {(state) =>
-                      NOTIFICATION_DURATION_OPTIONS.find((o) => o.value === state.selectedOption())
-                        ?.label
-                    }
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent />
-              </Select>
             </div>
-          </Show>
+          </div>
         </div>
 
         <div class="rounded-lg p-3 bg-card mb-3">

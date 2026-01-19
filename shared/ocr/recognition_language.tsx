@@ -139,10 +139,10 @@ const TESSERACT_LANGUAGE_CODES = [
 ] as const;
 
 type TessLanguageCode = (typeof TESSERACT_LANGUAGE_CODES)[number];
-export type RecognitionLanguageValue = typeof DEFAULT_VALUE | TessLanguageCode;
+export type Language = typeof DEFAULT_VALUE | TessLanguageCode;
 export type RecognitionLanguageOption = {
   label: string;
-  value: RecognitionLanguageValue;
+  value: Language;
 };
 
 const LANGUAGE_LABEL_OVERRIDES: Partial<Record<TessLanguageCode, string>> = {
@@ -223,24 +223,21 @@ export const RECOGNITION_LANGUAGE_OPTIONS = [
   ...MANUAL_RECOGNITION_LANGUAGE_OPTIONS,
 ] as const satisfies readonly RecognitionLanguageOption[];
 
-type RecognitionLanguagePreference = readonly [
-  () => RecognitionLanguageValue,
-  (next: RecognitionLanguageValue) => void,
-];
+type RecognitionLanguagePreference = readonly [() => Language, (next: Language) => void];
 
 const STORE_KEY = SNAPPIT_CONSTS.store.keys.recognition_lang;
-const VALID_CODES = new Set<RecognitionLanguageValue>(
+const VALID_CODES = new Set<Language>(
   MANUAL_RECOGNITION_LANGUAGE_OPTIONS.map((option) => option.value),
 );
 
 const ORDERED_CODES = RECOGNITION_LANGUAGE_OPTIONS.map((option) => option.value);
 
-const sanitizeRecognitionLanguage = (stored: unknown): RecognitionLanguageValue => {
+const sanitizeRecognitionLanguage = (stored: unknown): Language => {
   if (typeof stored !== "string") {
     return DEFAULT_VALUE;
   }
 
-  const trimmed = stored.trim() as RecognitionLanguageValue;
+  const trimmed = stored.trim() as Language;
   if (!trimmed || trimmed.toLowerCase() === DEFAULT_VALUE) {
     return DEFAULT_VALUE;
   }
@@ -248,7 +245,7 @@ const sanitizeRecognitionLanguage = (stored: unknown): RecognitionLanguageValue 
   const requested = new Set(
     trimmed
       .split("+")
-      .map((code) => code.trim() as RecognitionLanguageValue)
+      .map((code) => code.trim() as Language)
       .filter((code) => code && VALID_CODES.has(code)),
   );
 
@@ -262,7 +259,7 @@ const sanitizeRecognitionLanguage = (stored: unknown): RecognitionLanguageValue 
     return DEFAULT_VALUE;
   }
 
-  return ordered.join("+") as RecognitionLanguageValue;
+  return ordered.join("+") as Language;
 };
 
 export abstract class RecognitionLanguage {
@@ -271,9 +268,8 @@ export abstract class RecognitionLanguage {
   static create(): RecognitionLanguagePreference {
     if (this._singleton) return this._singleton;
 
-    const [storeValue, setStoreValue] =
-      SnappitStore.createValue<RecognitionLanguageValue>(STORE_KEY);
-    const [preference, setPreference] = createSignal<RecognitionLanguageValue>(DEFAULT_VALUE);
+    const [storeValue, setStoreValue] = SnappitStore.createValue<Language>(STORE_KEY);
+    const [preference, setPreference] = createSignal<Language>(DEFAULT_VALUE);
 
     createEffect(() => {
       const stored = storeValue();
@@ -287,7 +283,7 @@ export abstract class RecognitionLanguage {
       }
     });
 
-    function update(next: RecognitionLanguageValue) {
+    function update(next: Language) {
       const sanitized = sanitizeRecognitionLanguage(next);
       setPreference(sanitized);
       setStoreValue(sanitized).catch(() => {});
