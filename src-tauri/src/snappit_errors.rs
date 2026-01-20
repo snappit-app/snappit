@@ -81,6 +81,9 @@ pub enum SnappitError {
 
     #[error("QR scan failed: {0}")]
     QrScanFailed(String),
+
+    #[error("Vision QR unavailable: {0}")]
+    VisionQrUnavailable(String),
 }
 
 pub type SnappitResult<T> = Result<T, SnappitError>;
