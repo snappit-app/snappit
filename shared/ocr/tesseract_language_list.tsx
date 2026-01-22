@@ -198,7 +198,7 @@ export function TesseractLanguageList(props: TesseractLanguageListProps) {
                       }}
                       variant={"muted"}
                       size={"sm"}
-                      class="opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      class="opacity-0 group-hover:opacity-100 focus:opacity-100 window-inactive:!opacity-0"
                       title="Delete language"
                     >
                       Delete

@@ -55,7 +55,8 @@ const toggleGroupIndicatorVariants = cva("absolute z-0 rounded-full pointer-even
     },
     color: {
       default: "",
-      product: "bg-product",
+      product:
+        "bg-product dark:window-inactive:bg-muted-foreground/20 window-inactive:bg-muted-foreground/50",
     },
   },
   defaultVariants: {

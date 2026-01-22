@@ -19,7 +19,8 @@ const checkboxControlVariants = cva(
     variants: {
       color: {
         default: "data-[checked]:bg-primary data-[checked]:text-primary-foreground",
-        product: "data-[checked]:bg-product data-[checked]:text-product-foreground",
+        product:
+          "data-[checked]:bg-product data-[checked]:text-product-foreground window-inactive:data-[checked]:bg-muted",
       },
     },
     defaultVariants: {

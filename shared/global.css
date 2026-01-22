@@ -2,6 +2,7 @@
 @import "./animations";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant window-inactive (&:is(body.window-inactive *));
 
 :root {
   --background: oklch(1 0 0);
@@ -130,5 +131,25 @@
 
   *[data-tauri-drag-region] {
     -webkit-app-region: drag;
+  }
+}
+
+/* macOS-style inactive window effect */
+body.window-inactive {
+  & button,
+  & [role="switch"],
+  & [role="checkbox"],
+  & [role="radio"],
+  & [role="tab"],
+  & [role="slider"],
+  & select,
+  & input,
+  & textarea {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  & img {
+    opacity: 0.7;
   }
 }

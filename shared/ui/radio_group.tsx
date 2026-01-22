@@ -87,7 +87,8 @@ const radioGroupItemControlVariants = cva(
     variants: {
       variant: {
         default: "border-primary text-primary data-[checked]:bg-primary",
-        product: "bg-muted text-product data-[checked]:bg-product data-[checked]:border-product",
+        product:
+          "bg-muted text-product data-[checked]:bg-product data-[checked]:border-product window-inactive:data-[checked]:bg-muted-foreground window-inactive:data-[checked]:border-muted-foreground",
       },
     },
     defaultVariants: {

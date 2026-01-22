@@ -21,6 +21,7 @@ import { SnappitLicense } from "@/shared/libs/license";
 import { createPermissions } from "@/shared/libs/permissions";
 import { createSettingsVisible } from "@/shared/libs/settings_visible";
 import { createVersion } from "@/shared/libs/version";
+import { createWindowFocused } from "@/shared/libs/window_focused";
 import { ensureSystemLanguagesInstalled, isInitialSetup } from "@/shared/ocr/installed_languages";
 import { SettingsApi } from "@/shared/tauri/settings_api";
 import { Theme } from "@/shared/theme";
@@ -31,6 +32,7 @@ import { Preferences } from "./preferences";
 
 function SettingsApp() {
   Theme.create();
+  createWindowFocused();
   const version = createVersion();
   const [visible] = createSettingsVisible();
   const permissions = createPermissions();
