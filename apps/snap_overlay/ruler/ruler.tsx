@@ -68,8 +68,14 @@ export function Ruler() {
 
     const dx = to.x - from.x;
     const dy = to.y - from.y;
-    const length = Math.hypot(dx, dy);
     const angle = Math.atan2(dy, dx);
+
+    // Add 1 to include both end pixels (fence post correction)
+    // For axis-aligned lines: use |dx| + 1 or |dy| + 1
+    // For diagonal lines: use Chebyshev distance + 1 (max of |dx|, |dy|) for pixel counting
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+    const length = absDx === 0 || absDy === 0 ? absDx + absDy + 1 : Math.hypot(dx, dy) + 1;
     const midpoint = { x: from.x + dx / 2, y: from.y + dy / 2 };
 
     return { length, angle, midpoint, from, to };
