@@ -3,9 +3,6 @@ use crate::{
 };
 
 pub const FALLBACK_RECOGNITION_LANGUAGE: &str = "eng";
-pub const VALID_RECOGNITION_LANGUAGE_CODES: &[&str] = &[
-    "eng", "rus", "chi_sim", "chi_tra", "jpn", "kor", "spa", "fra", "deu", "tha",
-];
 
 pub fn default_recognition_language() -> String {
     let mut prioritized: Vec<&'static str> = Vec::new();
@@ -79,30 +76,18 @@ fn map_locale_to_recognition_code(locale: &str) -> Option<&'static str> {
         "fr" => Some("fra"),
         "de" => Some("deu"),
         "th" => Some("tha"),
+        "ka" => Some("kat"),
         _ => None,
     }
 }
 
 pub fn sanitize_recognition_language(raw: &str) -> Option<String> {
-    let requested: Vec<&str> = raw
-        .split('+')
-        .map(|code| code.trim())
-        .filter(|code| !code.is_empty())
-        .collect();
+    let mut unique: Vec<String> = Vec::new();
 
-    if requested.is_empty() {
-        return None;
-    }
-
-    // Preserve the order defined in VALID_RECOGNITION_LANGUAGE_CODES so Tesseract
-    // receives consistent combinations regardless of input order.
-    let mut unique = Vec::new();
-    for &code in VALID_RECOGNITION_LANGUAGE_CODES {
-        if requested
-            .iter()
-            .any(|candidate| candidate.eq_ignore_ascii_case(code))
-        {
-            unique.push(code);
+    for code in raw.split('+') {
+        let trimmed = code.trim().to_lowercase();
+        if !trimmed.is_empty() && !unique.iter().any(|c| c == &trimmed) {
+            unique.push(trimmed);
         }
     }
 
