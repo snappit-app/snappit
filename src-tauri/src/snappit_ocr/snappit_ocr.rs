@@ -13,6 +13,7 @@ use crate::{
     },
     snappit_res::{SnappitOcrEngine, SnappitOcrResult},
     snappit_store::SnappitStore,
+    text_processing::{collapse_line_breaks, remove_non_spaced_script_spaces},
     traits::IntoDynamic,
 };
 
@@ -32,7 +33,7 @@ impl SnappitOcr {
             match SnappitMacOSVisionOcr::recognize(app, &dyn_img, &language_codes) {
                 Ok(text) => {
                     return Ok(SnappitOcrResult {
-                        value: Self::process_text(&text, keep_line_breaks),
+                        value: Self::process_text(&text, keep_line_breaks, false),
                         ocr: SnappitOcrEngine::Vision,
                     })
                 }
@@ -44,7 +45,7 @@ impl SnappitOcr {
 
         let text = SnappitTesseractOcr::recognize(app, &dyn_img, &recognition_language)?;
         Ok(SnappitOcrResult {
-            value: Self::process_text(&text, keep_line_breaks),
+            value: Self::process_text(&text, keep_line_breaks, true),
             ocr: SnappitOcrEngine::Tesseract,
         })
     }
@@ -57,27 +58,18 @@ impl SnappitOcr {
             .unwrap_or(true)
     }
 
-    fn process_text(text: &str, keep_line_breaks: bool) -> String {
+    fn process_text(text: &str, keep_line_breaks: bool, is_tesseract: bool) -> String {
+        let mut text = text.to_string();
+
+        if is_tesseract {
+            text = remove_non_spaced_script_spaces(&text);
+        }
+
         if keep_line_breaks {
-            return text.to_string();
+            return text;
         }
 
-        let mut result = String::new();
-        let mut prev_was_newline = false;
-
-        for ch in text.chars() {
-            if ch == '\n' {
-                if !prev_was_newline && !result.is_empty() {
-                    result.push(' ');
-                }
-                prev_was_newline = true;
-            } else {
-                result.push(ch);
-                prev_was_newline = false;
-            }
-        }
-
-        result.trim().to_string()
+        collapse_line_breaks(&text)
     }
 
     fn should_use_macos_vision(languages: &[String]) -> bool {

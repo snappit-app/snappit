@@ -17,6 +17,7 @@ mod snappit_shortcut_manager;
 mod snappit_sounds;
 mod snappit_store;
 mod snappit_tray;
+mod text_processing;
 mod traits;
 
 use region_capture::{RegionCapture, RegionCaptureParams};
