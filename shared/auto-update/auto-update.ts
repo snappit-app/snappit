@@ -2,7 +2,7 @@ import { AutoUpdateApi } from "@shared/tauri/auto_update_api";
 import { makeTimer } from "@solid-primitives/timer";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check, Update } from "@tauri-apps/plugin-updater";
-import { createEffect, createRoot, createSignal, on, onCleanup, Resource } from "solid-js";
+import { createEffect, createMemo, createRoot, createSignal, on, onCleanup } from "solid-js";
 
 import { SNAPPIT_CONSTS } from "@/shared/constants";
 import { SnappitStore } from "@/shared/store";
@@ -24,7 +24,7 @@ interface AutoUpdateState {
   error: () => string;
   updateInfo: () => Update | null;
   downloadProgress: () => number;
-  autoUpdatesEnabled: Resource<boolean | null>;
+  autoUpdatesEnabled: () => boolean;
   setAutoUpdatesEnabled: (value: boolean) => Promise<void>;
   checkForUpdates: () => Promise<void>;
   downloadUpdate: () => Promise<void>;
@@ -33,7 +33,7 @@ interface AutoUpdateState {
 
 let singleton: { state: AutoUpdateState; dispose: () => void } | null = null;
 
-export function useAutoUpdate(): AutoUpdateState {
+export function createAutoUpdate(): AutoUpdateState {
   if (singleton) {
     return singleton.state;
   }
@@ -44,9 +44,11 @@ export function useAutoUpdate(): AutoUpdateState {
     const [updateInfo, setUpdateInfo] = createSignal<Update | null>(null);
     const [downloadProgress, setDownloadProgress] = createSignal(0);
 
-    const [autoUpdatesEnabled, setAutoUpdatesEnabled] = SnappitStore.createValue<boolean>(
+    const [autoUpdatesStoreValue, setAutoUpdatesEnabled] = SnappitStore.createValue<boolean>(
       SNAPPIT_CONSTS.store.keys.auto_updates,
     );
+
+    const autoUpdatesEnabled = createMemo<boolean>(() => autoUpdatesStoreValue() ?? true);
 
     let autoCheckCleanup: (() => void) | null = null;
 

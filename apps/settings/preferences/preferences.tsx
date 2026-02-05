@@ -138,7 +138,7 @@ export function Preferences() {
 
           <Switch
             class="flex justify-between items-center h-[30px]"
-            checked={!!toolsEnabled()}
+            checked={toolsEnabled() ?? true}
             onChange={(value) => setToolsEnabled(value)}
           >
             <SwitchLabel class="text-sm font-light flex gap-2 items-center">

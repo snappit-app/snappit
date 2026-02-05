@@ -16,7 +16,7 @@ import { History } from "@/apps/settings/history";
 import { Languages } from "@/apps/settings/languages";
 import { License } from "@/apps/settings/license";
 import { Shortcuts } from "@/apps/settings/shortcuts";
-import { useAutoUpdate } from "@/shared/auto-update";
+import { createAutoUpdate } from "@/shared/auto-update";
 import { SnappitLicense } from "@/shared/libs/license";
 import { createPermissions } from "@/shared/libs/permissions";
 import { createSettingsVisible } from "@/shared/libs/settings_visible";
@@ -41,7 +41,7 @@ function SettingsApp() {
   const [licenseState, refetch] = SnappitLicense.create();
   const [activeTab, setActiveTab] = createSignal("preferences");
   const isTrial = createMemo(() => licenseState()?.licenseType === "trial");
-  const { status: updateStatus } = useAutoUpdate();
+  const { status: updateStatus } = createAutoUpdate();
   const isUpdateReady = createMemo(() => updateStatus() === "ready");
   let unlistenOpenTab: UnlistenFn | undefined;
 

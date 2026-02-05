@@ -134,7 +134,7 @@ function SnapOverlay(props: snapOverlayProps) {
         </Show>
       </div>
 
-      <Show when={toolsEnabled()}>
+      <Show when={toolsEnabled() ?? true}>
         <Tools
           class={cn(
             "transition-[opacity,transform] duration-200 ease-in-out pointer-events-auto",

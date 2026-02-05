@@ -1,7 +1,7 @@
 import { BiSolidCheckCircle, BiSolidCloudDownload } from "solid-icons/bi";
 import { Show } from "solid-js";
 
-import { useAutoUpdate } from "@/shared/auto-update";
+import { createAutoUpdate } from "@/shared/auto-update";
 import { createVersion } from "@/shared/libs/version";
 import { Button } from "@/shared/ui/button";
 import { Switch, SwitchControl, SwitchLabel, SwitchThumb } from "@/shared/ui/switch";
@@ -19,7 +19,7 @@ export function About() {
     downloadProgress,
     autoUpdatesEnabled,
     setAutoUpdatesEnabled,
-  } = useAutoUpdate();
+  } = createAutoUpdate();
 
   return (
     <div class="p-3">
@@ -62,7 +62,7 @@ export function About() {
       <div class="rounded-lg p-3 bg-card mb-3">
         <Switch
           class="flex justify-between items-center h-[30px]"
-          checked={autoUpdatesEnabled() ?? false}
+          checked={autoUpdatesEnabled()}
           onChange={(value) => setAutoUpdatesEnabled(value)}
         >
           <SwitchLabel class="text-sm font-light flex gap-2 items-center">
