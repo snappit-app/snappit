@@ -2,6 +2,7 @@ use tauri::{
     AppHandle, Emitter, Error as TauriError, Manager, PhysicalPosition, WebviewUrl, WebviewWindow,
     WebviewWindowBuilder, WindowEvent, Wry,
 };
+#[cfg(target_os = "macos")]
 use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
 
 use crate::{

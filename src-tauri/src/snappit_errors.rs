@@ -84,6 +84,9 @@ pub enum SnappitError {
 
     #[error("Vision QR unavailable: {0}")]
     VisionQrUnavailable(String),
+
+    #[error("Unsupported platform: {0}")]
+    UnsupportedPlatform(&'static str),
 }
 
 pub type SnappitResult<T> = Result<T, SnappitError>;

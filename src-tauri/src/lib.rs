@@ -1,13 +1,20 @@
 mod img_protocol;
-#[cfg(target_os = "macos")]
 mod platform;
 mod region_capture;
 mod snappit_capturer;
 mod snappit_consts;
 mod snappit_errors;
 mod snappit_license;
+#[cfg(target_os = "macos")]
+mod snappit_notifications;
+#[cfg(not(target_os = "macos"))]
+#[path = "snappit_notifications_stub.rs"]
 mod snappit_notifications;
 mod snappit_ocr;
+#[cfg(target_os = "macos")]
+mod snappit_overlay;
+#[cfg(not(target_os = "macos"))]
+#[path = "snappit_overlay_stub.rs"]
 mod snappit_overlay;
 mod snappit_permissions;
 mod snappit_qr;
@@ -271,7 +278,7 @@ fn is_update_ready() -> bool {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() -> tauri::Result<()> {
-    return tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_store::Builder::new().build())
@@ -283,10 +290,15 @@ pub fn run() -> tauri::Result<()> {
                 .build(),
         )
         .plugin(tauri_plugin_clipboard_manager::init())
-        .plugin(tauri_plugin_autostart::Builder::new().build())
+        .plugin(tauri_plugin_autostart::Builder::new().build());
+
+    #[cfg(target_os = "macos")]
+    let builder = builder
         .plugin(tauri_nspanel::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_process::init());
+
+    builder
         .register_uri_scheme_protocol("img", move |_app, req| handle_img_request(&req))
         .setup(|app| {
             #[cfg(target_os = "macos")]
@@ -296,7 +308,9 @@ pub fn run() -> tauri::Result<()> {
 
             SnappitTesseractOcr::ensure_initialized(app.handle())?;
 
+            #[cfg(target_os = "macos")]
             SnappitOverlay::preload(app.handle())?;
+            #[cfg(target_os = "macos")]
             SnappitNotifications::preload(app.handle())?;
             SnappitSettings::preload(app.handle())?;
             SnappitPermissions::refresh_and_emit(app.handle())?;
@@ -349,5 +363,5 @@ pub fn run() -> tauri::Result<()> {
             set_update_ready,
             is_update_ready,
         ])
-        .run(tauri::generate_context!());
+        .run(tauri::generate_context!())
 }

@@ -1,5 +1,8 @@
+#[cfg(target_os = "macos")]
 use core_foundation::base::TCFType;
+#[cfg(target_os = "macos")]
 use core_foundation::string::CFString;
+#[cfg(target_os = "macos")]
 use core_foundation_sys::base::kCFAllocatorDefault;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
