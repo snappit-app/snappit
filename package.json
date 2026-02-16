@@ -6,6 +6,7 @@
   "scripts": {
     "start": "tauri dev",
     "start-release": "tauri dev --release",
+    "start:win": "powershell -NoProfile -ExecutionPolicy Bypass -File ./setup-vcpkg.ps1 tauri dev",
     "build-tauri": "tauri build",
     "resolve-dylib": "sh ./resolve-paths.sh ./src-tauri/resources/lib-mac ./src-tauri/resources/lib-mac",
     "check-dylib": "sh ./resolve-paths.sh --dry-run  ./src-tauri/resources/lib-mac ./src-tauri/resources/lib-mac",

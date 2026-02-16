@@ -284,6 +284,8 @@ pub fn run() -> tauri::Result<()> {
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .plugin(
             tauri_plugin_log::Builder::new()
                 .level(log::LevelFilter::Debug)
@@ -293,10 +295,7 @@ pub fn run() -> tauri::Result<()> {
         .plugin(tauri_plugin_autostart::Builder::new().build());
 
     #[cfg(target_os = "macos")]
-    let builder = builder
-        .plugin(tauri_nspanel::init())
-        .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_process::init());
+    let builder = builder.plugin(tauri_nspanel::init());
 
     builder
         .register_uri_scheme_protocol("img", move |_app, req| handle_img_request(&req))

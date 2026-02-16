@@ -103,7 +103,7 @@ fn capture_logical_grid(
     capture_left = capture_left.clamp(0, max_x.saturating_sub(1));
     capture_top = capture_top.clamp(0, max_y.saturating_sub(1));
 
-    let image = RegionCapture::capture_around_cursor(
+    let image = RegionCapture::capture(
         app,
         RegionCaptureParams {
             x,

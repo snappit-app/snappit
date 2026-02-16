@@ -60,8 +60,6 @@ impl SnappitSettings {
             .closable(true)
             .minimizable(false)
             .decorations(true)
-            .title_bar_style(tauri::TitleBarStyle::Overlay)
-            .traffic_light_position(PhysicalPosition { x: 32, y: 42 })
             .transparent(true)
             .resizable(false)
             .shadow(true)
@@ -69,8 +67,13 @@ impl SnappitSettings {
             .build()?;
 
         #[cfg(target_os = "macos")]
-        apply_vibrancy(&window, NSVisualEffectMaterial::Sidebar, None, None)
-            .expect("Failed to apply vibrancy");
+        {
+            window = window
+                .title_bar_style(tauri::TitleBarStyle::Overlay)
+                .traffic_light_position(PhysicalPosition { x: 32, y: 42 });
+            apply_vibrancy(&window, NSVisualEffectMaterial::Sidebar, None, None)
+                .expect("Failed to apply vibrancy");
+        }
 
         let app_clone = app.clone();
         window.on_window_event(move |event| match event {
