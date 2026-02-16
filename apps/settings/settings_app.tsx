@@ -1,10 +1,13 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/tabs";
 import { UnlistenFn } from "@tauri-apps/api/event";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { platform } from "@tauri-apps/plugin-os";
 import {
   BiRegularCommand,
   BiRegularGlobe,
   BiRegularHistory,
   BiRegularInfoCircle,
+  BiRegularX,
   BiSolidCog,
   BiSolidShield,
 } from "solid-icons/bi";
@@ -25,6 +28,7 @@ import { createWindowFocused } from "@/shared/libs/window_focused";
 import { ensureSystemLanguagesInstalled, isInitialSetup } from "@/shared/ocr/installed_languages";
 import { SettingsApi } from "@/shared/tauri/settings_api";
 import { Theme } from "@/shared/theme";
+import { Button } from "@/shared/ui/button";
 import { TrialBadge } from "@/shared/ui/trial_badge";
 
 import { PermissionsGate } from "./permissions";
@@ -71,9 +75,22 @@ function SettingsApp() {
       <header
         data-tauri-drag-region
         class="h-[56px] w-full absolute left-0 top-0 z-55 flex items-center justify-end pr-3 cursor-default select-none"
-      />
+      >
+        <Show when={platform() !== "macos"}>
+          <Button
+            variant={"destructive"}
+            size={"icon"}
+            class="hover:bg-destructive-foreground hover:text-white"
+            onClick={() => {
+              WebviewWindow.getCurrent().close();
+            }}
+          >
+            <BiRegularX class="w-6 h-6" />
+          </Button>
+        </Show>
+      </header>
 
-      <aside class="w-[200px] h-full px-3 pb-7 pt-[56px] flex flex-col justify-between shrink-0">
+      <aside class="w-[200px] h-full px-3 pb-7 pt-[56px] flex flex-col justify-between shrink-0 win:bg-card">
         <Show when={canLoadApp()} fallback={<div />}>
           <TabsList>
             <TabsTrigger value="preferences">
