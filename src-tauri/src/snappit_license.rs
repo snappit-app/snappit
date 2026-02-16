@@ -109,6 +109,15 @@ pub struct SnappitLicense;
 
 impl SnappitLicense {
     pub fn get_state() -> SnappitResult<LicenseState> {
+        #[cfg(not(target_os = "macos"))]
+        {
+            return Ok(LicenseState {
+                license_type: LicenseType::Full,
+                uses_remaining: u32::MAX,
+                is_valid: true,
+            });
+        }
+
         // Rate limiting: return cached state if called too frequently
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -154,11 +163,22 @@ impl SnappitLicense {
     }
 
     pub fn is_trial_expired() -> SnappitResult<bool> {
+        #[cfg(not(target_os = "macos"))]
+        {
+            return Ok(false);
+        }
+
         let state = Self::get_state()?;
         Ok(state.license_type == LicenseType::Trial && state.uses_remaining == 0)
     }
 
     pub fn consume_use(app: &AppHandle<Wry>) -> SnappitResult<u32> {
+        #[cfg(not(target_os = "macos"))]
+        {
+            let _ = app;
+            return Ok(u32::MAX);
+        }
+
         let mut data = Self::load_or_init()?;
 
         if data.lt == "p" {
@@ -186,6 +206,12 @@ impl SnappitLicense {
     }
 
     pub fn activate_pro(license_key: String) -> SnappitResult<()> {
+        #[cfg(not(target_os = "macos"))]
+        {
+            let _ = license_key;
+            return Ok(());
+        }
+
         let mut data = Self::load_or_init()?;
         data.lt = "p".to_string();
         data.license_key = Some(license_key);
@@ -199,11 +225,21 @@ impl SnappitLicense {
     }
 
     pub fn get_license_key() -> SnappitResult<Option<String>> {
+        #[cfg(not(target_os = "macos"))]
+        {
+            return Ok(None);
+        }
+
         let data = Self::load_or_init()?;
         Ok(data.license_key)
     }
 
     pub fn deactivate() -> SnappitResult<()> {
+        #[cfg(not(target_os = "macos"))]
+        {
+            return Ok(());
+        }
+
         let mut data = Self::load_or_init()?;
         data.lt = "t".to_string();
         data.license_key = None;
@@ -369,8 +405,6 @@ impl SnappitLicense {
 
     #[cfg(not(target_os = "macos"))]
     fn get_hardware_uuid() -> SnappitResult<String> {
-        Err(SnappitError::License(
-            "Hardware UUID not supported on this platform".to_string(),
-        ))
+        Ok("non-macos-placeholder-hardware-id".to_string())
     }
 }

@@ -58,9 +58,9 @@ impl SnappitSettings {
             .always_on_top(false)
             .content_protected(false)
             .closable(true)
+            .maximizable(false)
             .minimizable(false)
             .decorations(true)
-            .transparent(true)
             .resizable(false)
             .shadow(true)
             .inner_size(630.0, 600.0)
@@ -70,6 +70,7 @@ impl SnappitSettings {
         {
             window = window
                 .title_bar_style(tauri::TitleBarStyle::Overlay)
+                .transparent(true)
                 .traffic_light_position(PhysicalPosition { x: 32, y: 42 });
             apply_vibrancy(&window, NSVisualEffectMaterial::Sidebar, None, None)
                 .expect("Failed to apply vibrancy");

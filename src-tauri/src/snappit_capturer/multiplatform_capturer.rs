@@ -93,6 +93,8 @@ fn capture_logical_grid(
 
     let logical_start_x = center_x - (radius as f64 * cell_span) - half_cell;
     let logical_start_y = center_y - (radius as f64 * cell_span) - half_cell;
+    let logical_end_x = logical_start_x + size as f64 * cell_span;
+    let logical_end_y = logical_start_y + size as f64 * cell_span;
 
     let mut capture_left = logical_start_x.floor() as i64;
     let mut capture_top = logical_start_y.floor() as i64;
@@ -102,14 +104,18 @@ fn capture_logical_grid(
 
     capture_left = capture_left.clamp(0, max_x.saturating_sub(1));
     capture_top = capture_top.clamp(0, max_y.saturating_sub(1));
+    let capture_right = (logical_end_x.ceil() as i64).clamp(capture_left + 1, max_x);
+    let capture_bottom = (logical_end_y.ceil() as i64).clamp(capture_top + 1, max_y);
+    let capture_width = (capture_right - capture_left) as u32;
+    let capture_height = (capture_bottom - capture_top) as u32;
 
     let image = RegionCapture::capture(
         app,
         RegionCaptureParams {
-            x,
-            y,
-            width: size,
-            height: size,
+            x: capture_left as u32,
+            y: capture_top as u32,
+            width: capture_width,
+            height: capture_height,
         },
     )?;
 

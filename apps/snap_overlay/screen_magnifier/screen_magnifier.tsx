@@ -32,7 +32,7 @@ export function createScreenMagnifier() {
   }, 32);
 
   createEventListener(window, "mousemove", (e: MouseEvent) =>
-    captureColorAndMagnifiedView(e.x, e.y),
+    captureColorAndMagnifiedView(e.clientX, e.clientY),
   );
 
   onCleanup(() => {

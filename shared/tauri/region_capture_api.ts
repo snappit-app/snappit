@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 
 import { SnappitQrResponse, SnappitResponse } from "@/shared/tauri/snappit_res";
 
@@ -23,7 +23,8 @@ export abstract class RegionCaptureApi {
   }
 
   static async getLastShotData(): Promise<Blob> {
-    const res = await fetch("img://current", {
+    const imgUrl = convertFileSrc("current", "img");
+    const res = await fetch(imgUrl, {
       method: "GET",
     });
 
