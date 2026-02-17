@@ -28,6 +28,7 @@ const ICON_MAP: Record<SnappitOverlayTarget, Component<{ size?: number }>> = {
 };
 
 type NotificationProps = {
+  isAnimatingOut: Accessor<boolean>;
   payload: Accessor<string>;
   target: Accessor<SnappitOverlayTarget>;
   data: Accessor<string | undefined>;
@@ -107,10 +108,15 @@ export function NotificationItem(props: NotificationProps) {
   return (
     <div
       class={cn(
-        `pointer-events-none opacity-85 flex h-full w-full flex-col items-center justify-center gap-5 rounded-4xl text-center text-foreground backdrop-blur-xl`,
+        `pointer-events-none macos:opacity-85 flex h-full w-full flex-col items-center justify-center gap-5 rounded-4xl text-center text-foreground win:bg-card/90`,
+        props.isAnimatingOut() ? "opacity-0" : "",
       )}
     >
-      <div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 text-primary">
+      <div
+        class={cn(
+          "flex h-16 w-16 items-center justify-center rounded-full text-primary bg-primary/15",
+        )}
+      >
         <Dynamic component={IconComponent()} size={38} />
       </div>
 

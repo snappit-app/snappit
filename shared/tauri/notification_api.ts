@@ -26,6 +26,11 @@ export abstract class NotificationApi {
     return overlay?.listen("notification:hidden", handler);
   }
 
+  static async onAnimateOut(handler: EventCallback<boolean>) {
+    const overlay = await this.get();
+    return overlay?.listen("notification:animate_out", handler);
+  }
+
   static async show(payload: ShowPayload) {
     return invoke("show_notification", { payload });
   }

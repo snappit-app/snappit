@@ -5,10 +5,6 @@ mod snappit_capturer;
 mod snappit_consts;
 mod snappit_errors;
 mod snappit_license;
-#[cfg(target_os = "macos")]
-mod snappit_notifications;
-#[cfg(not(target_os = "macos"))]
-#[path = "snappit_notifications_stub.rs"]
 mod snappit_notifications;
 mod snappit_ocr;
 mod snappit_overlay;
@@ -304,7 +300,6 @@ pub fn run() -> tauri::Result<()> {
             SnappitTesseractOcr::ensure_initialized(app.handle())?;
 
             SnappitOverlay::preload(app.handle())?;
-            #[cfg(target_os = "macos")]
             SnappitNotifications::preload(app.handle())?;
             SnappitSettings::preload(app.handle())?;
             SnappitPermissions::refresh_and_emit(app.handle())?;

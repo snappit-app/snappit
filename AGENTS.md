@@ -77,3 +77,4 @@ The frontend uses Vite MPA with three entry points:
 - Import sorting via `eslint-plugin-simple-import-sort`
 - Unused vars allowed if prefixed with `_`
 - **Solid Primitives**: Always prefer `@solid-primitives/*` packages over custom implementations. Only write custom primitives if no suitable solid-primitives package exists.
+- For platform specific styles use tailwind prefixes. macos:{tailwind-code}, win:{tailwind-code}
