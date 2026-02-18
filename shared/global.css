@@ -1,3 +1,5 @@
+@import "@fontsource-variable/inter/wght.css";
+@import "@fontsource-variable/inter/wght-italic.css";
 @import "tailwindcss";
 @import "./animations";
 
@@ -5,6 +7,12 @@
 @custom-variant window-inactive (&:is(body.window-inactive *));
 @custom-variant macos (&:where([data-platform="macos"], [data-platform="macos"] *));
 @custom-variant win (&:where([data-platform="windows"], [data-platform="windows"] *));
+
+@theme {
+  --font-sans:
+    "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
 
 
 :root {
