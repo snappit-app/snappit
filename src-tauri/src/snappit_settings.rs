@@ -51,7 +51,7 @@ impl SnappitSettings {
     }
 
     pub fn preload(app: &AppHandle<Wry>) -> SnappitResult<WebviewWindow> {
-        let window = Self::builder(app)
+        let mut window = Self::builder(app)
             .fullscreen(false)
             .accept_first_mouse(true)
             .shadow(false)
@@ -63,8 +63,7 @@ impl SnappitSettings {
             .decorations(false)
             .resizable(false)
             .shadow(true)
-            .inner_size(630.0, 600.0)
-            .build()?;
+            .inner_size(630.0, 600.0);
 
         #[cfg(target_os = "macos")]
         {
@@ -73,12 +72,18 @@ impl SnappitSettings {
                 .transparent(true)
                 .decorations(true)
                 .traffic_light_position(PhysicalPosition { x: 32, y: 42 });
-            apply_vibrancy(&window, NSVisualEffectMaterial::Sidebar, None, None)
+        }
+
+        let built_window = window.build()?;
+
+        #[cfg(target_os = "macos")]
+        {
+            apply_vibrancy(&built_window, NSVisualEffectMaterial::Sidebar, None, None)
                 .expect("Failed to apply vibrancy");
         }
 
         let app_clone = app.clone();
-        window.on_window_event(move |event| match event {
+        built_window.on_window_event(move |event| match event {
             WindowEvent::CloseRequested { api, .. } => {
                 api.prevent_close();
                 SnappitSettings::hide(&app_clone)
@@ -88,7 +93,7 @@ impl SnappitSettings {
             _ => {}
         });
 
-        Ok(window)
+        Ok(built_window)
     }
 
     fn builder<'a>(app: &'a AppHandle<Wry>) -> WebviewWindowBuilder<'a, Wry, AppHandle<Wry>> {
