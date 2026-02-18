@@ -21,11 +21,12 @@ export abstract class ShortcutsApi {
   }
 
   static createStoredShortcut(key: ShortcutKeys, target: SnappitOverlayTarget) {
-    const [storeShortcut, setStoreValue, remove] = SnappitStore.createValue<string>(key);
+    const [storeShortcut, setStoreValue, remove, isReady] = SnappitStore.createValue<string>(key);
     const shortcut = createMemo(() => storeShortcut() ?? DEFAULT_SHORTCUTS[key]);
 
     createEffect(() => {
-      if (!storeShortcut() && DEFAULT_SHORTCUTS[key]) {
+      // Seed defaults only after store value is loaded to avoid overwriting persisted shortcuts.
+      if (isReady() && storeShortcut() == null && DEFAULT_SHORTCUTS[key]) {
         void setShortcut(DEFAULT_SHORTCUTS[key]);
       }
     });
