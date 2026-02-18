@@ -65,7 +65,6 @@ export function MacOSLanguages() {
   return (
     <Show when={isReady()}>
       <div class="p-3 h-full flex flex-col min-h-0">
-        <h2 class="shrink-0 text-center text-bold font-bold text-xl">Languages</h2>
         <RadioGroup
           class="min-h-0 h-full mt-3"
           variant="product"

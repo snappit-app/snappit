@@ -58,24 +58,19 @@ export function MultiplatformLanguages() {
 
   return (
     <Show when={isReady()}>
-      <div class="p-3 h-full flex flex-col min-h-0">
-        <h2 class="shrink-0 text-center text-bold font-bold text-xl">Languages</h2>
-        <div class="mt-3 flex flex-col min-h-0 flex-1 bg-card rounded-lg p-3">
-          <div class="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
-            <TesseractLanguageList
-              options={multiplatformSortedOptions}
-              installedLanguages={installedLanguages}
-              downloading={downloading}
-              selectedLanguages={tesseractLanguageSet}
-              isSystemLanguage={isSystemLanguage}
-              canDeleteLanguage={canDeleteLanguage}
-              isToggleDisabled={isLastSelectedLanguage}
-              onToggle={handleMultiplatformToggle}
-              onDownload={handleDownload}
-              onDelete={deleteLanguage}
-            />
-          </div>
-        </div>
+      <div class="border-t min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable] p-3">
+        <TesseractLanguageList
+          options={multiplatformSortedOptions}
+          installedLanguages={installedLanguages}
+          downloading={downloading}
+          selectedLanguages={tesseractLanguageSet}
+          isSystemLanguage={isSystemLanguage}
+          canDeleteLanguage={canDeleteLanguage}
+          isToggleDisabled={isLastSelectedLanguage}
+          onToggle={handleMultiplatformToggle}
+          onDownload={handleDownload}
+          onDelete={deleteLanguage}
+        />
       </div>
     </Show>
   );
