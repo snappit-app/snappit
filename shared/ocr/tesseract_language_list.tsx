@@ -16,6 +16,8 @@ export interface TesseractLanguageListProps {
   selectedLanguages: Accessor<Set<Language>>;
   isSystemLanguage: (lang: Language) => boolean;
   canDeleteLanguage: (lang: Language) => boolean;
+  isToggleDisabled?: (lang: Language) => boolean;
+  showSystemTag?: boolean;
   onToggle: (lang: Language) => void;
   onDownload: (lang: Language) => void;
   onDelete: (lang: Language) => void;
@@ -147,9 +149,12 @@ export function TesseractLanguageList(props: TesseractLanguageListProps) {
           const isSelected = () => props.selectedLanguages().has(option.value);
           const isSystem = () => props.isSystemLanguage(option.value);
           const isHighlighted = () => highlightedValue() === option.value;
+          const isToggleDisabled = () => props.isToggleDisabled?.(option.value) ?? false;
+          const showSystemTag = () => props.showSystemTag ?? true;
 
           const handleClick = () => {
             if (isInstalled()) {
+              if (isToggleDisabled()) return;
               props.onToggle(option.value);
             } else if (!isDownloading()) {
               props.onDownload(option.value);
@@ -171,7 +176,11 @@ export function TesseractLanguageList(props: TesseractLanguageListProps) {
                     <Checkbox
                       class="flex items-center"
                       checked={isSelected()}
-                      onChange={() => props.onToggle(option.value)}
+                      disabled={isToggleDisabled()}
+                      onChange={() => {
+                        if (isToggleDisabled()) return;
+                        props.onToggle(option.value);
+                      }}
                       onClick={(e: MouseEvent) => e.stopPropagation()}
                     >
                       <CheckboxControl color={"product"} />
@@ -205,7 +214,7 @@ export function TesseractLanguageList(props: TesseractLanguageListProps) {
                     </Button>
                   </Show>
 
-                  <Show when={isInstalled() && isSystem() && !isMacOS()}>
+                  <Show when={isInstalled() && isSystem() && !isMacOS() && showSystemTag()}>
                     <Tag>system</Tag>
                   </Show>
                 </div>
