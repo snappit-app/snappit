@@ -10,10 +10,9 @@
 
 @theme {
   --font-sans:
-    "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
-
 
 :root {
   color-scheme: light;
@@ -135,7 +134,6 @@
 }
 
 @layer base {
-
   body,
   html,
   #root {
@@ -150,7 +148,6 @@
 
 /* macOS-style inactive window effect */
 body.window-inactive {
-
   & button,
   & [role="switch"],
   & [role="checkbox"],

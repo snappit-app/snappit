@@ -108,9 +108,10 @@ export function NotificationItem(props: NotificationProps) {
   return (
     <div
       class={cn(
-        `pointer-events-none macos:opacity-85 flex h-full w-full flex-col items-center justify-center gap-5 rounded-4xl text-center text-foreground win:bg-card/90`,
+        `pointer-events-none macos:opacity-85 flex h-full w-full flex-col items-center justify-center gap-5 rounded-4xl text-center text-foreground win:bg-card/90 transition-opacity ease-out`,
         props.isAnimatingOut() ? "opacity-0" : "",
       )}
+      style={{ "transition-duration": `${ANIMATION_DURATION_MS}ms` }}
     >
       <div
         class={cn(
