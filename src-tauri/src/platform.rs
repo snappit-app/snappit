@@ -7,70 +7,124 @@ pub struct Platform;
 impl Platform {
     pub fn monitor_from_cursor(app: &tauri::AppHandle<Wry>) -> SnappitResult<Monitor> {
         let cursor_pos = app.cursor_position()?;
+        let primary = app.primary_monitor()?;
+
+        #[cfg(target_os = "macos")]
+        let primary_scale = primary.as_ref().map(|m| m.scale_factor()).unwrap_or(1.0);
+        #[cfg(target_os = "macos")]
+        let cursor_logical: LogicalPosition<f64> = cursor_pos.to_logical(primary_scale);
+
+        #[cfg(not(target_os = "macos"))]
+        if let Some(monitor) = app.monitor_from_point(cursor_pos.x, cursor_pos.y)? {
+            return Ok(monitor);
+        }
+
+        #[cfg(target_os = "macos")]
+        if let Some(monitor) = app.monitor_from_point(cursor_logical.x, cursor_logical.y)? {
+            return Ok(monitor);
+        }
+
         let monitors = app.available_monitors()?;
+        #[cfg(target_os = "macos")]
+        if let Some(monitor) = monitors.iter().find(|m| {
+            let scale = m.scale_factor();
+            let pos: LogicalPosition<f64> = m.position().to_logical(scale);
+            let size: LogicalSize<f64> = m.size().to_logical(scale);
 
-        let monitor = monitors
-            .into_iter()
-            .find(|m| {
-                let scale = m.scale_factor() as f64;
-                let pos: LogicalPosition<f64> = m.position().to_logical(scale);
-                let size: LogicalSize<f64> = m.size().to_logical(scale);
+            let x_max = pos.x + size.width;
+            let y_max = pos.y + size.height;
 
-                let lx = cursor_pos.x / scale;
-                let ly = cursor_pos.y / scale;
+            cursor_logical.x >= pos.x
+                && cursor_logical.x < x_max
+                && cursor_logical.y >= pos.y
+                && cursor_logical.y < y_max
+        }) {
+            return Ok(monitor.clone());
+        }
 
-                let x_max = pos.x + size.width;
-                let y_max = pos.y + size.height;
+        if let Some(primary) = primary {
+            log::warn!(
+                "Monitor under cursor not found. Falling back to primary monitor at ({}, {}).",
+                primary.position().x,
+                primary.position().y
+            );
+            return Ok(primary);
+        }
 
-                lx >= pos.x && lx <= x_max && ly >= pos.y && ly <= y_max
-            })
-            .ok_or(SnappitError::MonitorNotFound)?;
+        if let Some(first) = monitors.into_iter().next() {
+            log::warn!(
+                "Monitor under cursor and primary monitor not found. Falling back to first available monitor at ({}, {}).",
+                first.position().x,
+                first.position().y
+            );
+            return Ok(first);
+        }
 
-        Ok(monitor)
+        Err(SnappitError::MonitorNotFound)
     }
 
     pub fn xcap_monitor_from_cursor(app: &tauri::AppHandle<Wry>) -> SnappitResult<XCapMonitor> {
-        let cursor_pos: tauri::PhysicalPosition<f64> = app.cursor_position()?;
-        let monitors = XCapMonitor::all()?;
+        let cursor_pos = app.cursor_position()?;
+        let mut monitors = XCapMonitor::all()?;
+        let primary = app.primary_monitor()?;
 
-        let monitor = monitors
-            .into_iter()
-            .find_map(|m| {
-                let scale = match m.scale_factor() {
-                    Ok(s) => s as f64,
-                    Err(_) => return None,
-                };
-                let width = match m.width() {
-                    Ok(s) => s as f64,
-                    Err(_) => return None,
-                };
-                let height = match m.height() {
-                    Ok(s) => s as f64,
-                    Err(_) => return None,
-                };
-                let x = match m.x() {
-                    Ok(s) => s as f64,
-                    Err(_) => return None,
-                };
-                let y = match m.y() {
-                    Ok(s) => s as f64,
-                    Err(_) => return None,
-                };
+        #[cfg(target_os = "macos")]
+        let primary_scale = primary.as_ref().map(|m| m.scale_factor()).unwrap_or(1.0);
+        #[cfg(target_os = "macos")]
+        let cursor_logical: LogicalPosition<f64> = cursor_pos.to_logical(primary_scale);
 
-                let lx = cursor_pos.x / scale;
-                let ly = cursor_pos.y / scale;
+        if let Some(index) = monitors.iter().position(|m| {
+            let width = match m.width() {
+                Ok(s) => s as f64,
+                Err(_) => return false,
+            };
+            let height = match m.height() {
+                Ok(s) => s as f64,
+                Err(_) => return false,
+            };
+            let x = match m.x() {
+                Ok(s) => s as f64,
+                Err(_) => return false,
+            };
+            let y = match m.y() {
+                Ok(s) => s as f64,
+                Err(_) => return false,
+            };
 
-                let x_max = x + width;
-                let y_max = y + height;
+            let x_max = x + width;
+            let y_max = y + height;
 
-                if lx >= x && lx <= x_max && ly >= y && ly <= y_max {
-                    Some(m)
-                } else {
-                    None
-                }
-            })
-            .ok_or(SnappitError::MonitorNotFound)?;
+            #[cfg(target_os = "macos")]
+            {
+                cursor_logical.x >= x
+                    && cursor_logical.x < x_max
+                    && cursor_logical.y >= y
+                    && cursor_logical.y < y_max
+            }
+            #[cfg(not(target_os = "macos"))]
+            {
+                cursor_pos.x >= x
+                    && cursor_pos.x < x_max
+                    && cursor_pos.y >= y
+                    && cursor_pos.y < y_max
+            }
+        }) {
+            return Ok(monitors.swap_remove(index));
+        }
 
-        Ok(monitor)
+        if let Some(index) = monitors
+            .iter()
+            .position(|m| m.is_primary().unwrap_or(false))
+        {
+            log::warn!("XCap monitor under cursor not found. Falling back to primary monitor.");
+            return Ok(monitors.swap_remove(index));
+        }
+
+        if let Some(first) = monitors.into_iter().next() {
+            log::warn!("XCap monitor under cursor not found. Falling back to first monitor.");
+            return Ok(first);
+        }
+
+        Err(SnappitError::MonitorNotFound)
     }
 }
