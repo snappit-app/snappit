@@ -60,10 +60,12 @@ impl SnappitNotifications {
         payload: SnappitNotificationPayload,
     ) -> SnappitResult<WebviewWindow> {
         let window = platform_notifications::ensure_notification_window(app)?;
+        let window_size = window.outer_size()?;
 
         let monitor = Platform::monitor_from_cursor(app)?;
-        let width = WINDOW_WIDTH as i32;
-        let height = WINDOW_HEIGHT as i32;
+        // Use actual window size (physical pixels) to avoid HiDPI/Retina offset issues.
+        let width = window_size.width as i32;
+        let height = window_size.height as i32;
 
         let available_width = monitor.size().width as i32;
         let available_height = monitor.size().height as i32;
