@@ -299,7 +299,12 @@ pub fn run() -> tauri::Result<()> {
 
             SnappitTesseractOcr::ensure_initialized(app.handle())?;
 
-            SnappitOverlay::preload(app.handle())?;
+            if let Err(err) = SnappitOverlay::preload(app.handle()) {
+                log::warn!(
+                    "Failed to preload overlay window during setup: {}. Continuing startup.",
+                    err
+                );
+            }
             SnappitNotifications::preload(app.handle())?;
             SnappitSettings::preload(app.handle())?;
             SnappitPermissions::refresh_and_emit(app.handle())?;
