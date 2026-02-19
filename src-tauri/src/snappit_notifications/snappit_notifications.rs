@@ -67,14 +67,15 @@ impl SnappitNotifications {
         let width = window_size.width as i32;
         let height = window_size.height as i32;
 
-        let available_width = monitor.size().width as i32;
-        let available_height = monitor.size().height as i32;
+        let work_area = monitor.work_area();
+        let available_width = work_area.size.width as i32;
+        let available_height = work_area.size.height as i32;
 
         let x_offset = cmp::max((available_width - width) / 2, 0);
         let y_offset = cmp::max(available_height - height - WINDOW_BOTTOM_MARGIN, 0);
 
-        let x = monitor.position().x + x_offset;
-        let y = monitor.position().y + y_offset;
+        let x = work_area.position.x + x_offset;
+        let y = work_area.position.y + y_offset;
 
         window.set_position(PhysicalPosition::new(x, y))?;
 
