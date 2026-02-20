@@ -9,7 +9,6 @@
 //!
 //! This ensures consistent colors regardless of display profile.
 
-use crate::platform::Platform;
 #[cfg(target_os = "macos")]
 use crate::snappit_capturer::SnappitColorInfo;
 use crate::snappit_errors::{SnappitError, SnappitResult};
@@ -97,10 +96,8 @@ pub fn capture_color(
     y: u32,
     radius: u32,
 ) -> SnappitResult<SnappitColorInfo> {
-    let (scale_factor, monitor_origin) = get_monitor_info(app);
-
-    let (center_color, _grid) =
-        capture_color_at_position(x, y, radius, scale_factor, monitor_origin)?;
+    let cursor = get_cursor_global_logical_position(app, (x, y));
+    let (center_color, _grid) = capture_color_at_position(cursor.0, cursor.1, radius)?;
 
     Ok(SnappitColorInfo::from_rgba(
         center_color.r,
@@ -117,10 +114,8 @@ pub fn capture_magnified(
     params: (u32, u32, u32),
 ) -> SnappitResult<ImageBuffer<Rgba<u8>, Vec<u8>>> {
     let (radius, ratio, size) = params;
-    let (scale_factor, monitor_origin) = get_monitor_info(app);
-
-    let (_center_color, grid) =
-        capture_color_at_position(x, y, radius, scale_factor, monitor_origin)?;
+    let cursor = get_cursor_global_logical_position(app, (x, y));
+    let (_center_color, grid) = capture_color_at_position(cursor.0, cursor.1, radius)?;
 
     let magnified = grid_to_magnified_image(&grid, size, ratio);
 
@@ -128,14 +123,19 @@ pub fn capture_magnified(
 }
 
 #[cfg(target_os = "macos")]
-fn get_monitor_info(app: &AppHandle) -> (f64, (f64, f64)) {
-    if let Ok(monitor) = Platform::monitor_from_cursor(app) {
-        let scale_factor = monitor.scale_factor();
-        let position = monitor.position().to_logical::<f64>(scale_factor);
-        (scale_factor, (position.x, position.y))
-    } else {
-        (2.0, (0.0, 0.0))
+fn get_cursor_global_logical_position(app: &AppHandle, fallback_local: (u32, u32)) -> (f64, f64) {
+    if let Ok(cursor_pos) = app.cursor_position() {
+        let primary_scale = app
+            .primary_monitor()
+            .ok()
+            .flatten()
+            .map(|monitor| monitor.scale_factor().max(1.0))
+            .unwrap_or(1.0);
+        let cursor_logical = cursor_pos.to_logical::<f64>(primary_scale);
+        return (cursor_logical.x, cursor_logical.y);
     }
+
+    (fallback_local.0 as f64, fallback_local.1 as f64)
 }
 
 /// Capture a region of the screen and convert to sRGB color space
@@ -277,26 +277,17 @@ fn get_srgb_color_at(captured: &CapturedPixels, x: usize, y: usize) -> SrgbColor
 /// color space (Display P3, etc.) to standard sRGB for consistent results.
 ///
 /// Arguments:
-/// - x, y: cursor position in logical points relative to the monitor (as provided by the frontend)
+/// - logical_x, logical_y: cursor position in global logical points
 /// - grid_radius: radius of the pixel grid for magnifier (in logical pixels)
-/// - scale_factor: display scale factor (e.g., 2.0 for Retina)
-/// - monitor_origin: the origin (top-left corner) of the monitor in global screen coordinates
 ///
 /// Returns:
 /// - center color in sRGB (consistent regardless of display profile)
 /// - grid of colors with size (grid_radius * 2 + 1) x (grid_radius * 2 + 1) in LOGICAL pixels
 fn capture_color_at_position(
-    x: u32,
-    y: u32,
+    logical_x: f64,
+    logical_y: f64,
     grid_radius: u32,
-    scale_factor: f64,
-    monitor_origin: (f64, f64),
 ) -> SnappitResult<(SrgbColor, Vec<SrgbColor>)> {
-    // Convert local monitor coordinates to global screen coordinates
-    // CGWindowListCreateImage expects global coordinates
-    let logical_x = x as f64 + monitor_origin.0;
-    let logical_y = y as f64 + monitor_origin.1;
-
     // Grid size in logical pixels
     let grid_size = grid_radius * 2 + 1;
 
@@ -304,8 +295,9 @@ fn capture_color_at_position(
     // Add small padding for safety
     let padding = grid_radius as f64 + 1.0;
 
-    let capture_x = (logical_x - padding).max(0.0);
-    let capture_y = (logical_y - padding).max(0.0);
+    // Do not clamp to 0: external displays can have negative global coordinates.
+    let capture_x = logical_x - padding;
+    let capture_y = logical_y - padding;
     let capture_width = padding * 2.0 + 1.0;
     let capture_height = padding * 2.0 + 1.0;
 
@@ -317,8 +309,18 @@ fn capture_color_at_position(
     // Calculate the cursor position within the captured image (in physical pixels)
     let offset_x = logical_x - capture_x;
     let offset_y = logical_y - capture_y;
-    let center_phys_x = (offset_x * scale_factor).round() as usize;
-    let center_phys_y = (offset_y * scale_factor).round() as usize;
+    let scale_x = if capture_width > 0.0 {
+        captured.width as f64 / capture_width
+    } else {
+        1.0
+    };
+    let scale_y = if capture_height > 0.0 {
+        captured.height as f64 / capture_height
+    } else {
+        1.0
+    };
+    let center_phys_x = (offset_x * scale_x).round() as usize;
+    let center_phys_y = (offset_y * scale_y).round() as usize;
 
     // Get center pixel color (already in sRGB)
     let center_x = center_phys_x.min(captured.width.saturating_sub(1));
@@ -326,7 +328,7 @@ fn capture_color_at_position(
     let center_color = get_srgb_color_at(&captured, center_x, center_y);
 
     // Create pixel grid in LOGICAL pixels
-    // Each logical pixel maps to scale_factor physical pixels
+    // Each logical pixel maps to the capture's effective physical scale.
     let mut grid = Vec::with_capacity((grid_size * grid_size) as usize);
 
     for gy in 0..grid_size {
@@ -337,10 +339,10 @@ fn capture_color_at_position(
 
             // Convert to physical pixel position
             let phys_x = (center_phys_x as isize
-                + (logical_offset_x as f64 * scale_factor).round() as isize)
+                + (logical_offset_x as f64 * scale_x).round() as isize)
                 .max(0) as usize;
             let phys_y = (center_phys_y as isize
-                + (logical_offset_y as f64 * scale_factor).round() as isize)
+                + (logical_offset_y as f64 * scale_y).round() as isize)
                 .max(0) as usize;
 
             // Colors are already in sRGB from the capture
